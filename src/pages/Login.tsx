@@ -20,7 +20,7 @@ export default function Login() {
     try {
       const result = await login(email, password)
       if (result.success) {
-        navigate('/')
+        navigate(result.redirect || '/')
       } else {
         setError(result.error || 'Email ou senha incorretos.')
       }

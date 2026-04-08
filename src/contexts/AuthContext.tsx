@@ -19,8 +19,9 @@ interface AuthContextType {
   clientProfile: ClientProfile | null
   isAuthenticated: boolean
   isDemo: boolean
+  isSuperAdmin: boolean
   loading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; redirect?: string }>
   logout: () => Promise<void>
 }
 
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [clientProfile, setClientProfile] = useState<ClientProfile | null>(null)
   const [isDemo, setIsDemo] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -41,8 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null)
           setClientProfile(null)
           setIsDemo(false)
+          setIsSuperAdmin(false)
         } else if (session?.user && !isDemo) {
-          await loadUserProfile(session.user.id, session.user.email || '')
+          await loadFullProfile(session.user.id, session.user.email || '')
         }
       }
     )
@@ -60,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (session?.user) {
-        await loadUserProfile(session.user.id, session.user.email || '')
+        await loadFullProfile(session.user.id, session.user.email || '')
       }
     } catch (error) {
       console.error('Error checking session:', error)
@@ -69,42 +72,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const loadUserProfile = async (authUserId: string, email: string) => {
-    try {
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id, business_name, business_niche, cw_enabled')
-        .eq('auth_user_id', authUserId)
-        .eq('is_active', true)
-        .single()
+  const loadFullProfile = async (authUserId: string, email: string) => {
+    // 1. Checar se e super admin
+    const { data: superAdmin } = await supabase
+      .from('super_admins')
+      .select('id, name')
+      .eq('email', email)
+      .maybeSingle()
 
-      if (client) {
+    if (superAdmin) {
+      setIsSuperAdmin(true)
+      setUser({
+        id: superAdmin.id,
+        name: superAdmin.name || 'Admin',
+        email: email,
+        company: 'Maquina de Vendas IA',
+      })
+    }
+
+    // 2. Checar se tem client vinculado
+    const { data: client } = await supabase
+      .from('clients')
+      .select('id, business_name, business_niche, cw_enabled, client_type')
+      .eq('auth_user_id', authUserId)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (client) {
+      if (!superAdmin) {
         setUser({
           id: client.id,
           name: client.business_name,
           email: email,
           company: client.business_name,
         })
-        setClientProfile({
-          id: client.id,
-          business_name: client.business_name,
-          business_niche: client.business_niche,
-          client_type: null,
-          cw_enabled: client.cw_enabled,
-        })
       }
-    } catch (error) {
-      console.error('Error loading user profile:', error)
+      setClientProfile({
+        id: client.id,
+        business_name: client.business_name,
+        business_niche: client.business_niche,
+        client_type: client.client_type,
+        cw_enabled: client.cw_enabled,
+      })
+    }
+
+    // 3. Se nao e nenhum dos dois, seta user basico
+    if (!superAdmin && !client) {
+      setUser({
+        id: authUserId,
+        name: email,
+        email: email,
+        company: '',
+      })
     }
   }
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; redirect?: string }> => {
     // Demo mode
     if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
       setUser(mockUser)
       setIsDemo(true)
       setClientProfile(null)
-      return { success: true }
+      return { success: true, redirect: '/' }
     }
 
     // Real Supabase Auth
@@ -120,33 +149,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        await loadUserProfile(data.user.id, data.user.email || email)
+        await loadFullProfile(data.user.id, data.user.email || email)
 
-        // Se nao achou client, pode ser super admin - verifica
-        if (!user) {
-          const { data: superAdmin } = await supabase
-            .from('super_admins')
-            .select('id, name')
-            .eq('email', data.user.email!)
-            .maybeSingle()
+        // Checar se e super admin pra redirecionar
+        const { data: saCheck } = await supabase
+          .from('super_admins')
+          .select('id')
+          .eq('email', data.user.email!)
+          .maybeSingle()
 
-          if (superAdmin) {
-            setUser({
-              id: superAdmin.id,
-              name: superAdmin.name || 'Admin',
-              email: data.user.email || email,
-              company: 'Maquina de Vendas IA',
-            })
-          } else {
-            setUser({
-              id: data.user.id,
-              name: data.user.email || email,
-              email: data.user.email || email,
-              company: '',
-            })
-          }
+        if (saCheck) {
+          return { success: true, redirect: '/super-admin' }
         }
-        return { success: true }
+
+        return { success: true, redirect: '/' }
       }
 
       return { success: false, error: 'Erro ao fazer login' }
@@ -165,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setClientProfile(null)
     setIsDemo(false)
+    setIsSuperAdmin(false)
     localStorage.removeItem('selectedClientId')
   }
 
@@ -175,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clientProfile,
         isAuthenticated: !!user,
         isDemo,
+        isSuperAdmin,
         loading,
         login,
         logout,
