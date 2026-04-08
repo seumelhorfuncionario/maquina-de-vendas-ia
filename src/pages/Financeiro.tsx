@@ -29,20 +29,20 @@ export default function Financeiro() {
 
   const barData = [
     { name: 'Receita', valor: revenue },
-    { name: 'Trafego', valor: trafficCost },
+    { name: 'Tráfego', valor: trafficCost },
     { name: 'Materiais', valor: materialCost },
     { name: 'Lucro', valor: profit },
   ]
 
   const barColors: Record<string, string> = {
     Receita: '#00FF88',
-    Trafego: '#FFD600',
+    'Tráfego': '#FFD600',
     Materiais: '#FFD600',
     Lucro: '#00FF88',
   }
 
   const pieData = [
-    { name: 'Trafego', value: trafficCost },
+    { name: 'Tráfego', value: trafficCost },
     { name: 'Materiais', value: materialCost },
     { name: 'Lucro', value: profit },
   ]
@@ -83,7 +83,7 @@ export default function Financeiro() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ArrowDown className="w-5 h-5 text-[#FFD600]" />
-                <span className="text-[#888] text-sm">Investimento em Trafego</span>
+                <span className="text-[#888] text-sm">Investimento em Tráfego</span>
               </div>
               <span className="text-[#FFD600] font-semibold text-lg">-{fmt(trafficCost)}</span>
             </div>
@@ -100,11 +100,11 @@ export default function Financeiro() {
             {/* Divider */}
             <div className="border-t border-[#1a1a1a] my-2" />
 
-            {/* Lucro Liquido */}
+            {/* Lucro Líquido */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Minus className="w-5 h-5 text-[#00FF88]" />
-                <span className="text-white font-bold text-base">Lucro Liquido</span>
+                <span className="text-white font-bold text-base">Lucro Líquido</span>
               </div>
               <span className="text-3xl font-bold text-[#00FF88] drop-shadow-[0_0_20px_#00FF8880]">
                 {fmt(profit)}
@@ -140,7 +140,7 @@ export default function Financeiro() {
           color="positive"
         />
         <StatCard
-          title="Investimento Trafego"
+          title="Investimento Tráfego"
           value={fmt(trafficCost)}
           icon={<TrendingDown className="w-5 h-5" />}
           color="warning"
@@ -152,7 +152,7 @@ export default function Financeiro() {
           color="warning"
         />
         <StatCard
-          title="Lucro Liquido"
+          title="Lucro Líquido"
           value={fmt(profit)}
           icon={<TrendingUp className="w-5 h-5" />}
           color="positive"

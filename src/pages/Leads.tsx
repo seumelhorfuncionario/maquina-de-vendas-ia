@@ -15,13 +15,25 @@ import type { Lead, LeadStatus, KanbanNote } from '../types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
+// Paleta de cores fixa para colunas do Kanban — distribuída e harmônica
+const COLUMN_PALETTE = [
+  '#6366f1', // indigo
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#f59e0b', // amber
+  '#10b981', // emerald
+  '#06b6d4', // cyan
+  '#3b82f6', // blue
+  '#ef4444', // red
+]
+
 // Colunas fallback para demo mode
 const defaultColumns: { status: LeadStatus; title: string; color: string }[] = [
-  { status: 'Novo Lead', title: 'Novo Lead', color: '#6366f1' },
-  { status: 'Qualificando', title: 'Qualificando', color: '#8b5cf6' },
-  { status: 'Orçamento Enviado', title: 'Orçamento Enviado', color: '#ec4899' },
-  { status: 'Negociando', title: 'Negociando', color: '#10b981' },
-  { status: 'Venda Fechada', title: 'Venda Fechada', color: '#22c55e' },
+  { status: 'Novo Lead', title: 'Novo Lead', color: COLUMN_PALETTE[0] },
+  { status: 'Qualificando', title: 'Qualificando', color: COLUMN_PALETTE[1] },
+  { status: 'Orçamento Enviado', title: 'Orçamento Enviado', color: COLUMN_PALETTE[2] },
+  { status: 'Negociando', title: 'Negociando', color: COLUMN_PALETTE[3] },
+  { status: 'Venda Fechada', title: 'Venda Fechada', color: COLUMN_PALETTE[4] },
 ]
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -183,10 +195,10 @@ export default function Leads() {
 
   const columns = useMemo(() => {
     if (isDemo || funnelStages.length === 0) return defaultColumns
-    return funnelStages.map(stage => ({
+    return funnelStages.map((stage, i) => ({
       status: stage.stage_name as LeadStatus,
       title: stage.stage_name,
-      color: stage.color || (stage.is_conversion ? '#00FF88' : stage.is_qualified ? '#A855F7' : '#00D4FF'),
+      color: COLUMN_PALETTE[i % COLUMN_PALETTE.length],
     }))
   }, [isDemo, funnelStages])
 

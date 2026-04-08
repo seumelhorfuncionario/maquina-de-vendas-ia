@@ -162,7 +162,7 @@ export default function Produtos() {
     <div>
       <PageHeader
         title="Produtos"
-        description="Cadastro e gestao de produtos"
+        description="Cadastro e gestão de produtos"
         action={
           <button
             onClick={openNew}
@@ -183,19 +183,22 @@ export default function Produtos() {
         <div className="flex flex-col items-center justify-center py-20 text-[#888]">
           <Package size={48} className="mb-4 opacity-50" />
           <p className="text-lg">Nenhum produto cadastrado</p>
-          <p className="text-sm mt-1">Clique em &quot;Novo Produto&quot; para comecar</p>
+          <p className="text-sm mt-1">Clique em &quot;Novo Produto&quot; para começar</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
+          {products.map((product, i) => (
             <div
               key={product.id}
-              className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-5 flex flex-col gap-3"
+              className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-5 flex flex-col gap-3 card-glow animate-card-in relative overflow-hidden"
+              style={{ '--glow-color': '#00FF88', animationDelay: `${i * 0.05}s` } as React.CSSProperties}
             >
+              <div className="absolute top-0 left-0 right-0 h-px opacity-30 bg-gradient-to-r from-transparent via-[#00FF8840] to-transparent" />
+
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-white">{product.name}</h3>
-                  <span className="inline-block mt-1 text-xs bg-[#111] text-[#888] rounded-lg px-2 py-0.5">
+                  <h3 className="font-bold text-white tracking-tight">{product.name}</h3>
+                  <span className="inline-block mt-1 text-[11px] bg-[#111] text-[#666] rounded-md px-2 py-0.5 font-medium">
                     {product.size}
                   </span>
                 </div>
@@ -203,36 +206,36 @@ export default function Produtos() {
                   <button
                     onClick={() => openEdit(product)}
                     aria-label={`Editar ${product.name}`}
-                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-white transition-colors cursor-pointer"
+                    className="p-2 rounded-lg hover:bg-[#111] text-[#555] hover:text-white transition-colors cursor-pointer"
                   >
-                    <Pencil size={16} />
+                    <Pencil size={15} />
                   </button>
                   <button
                     onClick={() => { if (window.confirm(`Excluir "${product.name}"?`)) deleteProduct(product.id) }}
                     aria-label={`Excluir ${product.name}`}
-                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-red-400 transition-colors cursor-pointer"
+                    className="p-2 rounded-lg hover:bg-[#111] text-[#555] hover:text-red-400 transition-colors cursor-pointer"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>
 
               <div>
-                <span className="text-2xl font-bold text-[#00FF88]">
+                <span className="text-2xl font-bold font-data text-[#00FF88]">
                   {formatCurrency(product.price)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#888]">Custo: {formatCurrency(product.cost)}</span>
-                <span className={`font-semibold ${marginColor(product.margin)}`}>
+                <span className="text-[#666] font-data text-[12px]">Custo: {formatCurrency(product.cost)}</span>
+                <span className={`font-bold font-data ${marginColor(product.margin)}`}>
                   {product.margin.toFixed(1)}%
                 </span>
               </div>
 
-              <div className="w-full h-1.5 bg-[#111] rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-[#111] rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${marginBarColor(product.margin)}`}
+                  className={`h-full rounded-full ${marginBarColor(product.margin)} transition-all duration-500`}
                   style={{ width: `${Math.min(product.margin, 100)}%` }}
                 />
               </div>
