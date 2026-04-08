@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Save, ArrowLeft, Loader2 } from 'lucide-react'
+import { Save, ArrowLeft, Loader2, Trash2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 
 interface FeatureRow {
@@ -24,6 +24,7 @@ export default function SuperAdminClientForm() {
 
   const [loading, setLoading] = useState(isEditing)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
@@ -203,6 +204,41 @@ export default function SuperAdminClientForm() {
       setError(message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!id) return
+    if (!window.confirm(`Tem certeza que deseja excluir "${form.business_name}"? Esta ação não pode ser desfeita.`)) return
+
+    setDeleting(true)
+    setError('')
+
+    try {
+      // Deletar client_features primeiro (FK)
+      await supabase.from('client_features').delete().eq('client_id', id)
+      // Deletar chats
+      await supabase.from('chats').delete().eq('client_id', id)
+      // Deletar leads
+      await supabase.from('leads').delete().eq('client_id', id)
+      // Deletar sales
+      await supabase.from('sales').delete().eq('client_id', id)
+      // Deletar dashboard_metrics
+      await supabase.from('dashboard_metrics').delete().eq('client_id', id)
+      // Deletar funnel_stages
+      await supabase.from('funnel_stages').delete().eq('client_id', id)
+      // Deletar products
+      await supabase.from('products').delete().eq('client_id', id)
+      // Deletar o client
+      const { error: deleteError } = await supabase.from('clients').delete().eq('id', id)
+      if (deleteError) throw deleteError
+
+      navigate('/super-admin/clients')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao excluir cliente'
+      setError(message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -435,6 +471,20 @@ export default function SuperAdminClientForm() {
           >
             Cancelar
           </button>
+          {isEditing && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex items-center justify-center gap-2 bg-[#FF4D6A18] hover:bg-[#FF4D6A30] border border-[#FF4D6A30] disabled:opacity-50 text-[#FF4D6A] font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
+            >
+              {deleting ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Trash2 size={16} />
+              )}
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </button>
+          )}
           <button
             onClick={handleSave}
             disabled={saving}
