@@ -8,6 +8,38 @@ export interface User {
 
 export type LeadStatus = string
 
+export interface KanbanAgent {
+  id: number
+  name: string
+  avatar_url?: string
+}
+
+export interface KanbanOffer {
+  id: number
+  description: string
+  value: string
+  currency: string
+}
+
+export interface KanbanNote {
+  id: string
+  text: string
+  created_at?: string
+}
+
+export interface KanbanData {
+  item_id: number
+  funnel_name: string
+  status: 'open' | 'won' | 'lost'
+  priority: string
+  value: number
+  assigned_agents: KanbanAgent[]
+  offers: KanbanOffer[]
+  notes: KanbanNote[]
+  deadline_at?: string
+  scheduled_at?: string
+}
+
 export interface Lead {
   id: string
   name: string
@@ -18,6 +50,7 @@ export interface Lead {
   createdAt: string
   value?: number
   kanbanItemId?: string
+  kanban?: KanbanData
 }
 
 export interface Product {
