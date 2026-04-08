@@ -38,42 +38,87 @@ export const useDashboardMetrics = () => {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }))
 
-      // Buscar metricas mais recentes do dashboard_metrics
-      const { data: latestMetric, error: metricError } = await supabase
-        .from('dashboard_metrics')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('metric_date', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (metricError) throw metricError
-
-      // Buscar contagem de leads hoje
       const today = new Date().toISOString().split('T')[0]
-      const { count: leadsToday } = await supabase
-        .from('chats')
-        .select('*', { count: 'exact', head: true })
-        .eq('client_id', clientId)
-        .gte('created_at', today)
-
-      // Buscar contagem total de leads do mes
       const firstOfMonth = new Date()
       firstOfMonth.setDate(1)
       const monthStart = firstOfMonth.toISOString().split('T')[0]
-      const { count: leadsMonth } = await supabase
-        .from('chats')
-        .select('*', { count: 'exact', head: true })
-        .eq('client_id', clientId)
-        .gte('created_at', monthStart)
 
-      // Buscar historico para o grafico (ultimos 30 dias)
-      const { data: historyData } = await supabase
-        .from('dashboard_metrics')
-        .select('metric_date, total_leads, conversions_count, total_revenue')
-        .eq('client_id', clientId)
-        .order('metric_date', { ascending: true })
-        .limit(30)
+      // Buscar tudo em paralelo
+      const [
+        { count: leadsToday },
+        { count: leadsMonth },
+        { data: salesData },
+        { data: trafficData },
+        { data: productsData },
+        { data: historyData },
+        { data: clientData },
+      ] = await Promise.all([
+        // Leads hoje (chats)
+        supabase
+          .from('chats')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', clientId)
+          .gte('created_at', today),
+        // Leads no mês (chats)
+        supabase
+          .from('chats')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', clientId)
+          .gte('created_at', monthStart),
+        // Vendas do mês
+        supabase
+          .from('sales')
+          .select('total, quantity, product_id')
+          .eq('client_id', clientId)
+          .gte('sale_date', monthStart),
+        // Custos de tráfego do mês
+        supabase
+          .from('traffic_costs')
+          .select('spend')
+          .eq('client_id', clientId)
+          .gte('date', monthStart),
+        // Produtos (pra calcular custo material)
+        supabase
+          .from('products')
+          .select('id, cost')
+          .eq('client_id', clientId),
+        // Histórico 30 dias pro gráfico
+        supabase
+          .from('dashboard_metrics')
+          .select('metric_date, total_leads, conversions_count, total_revenue')
+          .eq('client_id', clientId)
+          .order('metric_date', { ascending: true })
+          .limit(30),
+        // Máquina ativa
+        supabase
+          .from('clients')
+          .select('cw_enabled')
+          .eq('id', clientId)
+          .single(),
+      ])
+
+      // Calcular receita
+      const revenue = (salesData || []).reduce((sum, s) => sum + (s.total || 0), 0)
+      const conversions = salesData?.length || 0
+
+      // Calcular custo de tráfego
+      const trafficCost = (trafficData || []).reduce((sum, t) => sum + (t.spend || 0), 0)
+
+      // Calcular custo de materiais
+      const productCostMap = new Map<string, number>()
+      for (const p of (productsData || [])) {
+        if (p.id && p.cost) productCostMap.set(p.id, p.cost)
+      }
+      let materialCost = 0
+      for (const sale of (salesData || [])) {
+        if (sale.product_id && productCostMap.has(sale.product_id)) {
+          materialCost += (productCostMap.get(sale.product_id)! * (sale.quantity || 1))
+        }
+      }
+
+      const profit = revenue - trafficCost - materialCost
+      const totalChatsMonth = leadsMonth || 0
+      const conversionRate = totalChatsMonth > 0 ? Math.round((conversions / totalChatsMonth) * 100 * 10) / 10 : 0
 
       const chartData: ChartData[] = (historyData || []).map(row => ({
         name: new Date(row.metric_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
@@ -82,23 +127,16 @@ export const useDashboardMetrics = () => {
         receita: row.total_revenue || 0,
       }))
 
-      // Verificar se Chatwoot esta ativo (maquina ativa)
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('cw_enabled')
-        .eq('id', clientId)
-        .single()
-
       setData({
         metrics: {
           leadsToday: leadsToday || 0,
-          leadsMonth: leadsMonth || 0,
-          conversions: latestMetric?.conversions_count || 0,
-          conversionRate: latestMetric?.conversion_rate || 0,
-          revenue: latestMetric?.total_revenue || 0,
-          trafficCost: 0, // Vira na Fase 5 com traffic_costs table
-          materialCost: 0, // Vira na Fase 5
-          profit: latestMetric?.total_revenue || 0, // Simplificado por agora
+          leadsMonth: totalChatsMonth,
+          conversions,
+          conversionRate,
+          revenue,
+          trafficCost,
+          materialCost,
+          profit,
           machineActive: clientData?.cw_enabled || false,
         },
         chartData,
