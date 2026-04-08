@@ -8,11 +8,11 @@ import type { LeadStatus } from '../types'
 
 // Colunas fallback para demo mode
 const defaultColumns: { status: LeadStatus; title: string; color: string }[] = [
-  { status: 'new', title: 'Novos Leads', color: '#00D4FF' },
-  { status: 'attending', title: 'Em Atendimento IA', color: '#FFD600' },
-  { status: 'proposal', title: 'Proposta Enviada', color: '#A855F7' },
-  { status: 'sold', title: 'Venda Fechada', color: '#00FF88' },
-  { status: 'lost', title: 'Perdido', color: '#FF4D6A' },
+  { status: 'Novo Lead', title: 'Novo Lead', color: '#6366f1' },
+  { status: 'Qualificando', title: 'Qualificando', color: '#8b5cf6' },
+  { status: 'Orçamento Enviado', title: 'Orçamento Enviado', color: '#ec4899' },
+  { status: 'Negociando', title: 'Negociando', color: '#10b981' },
+  { status: 'Venda Fechada', title: 'Venda Fechada', color: '#22c55e' },
 ]
 
 function formatCurrency(value: number) {

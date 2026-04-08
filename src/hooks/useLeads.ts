@@ -3,26 +3,6 @@ import { supabase } from '@/integrations/supabase/client'
 import { useClientId } from './useClientId'
 import type { Lead, LeadStatus } from '../types'
 
-// Mapeia etapa_fu do Chatwoot/chats para os status do frontend
-const STAGE_MAP: Record<string, LeadStatus> = {
-  'Novos Leads': 'new',
-  'novo': 'new',
-  'Em Atendimento': 'attending',
-  'atendimento': 'attending',
-  'Proposta Enviada': 'proposal',
-  'proposta': 'proposal',
-  'Venda Fechada': 'sold',
-  'venda': 'sold',
-  'ganho': 'sold',
-  'Perdido': 'lost',
-  'perdido': 'lost',
-}
-
-function mapStageToStatus(stage: string | null): LeadStatus {
-  if (!stage) return 'new'
-  return STAGE_MAP[stage] || 'new'
-}
-
 export const useLeads = () => {
   const { clientId, loading: clientLoading } = useClientId()
   const [leads, setLeads] = useState<Lead[]>([])
@@ -53,7 +33,7 @@ export const useLeads = () => {
         phone: chat.phone || '',
         product: chat.tags || '',
         origin: chat.Agente || 'WhatsApp',
-        status: mapStageToStatus(chat.etapa_fu),
+        status: (chat.etapa_fu || 'Novo Lead') as LeadStatus,
         createdAt: chat.created_at ? chat.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
         value: undefined,
       }))
@@ -79,19 +59,11 @@ export const useLeads = () => {
     // Atualiza otimisticamente no frontend
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
 
-    // Mapeia status de volta para etapa_fu do banco
-    const STATUS_TO_STAGE: Record<LeadStatus, string> = {
-      new: 'Novos Leads',
-      attending: 'Em Atendimento',
-      proposal: 'Proposta Enviada',
-      sold: 'Venda Fechada',
-      lost: 'Perdido',
-    }
-
     try {
+      // newStatus agora é o próprio stage_name (ex: "Novo Lead", "Negociando")
       const { error } = await supabase
         .from('chats')
-        .update({ etapa_fu: STATUS_TO_STAGE[newStatus] })
+        .update({ etapa_fu: newStatus })
         .eq('id', Number(id))
 
       if (error) {

@@ -65,11 +65,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       { feature_key: 'ia_vision', feature_name: 'Visao IA', category: 'ai', is_enabled: true },
     ])
     setFunnelStages([
-      { id: '1', client_id: 'demo', stage_name: 'Novos Leads', stage_order: 1, is_qualified: false, is_conversion: false, color: '#00D4FF' },
-      { id: '2', client_id: 'demo', stage_name: 'Em Atendimento', stage_order: 2, is_qualified: false, is_conversion: false, color: '#FFD600' },
-      { id: '3', client_id: 'demo', stage_name: 'Proposta Enviada', stage_order: 3, is_qualified: true, is_conversion: false, color: '#A855F7' },
-      { id: '4', client_id: 'demo', stage_name: 'Venda Fechada', stage_order: 4, is_qualified: true, is_conversion: true, color: '#00FF88' },
-      { id: '5', client_id: 'demo', stage_name: 'Perdidos', stage_order: 5, is_qualified: false, is_conversion: false, color: '#FF4D6A' },
+      { id: '1', client_id: 'demo', stage_name: 'Novo Lead', stage_order: 1, is_qualified: false, is_conversion: false, color: '#6366f1' },
+      { id: '2', client_id: 'demo', stage_name: 'Qualificando', stage_order: 2, is_qualified: false, is_conversion: false, color: '#8b5cf6' },
+      { id: '3', client_id: 'demo', stage_name: 'Orçamento Enviado', stage_order: 3, is_qualified: true, is_conversion: false, color: '#ec4899' },
+      { id: '4', client_id: 'demo', stage_name: 'Negociando', stage_order: 4, is_qualified: true, is_conversion: false, color: '#10b981' },
+      { id: '5', client_id: 'demo', stage_name: 'Venda Fechada', stage_order: 5, is_qualified: true, is_conversion: true, color: '#22c55e' },
+      { id: '6', client_id: 'demo', stage_name: 'Perdido', stage_order: 6, is_qualified: false, is_conversion: false, color: '#FF4D6A' },
     ])
     setLoading(false)
   }

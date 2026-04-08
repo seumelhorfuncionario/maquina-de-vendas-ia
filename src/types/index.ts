@@ -6,7 +6,7 @@ export interface User {
   avatar?: string
 }
 
-export type LeadStatus = 'new' | 'attending' | 'proposal' | 'sold' | 'lost'
+export type LeadStatus = string
 
 export interface Lead {
   id: string
