@@ -87,7 +87,7 @@ export default function SuperAdminOverview() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Painel Super Admin</h1>
-        <p className="text-sm text-[#888] mt-1">Visao geral de todos os clientes e features</p>
+        <p className="text-sm text-[#888] mt-1">Visão geral de todos os clientes e features</p>
       </div>
 
       {/* Stat Cards */}

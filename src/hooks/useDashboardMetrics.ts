@@ -160,7 +160,7 @@ export const useDashboardMetrics = () => {
       setData(prev => ({
         ...prev,
         loading: false,
-        error: err instanceof Error ? err.message : 'Erro ao buscar metricas',
+        error: err instanceof Error ? err.message : 'Erro ao buscar métricas',
       }))
     }
   }, [clientId])

@@ -138,7 +138,7 @@ export default function SuperAdminFeatures() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">Features</h1>
-          <p className="text-sm text-[#888] mt-1">Gerencie as features disponiveis na plataforma</p>
+          <p className="text-sm text-[#888] mt-1">Gerencie as features disponíveis na plataforma</p>
         </div>
         <button
           onClick={openNew}

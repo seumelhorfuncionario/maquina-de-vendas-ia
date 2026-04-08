@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from 'react'
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import {
   User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight,
   Loader2, Zap, Trophy, X, AlertCircle, StickyNote, DollarSign,
@@ -64,10 +64,18 @@ function NotesModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
         body: JSON.stringify({ clientId, kanbanItemId: lead.kanbanItemId, action: 'get_notes' }),
       })
       const data = await res.json()
-      if (data.notes) setNotes(Array.isArray(data.notes) ? data.notes : [])
+      if (data.notes) {
+        const parsed = Array.isArray(data.notes) ? data.notes :
+          (data.notes.notes ? data.notes.notes : [])
+        setNotes(parsed)
+      }
     } catch { /* ignore */ }
     setLoading(false)
   }, [lead.kanbanItemId, clientId])
+
+  // Buscar notas ao abrir o modal
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchNotes() }, [])
 
   const handleSend = async () => {
     if (!newNote.trim() || !lead.kanbanItemId || !clientId || !SUPABASE_URL) return

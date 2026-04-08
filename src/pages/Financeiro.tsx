@@ -52,7 +52,7 @@ export default function Financeiro() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Financeiro" description="Controle financeiro da operacao" />
+        <PageHeader title="Financeiro" description="Controle financeiro da operação" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
           <span className="ml-3 text-sm text-neutral-500">Carregando financeiro...</span>
@@ -63,7 +63,7 @@ export default function Financeiro() {
 
   return (
     <div>
-      <PageHeader title="Financeiro" description="Controle financeiro da operacao" />
+      <PageHeader title="Financeiro" description="Controle financeiro da operação" />
 
       {/* Resumo da Operacao */}
       <div className="mb-8">
@@ -163,7 +163,7 @@ export default function Financeiro() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bar Chart */}
         <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">Analise de Margem</h3>
+          <h3 className="text-sm font-semibold text-white mb-4">Análise de Margem</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
@@ -187,7 +187,7 @@ export default function Financeiro() {
 
         {/* Pie Chart */}
         <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">Distribuicao de Custos</h3>
+          <h3 className="text-sm font-semibold text-white mb-4">Distribuição de Custos</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

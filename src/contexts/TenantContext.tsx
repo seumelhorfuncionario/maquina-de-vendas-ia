@@ -59,10 +59,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       { feature_key: 'dashboard', feature_name: 'Dashboard', category: 'analytics', is_enabled: true },
       { feature_key: 'leads_crm', feature_name: 'Leads CRM', category: 'management', is_enabled: true },
       { feature_key: 'sales', feature_name: 'Vendas', category: 'management', is_enabled: true },
-      { feature_key: 'production', feature_name: 'Producao', category: 'management', is_enabled: true },
+      { feature_key: 'production', feature_name: 'Produção', category: 'management', is_enabled: true },
       { feature_key: 'financial', feature_name: 'Financeiro', category: 'analytics', is_enabled: true },
       { feature_key: 'products', feature_name: 'Produtos', category: 'management', is_enabled: true },
-      { feature_key: 'ia_vision', feature_name: 'Visao IA', category: 'ai', is_enabled: true },
+      { feature_key: 'ia_vision', feature_name: 'Visão IA', category: 'ai', is_enabled: true },
     ])
     setFunnelStages([
       { id: '1', client_id: 'demo', stage_name: 'Novo Lead', stage_order: 1, is_qualified: false, is_conversion: false, color: '#6366f1' },

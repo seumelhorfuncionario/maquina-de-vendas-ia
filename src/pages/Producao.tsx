@@ -30,7 +30,7 @@ export default function Producao() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Producao" description="Acompanhe o status dos pedidos em producao" />
+        <PageHeader title="Produção" description="Acompanhe o status dos pedidos em produção" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
           <span className="ml-3 text-sm text-neutral-500">Carregando pedidos...</span>

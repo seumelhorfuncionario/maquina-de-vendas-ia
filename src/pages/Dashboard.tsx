@@ -30,7 +30,7 @@ import { mockDashboard, mockChartData } from '../data/mock'
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-// Opcoes de metricas disponiveis para o grafico
+// Opções de métricas disponíveis para o gráfico
 const METRIC_OPTIONS = [
   { key: 'receita', label: 'Receita', color: '#00FF88' },
   { key: 'vendas', label: 'Vendas', color: '#00D4FF' },
@@ -64,10 +64,10 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Dashboard" description="Visao geral da sua maquina de vendas" />
+        <PageHeader title="Dashboard" description="Visão geral da sua máquina de vendas" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
-          <span className="ml-3 text-sm text-neutral-500">Carregando metricas...</span>
+          <span className="ml-3 text-sm text-neutral-500">Carregando métricas...</span>
         </div>
       </div>
     )
@@ -77,7 +77,7 @@ export default function Dashboard() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="Visao geral da sua maquina de vendas"
+        description="Visão geral da sua máquina de vendas"
         action={
           <span
             className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold ${
@@ -153,7 +153,7 @@ export default function Dashboard() {
               Desempenho de Vendas
             </h2>
             <p className="text-xs text-[#555]">
-              Selecione as metricas para comparar
+              Selecione as métricas para comparar
             </p>
           </div>
 

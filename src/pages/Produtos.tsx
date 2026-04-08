@@ -181,7 +181,7 @@ export default function Produtos() {
               </div>
 
               <div>
-                <label className="text-sm text-[#888] mb-1 block">Custo de Producao</label>
+                <label className="text-sm text-[#888] mb-1 block">Custo de Produção</label>
                 <input
                   type="number"
                   value={form.cost || ''}

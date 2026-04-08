@@ -19,10 +19,10 @@ const allNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
   { to: '/leads', icon: Users, label: 'Leads (CRM)', feature: 'leads_crm' },
   { to: '/vendas', icon: ShoppingCart, label: 'Vendas', feature: 'sales' },
-  { to: '/producao', icon: Factory, label: 'Producao', feature: 'production' },
+  { to: '/producao', icon: Factory, label: 'Produção', feature: 'production' },
   { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
-  { to: '/ia', icon: Bot, label: 'Visao da IA', feature: 'ia_vision' },
+  { to: '/ia', icon: Bot, label: 'Visão da IA', feature: 'ia_vision' },
 ]
 
 export default function Sidebar() {
