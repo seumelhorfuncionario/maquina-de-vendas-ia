@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, X, Package, Save } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Package, Save, Loader2 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
 import type { Product } from '../types'
@@ -7,7 +7,7 @@ import type { Product } from '../types'
 const emptyForm = { name: '', size: '', price: 0, cost: 0 }
 
 export default function Produtos() {
-  const { products, addProduct, updateProduct, deleteProduct } = useData()
+  const { products, addProduct, updateProduct, deleteProduct, loading } = useData()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -64,7 +64,12 @@ export default function Produtos() {
         }
       />
 
-      {products.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
+          <span className="ml-3 text-sm text-neutral-500">Carregando produtos...</span>
+        </div>
+      ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-[#888]">
           <Package size={48} className="mb-4 opacity-50" />
           <p className="text-lg">Nenhum produto cadastrado</p>

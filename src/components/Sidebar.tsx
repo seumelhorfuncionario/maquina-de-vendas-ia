@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTenant } from '@/contexts/TenantContext'
 import {
   LayoutDashboard,
   Users,
@@ -13,21 +14,27 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/leads', icon: Users, label: 'Leads (CRM)' },
-  { to: '/vendas', icon: ShoppingCart, label: 'Vendas' },
-  { to: '/producao', icon: Factory, label: 'Produção' },
-  { to: '/financeiro', icon: DollarSign, label: 'Financeiro' },
-  { to: '/produtos', icon: Package, label: 'Produtos' },
-  { to: '/ia', icon: Bot, label: 'Visão da IA' },
+const allNavItems = [
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
+  { to: '/leads', icon: Users, label: 'Leads (CRM)', feature: 'leads_crm' },
+  { to: '/vendas', icon: ShoppingCart, label: 'Vendas', feature: 'sales' },
+  { to: '/producao', icon: Factory, label: 'Producao', feature: 'production' },
+  { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
+  { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
+  { to: '/ia', icon: Bot, label: 'Visao da IA', feature: 'ia_vision' },
 ]
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
+  const { hasFeature } = useTenant()
   const [collapsed, setCollapsed] = useState(false)
+
+  const navItems = useMemo(
+    () => allNavItems.filter(item => hasFeature(item.feature)),
+    [hasFeature]
+  )
 
   return (
     <aside className={`fixed top-0 left-0 h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] flex flex-col z-50 transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}>
@@ -37,7 +44,7 @@ export default function Sidebar() {
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <h1 className="text-sm font-bold text-white leading-tight">Máquina de Vendas</h1>
+            <h1 className="text-sm font-bold text-white leading-tight">Maquina de Vendas</h1>
             <span className="text-[10px] text-[#00D4FF] font-semibold tracking-widest uppercase">IA</span>
           </div>
         )}

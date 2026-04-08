@@ -1,4 +1,4 @@
-import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar } from 'lucide-react'
+import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar, Loader2 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
 import type { ProductionStatus } from '../types'
@@ -18,13 +18,25 @@ function formatDate(dateStr: string) {
 }
 
 export default function Producao() {
-  const { production, moveProductionStatus } = useData()
+  const { production, moveProductionStatus, loading } = useData()
 
   const handleMove = (id: string, currentStatus: ProductionStatus, direction: 'left' | 'right') => {
     const currentIndex = statusOrder.indexOf(currentStatus)
     const nextIndex = direction === 'right' ? currentIndex + 1 : currentIndex - 1
     if (nextIndex < 0 || nextIndex >= statusOrder.length) return
     moveProductionStatus(id, statusOrder[nextIndex])
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Producao" description="Acompanhe o status dos pedidos em producao" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
+          <span className="ml-3 text-sm text-neutral-500">Carregando pedidos...</span>
+        </div>
+      </div>
+    )
   }
 
   return (

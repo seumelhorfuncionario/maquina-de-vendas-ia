@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { DollarSign, TrendingUp, ShoppingCart, Trophy } from 'lucide-react'
+import { DollarSign, TrendingUp, ShoppingCart, Trophy, Loader2 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
@@ -16,7 +16,7 @@ const fmtDate = (d: string) => {
 const BAR_COLORS = ['#00FF88', '#00D4FF', '#A855F7', '#FFD600', '#FF4D6A']
 
 export default function Vendas() {
-  const { sales } = useData()
+  const { sales, loading } = useData()
 
   const totalVendido = useMemo(() => sales.reduce((s, v) => s + v.total, 0), [sales])
   const ticketMedio = useMemo(() => (sales.length ? totalVendido / sales.length : 0), [sales, totalVendido])
@@ -35,29 +35,41 @@ export default function Vendas() {
       .slice(0, 5)
   }, [sales])
 
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Vendas" description="Historico de vendas realizadas" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
+          <span className="ml-3 text-sm text-neutral-500">Carregando vendas...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <PageHeader title="Vendas" description="Histórico de vendas realizadas" />
+      <PageHeader title="Vendas" description="Historico de vendas realizadas" />
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Green First */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard
           title="Total Vendido"
           value={fmt(totalVendido)}
           icon={<DollarSign className="w-5 h-5" />}
-          color="green"
+          color="positive"
         />
         <StatCard
-          title="Ticket Médio"
+          title="Ticket Medio"
           value={fmt(ticketMedio)}
           icon={<TrendingUp className="w-5 h-5" />}
-          color="blue"
+          color="positive"
         />
         <StatCard
           title="Total de Vendas"
           value={sales.length}
           icon={<ShoppingCart className="w-5 h-5" />}
-          color="purple"
+          color="positive"
         />
       </div>
 

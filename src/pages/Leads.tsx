@@ -1,17 +1,19 @@
-import { User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight } from 'lucide-react'
+import { useMemo } from 'react'
+import { User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight, Loader2 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
+import { useAuth } from '../contexts/AuthContext'
+import { useTenant } from '@/contexts/TenantContext'
 import type { LeadStatus } from '../types'
 
-const columns: { status: LeadStatus; title: string; color: string }[] = [
+// Colunas fallback para demo mode
+const defaultColumns: { status: LeadStatus; title: string; color: string }[] = [
   { status: 'new', title: 'Novos Leads', color: '#00D4FF' },
   { status: 'attending', title: 'Em Atendimento IA', color: '#FFD600' },
   { status: 'proposal', title: 'Proposta Enviada', color: '#A855F7' },
   { status: 'sold', title: 'Venda Fechada', color: '#00FF88' },
   { status: 'lost', title: 'Perdido', color: '#FF4D6A' },
 ]
-
-const statusOrder: LeadStatus[] = ['new', 'attending', 'proposal', 'sold', 'lost']
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -23,7 +25,22 @@ function formatDate(dateStr: string) {
 }
 
 export default function Leads() {
-  const { leads, moveLeadStatus } = useData()
+  const { leads, moveLeadStatus, loading } = useData()
+  const { isDemo } = useAuth()
+  const { funnelStages } = useTenant()
+
+  // Colunas dinamicas do TenantContext ou fallback para demo
+  const columns = useMemo(() => {
+    if (isDemo || funnelStages.length === 0) return defaultColumns
+
+    return funnelStages.map(stage => ({
+      status: stage.stage_name as LeadStatus,
+      title: stage.stage_name,
+      color: stage.color || (stage.is_conversion ? '#00FF88' : stage.is_qualified ? '#A855F7' : '#00D4FF'),
+    }))
+  }, [isDemo, funnelStages])
+
+  const statusOrder = useMemo(() => columns.map(c => c.status), [columns])
 
   const getLeadsByStatus = (status: LeadStatus) =>
     leads.filter((l) => l.status === status)
@@ -35,6 +52,18 @@ export default function Leads() {
     const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1
     if (newIndex < 0 || newIndex >= statusOrder.length) return
     moveLeadStatus(id, statusOrder[newIndex])
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Leads" description="Kanban de gerenciamento de leads e funil de vendas" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
+          <span className="ml-3 text-sm text-neutral-500">Carregando leads...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -96,10 +125,12 @@ export default function Leads() {
                         <Phone size={12} className="flex-shrink-0" />
                         <span>{lead.phone}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-[#888]">
-                        <Tag size={12} className="flex-shrink-0" />
-                        <span className="truncate">{lead.product}</span>
-                      </div>
+                      {lead.product && (
+                        <div className="flex items-center gap-2 text-xs text-[#888]">
+                          <Tag size={12} className="flex-shrink-0" />
+                          <span className="truncate">{lead.product}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 text-xs text-[#888]">
                         <Globe size={12} className="flex-shrink-0" />
                         <span>{lead.origin}</span>

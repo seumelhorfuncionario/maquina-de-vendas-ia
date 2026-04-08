@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 export default function Login() {
   const [email, setEmail] = useState('carlos@quadrosart.com.br')
   const [password, setPassword] = useState('demo123')
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const { login } = useAuth()
@@ -14,18 +14,18 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(false)
+    setError(null)
     setLoading(true)
 
     try {
-      const success = await login(email, password)
-      if (success) {
+      const result = await login(email, password)
+      if (result.success) {
         navigate('/')
       } else {
-        setError(true)
+        setError(result.error || 'Email ou senha incorretos.')
       }
     } catch {
-      setError(true)
+      setError('Erro inesperado. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -67,7 +67,7 @@ export default function Login() {
           {error && (
             <div className="flex items-center gap-2 mb-4 rounded-lg px-4 py-3 text-sm text-red-400 bg-red-400/10 border border-red-400/20">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Email ou senha incorretos. Tente novamente.</span>
+              <span>{error}</span>
             </div>
           )}
 
