@@ -2,6 +2,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useClientId } from './useClientId'
 import { useCallback, useEffect, useState } from 'react'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+
 export const useKanbanSync = () => {
   const { clientId } = useClientId()
   const [isConnected, setIsConnected] = useState(false)
@@ -19,26 +21,21 @@ export const useKanbanSync = () => {
   }, [clientId])
 
   const syncMoveToStage = useCallback(async (kanbanItemId: string, newStageName: string) => {
-    if (!clientId || !kanbanItemId) return
+    if (!clientId || !kanbanItemId || !SUPABASE_URL) return
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
-
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kanban-move`,
+        `${SUPABASE_URL}/functions/v1/kanban-move`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ clientId, kanbanItemId, newStageName }),
         }
       )
 
       if (!response.ok) {
-        console.error('Kanban sync failed:', await response.text())
+        const text = await response.text()
+        console.error('Kanban sync failed:', text)
       }
     } catch (err) {
       console.error('Kanban sync error:', err)

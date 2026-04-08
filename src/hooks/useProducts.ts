@@ -31,10 +31,11 @@ export const useProducts = () => {
       const mapped: Product[] = (data || []).map(p => ({
         id: p.id,
         name: p.product_name,
-        size: '',
+        size: p.size || '',
         price: p.price,
-        cost: 0,
-        margin: 100,
+        cost: p.cost || 0,
+        margin: p.price > 0 && p.cost ? Math.round(((p.price - p.cost) / p.price) * 100) : 100,
+        image: p.image_url || undefined,
       }))
 
       setProducts(mapped)
@@ -66,6 +67,8 @@ export const useProducts = () => {
           client_id: clientId,
           product_name: product.name,
           price: product.price,
+          cost: product.cost || null,
+          size: product.size || null,
           is_active: true,
         })
 
@@ -88,6 +91,8 @@ export const useProducts = () => {
         .update({
           product_name: product.name,
           price: product.price,
+          cost: product.cost || null,
+          size: product.size || null,
         })
         .eq('id', product.id)
 
