@@ -12,6 +12,12 @@ import Producao from './pages/Producao'
 import Financeiro from './pages/Financeiro'
 import Produtos from './pages/Produtos'
 import IAVision from './pages/IAVision'
+import SuperAdminRoute from './components/SuperAdminRoute'
+import SuperAdminLayout from './components/SuperAdminLayout'
+import SuperAdminOverview from './pages/admin/SuperAdminOverview'
+import SuperAdminClients from './pages/admin/SuperAdminClients'
+import SuperAdminClientForm from './pages/admin/SuperAdminClientForm'
+import SuperAdminFeatures from './pages/admin/SuperAdminFeatures'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +70,20 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route
+              path="/super-admin/*"
+              element={
+                <SuperAdminRoute>
+                  <SuperAdminLayout />
+                </SuperAdminRoute>
+              }
+            >
+              <Route index element={<SuperAdminOverview />} />
+              <Route path="clients" element={<SuperAdminClients />} />
+              <Route path="clients/new" element={<SuperAdminClientForm />} />
+              <Route path="clients/:id/edit" element={<SuperAdminClientForm />} />
+              <Route path="features" element={<SuperAdminFeatures />} />
+            </Route>
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </AuthProvider>
