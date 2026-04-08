@@ -121,6 +121,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         await loadUserProfile(data.user.id, data.user.email || email)
+
+        // Se nao achou client, pode ser super admin - verifica
+        if (!user) {
+          const { data: superAdmin } = await supabase
+            .from('super_admins')
+            .select('id, name')
+            .eq('email', data.user.email!)
+            .maybeSingle()
+
+          if (superAdmin) {
+            setUser({
+              id: superAdmin.id,
+              name: superAdmin.name || 'Admin',
+              email: data.user.email || email,
+              company: 'Maquina de Vendas IA',
+            })
+          } else {
+            setUser({
+              id: data.user.id,
+              name: data.user.email || email,
+              email: data.user.email || email,
+              company: '',
+            })
+          }
+        }
         return { success: true }
       }
 

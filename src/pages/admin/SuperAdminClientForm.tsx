@@ -141,14 +141,13 @@ export default function SuperAdminClientForm() {
           return
         }
 
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-        })
+        // Criar user via RPC (nao usa signUp pra nao trocar a session do admin)
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc('create_auth_user' as any, { p_email: form.email, p_password: form.password })
 
-        if (signUpError) throw signUpError
+        if (rpcError) throw rpcError
 
-        const authUserId = signUpData.user?.id
+        const authUserId = rpcResult as string
         if (!authUserId) throw new Error('Erro ao criar usuario de autenticacao')
 
         // Insert client record

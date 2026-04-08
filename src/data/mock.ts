@@ -2,9 +2,9 @@ import type { Lead, Product, Sale, ProductionOrder, ChartData, DashboardMetrics 
 
 export const mockUser = {
   id: '1',
-  name: 'Carlos Mendes',
+  name: 'Luiz - Arte Nossa',
   email: 'carlos@quadrosart.com.br',
-  company: 'Quadros Art Comunicação Visual',
+  company: 'Arte Nossa Comunicacao Visual',
 }
 
 export const mockProducts: Product[] = [
