@@ -30,7 +30,6 @@ import { mockDashboard, mockChartData } from '../data/mock'
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-// Opções de métricas disponíveis para o gráfico
 const METRIC_OPTIONS = [
   { key: 'receita', label: 'Receita', color: '#00FF88' },
   { key: 'vendas', label: 'Vendas', color: '#00D4FF' },
@@ -46,7 +45,6 @@ export default function Dashboard() {
 
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
 
-  // Seleciona dados demo ou real
   const d = isDemo ? mockDashboard : realMetrics.metrics
   const chartData = isDemo ? mockChartData : realMetrics.chartData
   const loading = !isDemo && realMetrics.loading
@@ -54,7 +52,7 @@ export default function Dashboard() {
   const toggleMetric = (key: MetricKey) => {
     setSelectedMetrics(prev => {
       if (prev.includes(key)) {
-        if (prev.length === 1) return prev // Manter ao menos 1
+        if (prev.length === 1) return prev
         return prev.filter(m => m !== key)
       }
       return [...prev, key]
@@ -80,85 +78,46 @@ export default function Dashboard() {
         description="Visão geral da sua máquina de vendas"
         action={
           <span
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold ${
+            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide ${
               d.machineActive
-                ? 'bg-[#00FF8818] text-[#00FF88] border border-[#00FF8830]'
-                : 'bg-[#FF4D6A18] text-[#FF4D6A] border border-[#FF4D6A30]'
+                ? 'bg-[#00FF8810] text-[#00FF88] border border-[#00FF8825]'
+                : 'bg-[#FF4D6A10] text-[#FF4D6A] border border-[#FF4D6A25]'
             }`}
           >
-            <Activity size={14} />
-            {d.machineActive ? 'Maquina Ativa' : 'Pausada'}
+            <span className={`w-1.5 h-1.5 rounded-full ${d.machineActive ? 'bg-[#00FF88] animate-pulse' : 'bg-[#FF4D6A]'}`} />
+            {d.machineActive ? 'Máquina Ativa' : 'Pausada'}
           </span>
         }
       />
 
-      {/* Stat Cards - Green First */}
+      {/* Stat Cards Grid — staggered entrance */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          title="Leads Hoje"
-          value={d.leadsToday}
-          icon={<Users size={18} />}
-          color="positive"
-        />
-        <StatCard
-          title="Leads no Mes"
-          value={d.leadsMonth}
-          icon={<Users size={18} />}
-          color="positive"
-        />
-        <StatCard
-          title="Vendas Convertidas"
-          value={d.conversions}
-          icon={<UserCheck size={18} />}
-          color="positive"
-        />
-        <StatCard
-          title="Taxa de Conversao"
-          value={`${d.conversionRate}%`}
-          icon={<Percent size={18} />}
-          color="positive"
-        />
-        <StatCard
-          title="Receita Total"
-          value={fmt(d.revenue)}
-          icon={<DollarSign size={18} />}
-          color="positive"
-        />
-        <StatCard
-          title="Custo com Trafego"
-          value={fmt(d.trafficCost)}
-          icon={<Megaphone size={18} />}
-          color="warning"
-        />
-        <StatCard
-          title="Custo com Materiais"
-          value={fmt(d.materialCost)}
-          icon={<Package size={18} />}
-          color="warning"
-        />
-        <StatCard
-          title="Lucro Liquido"
-          value={fmt(d.profit)}
-          icon={<BadgeDollarSign size={18} />}
-          color="positive"
-          subtitle="Resultado final do periodo"
-        />
+        <StatCard title="Leads Hoje" value={d.leadsToday} icon={<Users size={18} />} color="positive" stagger={1} />
+        <StatCard title="Leads no Mês" value={d.leadsMonth} icon={<Users size={18} />} color="positive" stagger={2} />
+        <StatCard title="Vendas Convertidas" value={d.conversions} icon={<UserCheck size={18} />} color="positive" stagger={3} />
+        <StatCard title="Taxa de Conversão" value={`${d.conversionRate}%`} icon={<Percent size={18} />} color="positive" stagger={4} />
+        <StatCard title="Receita Total" value={fmt(d.revenue)} icon={<DollarSign size={18} />} color="positive" stagger={5} />
+        <StatCard title="Custo com Tráfego" value={fmt(d.trafficCost)} icon={<Megaphone size={18} />} color="warning" stagger={6} />
+        <StatCard title="Custo com Materiais" value={fmt(d.materialCost)} icon={<Package size={18} />} color="warning" stagger={7} />
+        <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />
       </div>
 
       {/* Chart Section */}
-      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
+      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 animate-card-in stagger-8 relative overflow-hidden">
+        {/* Subtle top gradient */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00D4FF20] to-transparent" />
+
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-base font-bold text-white tracking-tight">
               Desempenho de Vendas
             </h2>
-            <p className="text-xs text-[#555]">
+            <p className="text-[11px] text-[#555] mt-0.5 font-medium">
               Selecione as métricas para comparar
             </p>
           </div>
 
-          {/* Combo Box - Metric Selector */}
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             {METRIC_OPTIONS.map(opt => {
               const isActive = selectedMetrics.includes(opt.key)
               return (
@@ -167,14 +126,14 @@ export default function Dashboard() {
                   onClick={() => toggleMetric(opt.key)}
                   aria-pressed={isActive}
                   aria-label={`Métrica ${opt.label}`}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                     isActive
                       ? 'border'
-                      : 'bg-[#111] text-[#555] hover:text-[#888]'
+                      : 'bg-[#111] text-[#555] hover:text-[#888] border border-transparent'
                   }`}
                   style={isActive ? {
-                    backgroundColor: opt.color + '15',
-                    borderColor: opt.color + '40',
+                    backgroundColor: opt.color + '10',
+                    borderColor: opt.color + '30',
                     color: opt.color,
                   } : undefined}
                 >
@@ -190,22 +149,33 @@ export default function Dashboard() {
             <defs>
               {METRIC_OPTIONS.map(opt => (
                 <linearGradient key={opt.key} id={`grad-${opt.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={opt.color} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={opt.color} stopOpacity={0} />
+                  <stop offset="0%" stopColor={opt.color} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={opt.color} stopOpacity={0} />
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
-            <XAxis dataKey="name" tick={{ fill: '#555', fontSize: 12 }} />
-            <YAxis tick={{ fill: '#555', fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#141414" vertical={false} />
+            <XAxis
+              dataKey="name"
+              tick={{ fill: '#555', fontSize: 11, fontFamily: 'DM Mono' }}
+              axisLine={{ stroke: '#1a1a1a' }}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fill: '#555', fontSize: 11, fontFamily: 'DM Mono' }}
+              axisLine={false}
+              tickLine={false}
+            />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#111',
+                backgroundColor: '#0a0a0a',
                 border: '1px solid #222',
                 borderRadius: 12,
                 fontSize: 12,
+                fontFamily: 'DM Mono',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               }}
-              labelStyle={{ color: '#888' }}
+              labelStyle={{ color: '#888', fontFamily: 'Plus Jakarta Sans', fontWeight: 600 }}
             />
             {METRIC_OPTIONS.filter(opt => selectedMetrics.includes(opt.key)).map(opt => (
               <Area
@@ -216,6 +186,8 @@ export default function Dashboard() {
                 strokeWidth={2}
                 fill={`url(#grad-${opt.key})`}
                 name={opt.label}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, fill: '#0a0a0a', stroke: opt.color }}
               />
             ))}
           </AreaChart>

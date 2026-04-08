@@ -278,38 +278,40 @@ export default function Leads() {
       )}
 
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => {
+        {columns.map((col, colIdx) => {
           const colLeads = getLeadsByStatus(col.status)
           const isOver = dropTarget === col.status && draggedLead?.status !== col.status
 
           return (
             <div
               key={col.status}
-              className={`min-w-[300px] flex-1 rounded-2xl border p-4 flex flex-col transition-all duration-200 ${
-                isOver ? 'bg-[#111] border-[#00D4FF50] shadow-[0_0_20px_rgba(0,212,255,0.1)]' : 'bg-[#0a0a0a] border-[#1a1a1a]'
+              className={`min-w-[300px] flex-1 rounded-2xl border p-4 flex flex-col transition-all duration-200 animate-card-in ${
+                isOver ? 'bg-[#0d0d0d] border-[#00D4FF40] shadow-[0_0_30px_rgba(0,212,255,0.08)]' : 'bg-[#0a0a0a] border-[#1a1a1a]'
               }`}
+              style={{ animationDelay: `${colIdx * 0.06}s` }}
               onDragEnter={e => handleDragEnter(e, col.status)}
               onDragLeave={e => handleDragLeave(e, col.status)}
               onDragOver={handleDragOver}
               onDrop={e => handleDrop(e, col.status)}
             >
               {/* Column Header */}
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#1a1a1a] pl-3" style={{ borderLeftWidth: 3, borderLeftColor: col.color }}>
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: col.color }} />
-                <span className="text-sm font-semibold text-white flex-1">{col.title}</span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: col.color + '20', color: col.color }}>
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#1a1a1a] relative">
+                <div className="absolute bottom-0 left-0 right-0 h-px opacity-30" style={{ background: `linear-gradient(90deg, ${col.color}, transparent)` }} />
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: col.color, boxShadow: `0 0 8px ${col.color}60` }} />
+                <span className="text-sm font-bold text-white flex-1 tracking-tight">{col.title}</span>
+                <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md" style={{ backgroundColor: col.color + '15', color: col.color }}>
                   {colLeads.length}
                 </span>
               </div>
 
               {isOver && (
-                <div className="border-2 border-dashed border-[#00D4FF40] rounded-xl p-3 mb-3 text-center text-xs text-[#00D4FF60]">
+                <div className="border border-dashed border-[#00D4FF30] rounded-xl p-3 mb-3 text-center text-[11px] text-[#00D4FF50] bg-[#00D4FF05]">
                   Soltar aqui
                 </div>
               )}
 
               {/* Cards */}
-              <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
+              <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto">
                 {colLeads.map((lead) => {
                   const k = lead.kanban
                   const statusInfo = k ? STATUS_COLORS[k.status] || STATUS_COLORS.open : null
@@ -322,15 +324,15 @@ export default function Leads() {
                       draggable
                       onDragStart={e => handleDragStart(e, lead)}
                       onDragEnd={handleDragEnd}
-                      className="bg-[#111] rounded-xl border border-[#1a1a1a] p-3 hover:border-[#333] transition-colors group cursor-grab active:cursor-grabbing"
+                      className="bg-[#0e0e0e] rounded-xl border border-[#1a1a1a] p-3 hover:border-[#2a2a2a] hover:bg-[#111] transition-all duration-200 group cursor-grab active:cursor-grabbing relative overflow-hidden"
                       style={priorityColor ? { borderLeftWidth: 3, borderLeftColor: priorityColor } : undefined}
                     >
                       {/* Header: name + status */}
                       <div className="flex items-center gap-2 mb-2">
-                        <GripVertical size={14} className="text-[#444] flex-shrink-0 group-hover:text-[#888]" />
-                        <span className="text-sm font-bold text-white truncate flex-1">{lead.name}</span>
+                        <GripVertical size={14} className="text-[#333] flex-shrink-0 group-hover:text-[#666] transition-colors" />
+                        <span className="text-[13px] font-bold text-white truncate flex-1">{lead.name}</span>
                         {statusInfo && (
-                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusInfo.bg} ${statusInfo.text}`}>
+                          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${statusInfo.bg} ${statusInfo.text}`}>
                             {statusInfo.label}
                           </span>
                         )}
@@ -338,44 +340,41 @@ export default function Leads() {
 
                       {/* Basic info */}
                       <div className="space-y-1.5 ml-[22px]">
-                        <div className="flex items-center gap-2 text-xs text-[#888]">
-                          <Phone size={12} className="flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-[11px] text-[#666] font-data">
+                          <Phone size={11} className="flex-shrink-0" />
                           <span>{lead.phone}</span>
                         </div>
 
-                        {/* Valor */}
                         {k && k.value > 0 && (
-                          <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: col.color }}>
-                            <DollarSign size={12} className="flex-shrink-0" />
+                          <div className="flex items-center gap-2 text-[11px] font-bold font-data" style={{ color: col.color }}>
+                            <DollarSign size={11} className="flex-shrink-0" />
                             <span>{formatCurrency(k.value)}</span>
                           </div>
                         )}
 
-                        {/* Ofertas */}
                         {k && k.offers.length > 0 && (
-                          <div className="flex items-center gap-2 text-xs text-[#888]">
-                            <Tag size={12} className="flex-shrink-0" />
+                          <div className="flex items-center gap-2 text-[11px] text-[#666]">
+                            <Tag size={11} className="flex-shrink-0" />
                             <span className="truncate">{k.offers.map(o => o.description).join(', ')}</span>
                           </div>
                         )}
 
-                        {/* Agentes atribuídos */}
                         {k && k.assigned_agents.length > 0 && (
-                          <div className="flex items-center gap-2 text-xs text-[#888]">
-                            <UserCircle size={12} className="flex-shrink-0" />
+                          <div className="flex items-center gap-2 text-[11px] text-[#666]">
+                            <UserCircle size={11} className="flex-shrink-0" />
                             <span className="truncate">{k.assigned_agents.map(a => a.name).join(', ')}</span>
                           </div>
                         )}
 
                         {!lead.product && !k && (
-                          <div className="flex items-center gap-2 text-xs text-[#888]">
-                            <Globe size={12} className="flex-shrink-0" />
+                          <div className="flex items-center gap-2 text-[11px] text-[#666]">
+                            <Globe size={11} className="flex-shrink-0" />
                             <span>{lead.origin}</span>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-2 text-xs text-[#888]">
-                          <Calendar size={12} className="flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-[11px] text-[#555] font-data">
+                          <Calendar size={11} className="flex-shrink-0" />
                           <span>{formatDate(lead.createdAt)}</span>
                         </div>
                       </div>
@@ -384,7 +383,7 @@ export default function Leads() {
                       {k && k.notes.length > 0 && isExpanded && (
                         <div className="mt-2 ml-[22px] space-y-1">
                           {k.notes.slice(0, 3).map((note, i) => (
-                            <div key={i} className="text-[10px] text-[#666] bg-[#0a0a0a] rounded-lg px-2 py-1 truncate">
+                            <div key={i} className="text-[10px] text-[#555] bg-[#080808] rounded-lg px-2 py-1 truncate border border-[#1a1a1a]">
                               {note.text}
                             </div>
                           ))}
@@ -392,29 +391,27 @@ export default function Leads() {
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#1a1a1a]">
+                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#151515]">
                         <div className="flex gap-1">
-                          {/* Notes button */}
                           <button
                             onClick={() => setNotesLead(lead)}
                             aria-label={`Notas de ${lead.name}`}
-                            className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-[#FFD600] transition-colors relative cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-[#FFD600] transition-colors relative cursor-pointer"
                           >
-                            <StickyNote size={14} />
+                            <StickyNote size={13} />
                             {k && k.notes.length > 0 && (
                               <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#FFD600] text-black text-[8px] font-bold flex items-center justify-center">
                                 {k.notes.length}
                               </span>
                             )}
                           </button>
-                          {/* Expand toggle */}
                           {k && (k.notes.length > 0 || k.offers.length > 0) && (
                             <button
                               onClick={() => toggleExpand(lead.id)}
                               aria-label={isExpanded ? 'Recolher detalhes' : 'Expandir detalhes'}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-white transition-colors cursor-pointer"
                             >
-                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                             </button>
                           )}
                         </div>
@@ -423,18 +420,18 @@ export default function Leads() {
                             <button
                               onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) - 1])}
                               aria-label={`Mover ${lead.name} para etapa anterior`}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-white transition-colors cursor-pointer"
                             >
-                              <ArrowRight size={14} className="rotate-180" />
+                              <ArrowRight size={13} className="rotate-180" />
                             </button>
                           )}
                           {statusOrder.indexOf(col.status) < statusOrder.length - 1 && (
                             <button
                               onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) + 1])}
                               aria-label={`Mover ${lead.name} para próxima etapa`}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-white transition-colors cursor-pointer"
                             >
-                              <ArrowRight size={14} />
+                              <ArrowRight size={13} />
                             </button>
                           )}
                         </div>
@@ -444,9 +441,11 @@ export default function Leads() {
                 })}
 
                 {colLeads.length === 0 && !isOver && (
-                  <div className="flex flex-col items-center justify-center py-8 text-[#444]">
-                    <User size={24} className="mb-2" />
-                    <span className="text-xs">Nenhum lead</span>
+                  <div className="flex flex-col items-center justify-center py-10 text-[#333]">
+                    <div className="w-10 h-10 rounded-xl bg-[#111] flex items-center justify-center mb-2 border border-[#1a1a1a]">
+                      <User size={18} />
+                    </div>
+                    <span className="text-[11px] font-medium">Nenhum lead</span>
                   </div>
                 )}
               </div>
