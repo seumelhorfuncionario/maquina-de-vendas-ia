@@ -74,8 +74,7 @@ function NotesModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   }, [lead.kanbanItemId, clientId])
 
   // Buscar notas ao abrir o modal
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchNotes() }, [])
+  useEffect(() => { fetchNotes() }, [fetchNotes])
 
   const handleSend = async () => {
     if (!newNote.trim() || !lead.kanbanItemId || !clientId || !SUPABASE_URL) return
