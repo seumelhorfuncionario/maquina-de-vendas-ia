@@ -38,6 +38,18 @@ export const useDashboardMetrics = () => {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }))
 
+      // Sync com Kanban StackLab antes de carregar métricas
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      if (supabaseUrl) {
+        try {
+          await fetch(`${supabaseUrl}/functions/v1/kanban-sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clientId }),
+          })
+        } catch { /* silently ignore sync errors */ }
+      }
+
       const today = new Date().toISOString().split('T')[0]
       const firstOfMonth = new Date()
       firstOfMonth.setDate(1)
