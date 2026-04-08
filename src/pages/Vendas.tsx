@@ -38,7 +38,7 @@ export default function Vendas() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Vendas" description="Historico de vendas realizadas" />
+        <PageHeader title="Vendas" description="Histórico de vendas realizadas" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
           <span className="ml-3 text-sm text-neutral-500">Carregando vendas...</span>
@@ -49,7 +49,7 @@ export default function Vendas() {
 
   return (
     <div>
-      <PageHeader title="Vendas" description="Historico de vendas realizadas" />
+      <PageHeader title="Vendas" description="Histórico de vendas realizadas" />
 
       {/* Summary Cards - Green First */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -135,7 +135,7 @@ export default function Vendas() {
       </div>
 
       {/* Sales Table */}
-      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] overflow-hidden">
+      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#111] text-[#888]">

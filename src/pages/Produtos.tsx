@@ -1,10 +1,120 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, X, Package, Save, Loader2 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
 import type { Product } from '../types'
 
 const emptyForm = { name: '', size: '', price: 0, cost: 0 }
+
+interface ProductModalProps {
+  editingId: string | null
+  form: typeof emptyForm
+  setForm: (f: typeof emptyForm) => void
+  currentMargin: number
+  marginColor: (m: number) => string
+  onClose: () => void
+  onSave: () => void
+}
+
+function ProductModal({ editingId, form, setForm, currentMargin, marginColor, onClose, onSave }: ProductModalProps) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-white">
+            {editingId ? 'Editar Produto' : 'Novo Produto'}
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Fechar modal"
+            className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-white transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-sm text-[#888] mb-1 block">Nome</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
+              placeholder="Nome do produto"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-[#888] mb-1 block">Tamanho</label>
+            <input
+              type="text"
+              value={form.size}
+              onChange={(e) => setForm({ ...form, size: e.target.value })}
+              className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
+              placeholder="Ex: 30ml, 100ml"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-[#888] mb-1 block">Preço de Venda</label>
+            <input
+              type="number"
+              value={form.price || ''}
+              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
+              placeholder="0,00"
+              min={0}
+              step={0.01}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-[#888] mb-1 block">Custo de Produção</label>
+            <input
+              type="number"
+              value={form.cost || ''}
+              onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })}
+              className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
+              placeholder="0,00"
+              min={0}
+              step={0.01}
+            />
+          </div>
+
+          <div className="bg-[#111] rounded-xl px-4 py-3 flex items-center justify-between">
+            <span className="text-sm text-[#888]">Margem calculada</span>
+            <span className={`font-bold ${marginColor(currentMargin)}`}>
+              {currentMargin.toFixed(1)}%
+            </span>
+          </div>
+
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#111] transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={onSave}
+              className="flex-1 flex items-center justify-center gap-2 bg-[#00D4FF] hover:bg-[#00b8e0] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Save size={16} />
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function Produtos() {
   const { products, addProduct, updateProduct, deleteProduct, loading } = useData()
@@ -92,13 +202,15 @@ export default function Produtos() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => openEdit(product)}
-                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-white transition-colors"
+                    aria-label={`Editar ${product.name}`}
+                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-white transition-colors cursor-pointer"
                   >
                     <Pencil size={16} />
                   </button>
                   <button
-                    onClick={() => deleteProduct(product.id)}
-                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-red-400 transition-colors"
+                    onClick={() => { if (window.confirm(`Excluir "${product.name}"?`)) deleteProduct(product.id) }}
+                    aria-label={`Excluir ${product.name}`}
+                    className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-red-400 transition-colors cursor-pointer"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -130,94 +242,15 @@ export default function Produtos() {
       )}
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-6 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-white">
-                {editingId ? 'Editar Produto' : 'Novo Produto'}
-              </h2>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="p-2 rounded-lg hover:bg-[#111] text-[#888] hover:text-white transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Nome</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
-                  placeholder="Nome do produto"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Tamanho</label>
-                <input
-                  type="text"
-                  value={form.size}
-                  onChange={(e) => setForm({ ...form, size: e.target.value })}
-                  className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
-                  placeholder="Ex: 30ml, 100ml"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Preco de Venda</label>
-                <input
-                  type="number"
-                  value={form.price || ''}
-                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                  className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
-                  placeholder="0,00"
-                  min={0}
-                  step={0.01}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Custo de Produção</label>
-                <input
-                  type="number"
-                  value={form.cost || ''}
-                  onChange={(e) => setForm({ ...form, cost: Number(e.target.value) })}
-                  className="w-full bg-[#111] border border-[#1a1a1a] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00D4FF] transition-colors"
-                  placeholder="0,00"
-                  min={0}
-                  step={0.01}
-                />
-              </div>
-
-              <div className="bg-[#111] rounded-xl px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-[#888]">Margem calculada</span>
-                <span className={`font-bold ${marginColor(currentMargin)}`}>
-                  {currentMargin.toFixed(1)}%
-                </span>
-              </div>
-
-              <div className="flex gap-3 mt-2">
-                <button
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#111] transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#00D4FF] hover:bg-[#00b8e0] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors"
-                >
-                  <Save size={16} />
-                  Salvar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ProductModal
+          editingId={editingId}
+          form={form}
+          setForm={setForm}
+          currentMargin={currentMargin}
+          marginColor={marginColor}
+          onClose={() => setModalOpen(false)}
+          onSave={handleSave}
+        />
       )}
     </div>
   )

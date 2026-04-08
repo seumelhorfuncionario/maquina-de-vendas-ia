@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { useKanbanSync } from '@/hooks/useKanbanSync'
 import { useClientId } from '@/hooks/useClientId'
+import { useFunnelLabelConfig } from '@/hooks/useFunnelLabelConfig'
 import type { Lead, LeadStatus, KanbanNote } from '../types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -76,6 +77,13 @@ function NotesModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   // Buscar notas ao abrir o modal
   useEffect(() => { fetchNotes() }, [fetchNotes])
 
+  // Fechar com ESC
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   const handleSend = async () => {
     if (!newNote.trim() || !lead.kanbanItemId || !clientId || !SUPABASE_URL) return
     setSending(true)
@@ -108,7 +116,7 @@ function NotesModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
               <p className="text-xs text-[#555] mt-1">Lead sem vínculo ao Kanban</p>
             )}
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[#1a1a1a] text-[#888]">
+          <button onClick={onClose} aria-label="Fechar notas" className="p-1 rounded-lg hover:bg-[#1a1a1a] text-[#888] cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -166,6 +174,7 @@ export default function Leads() {
   const { isDemo } = useAuth()
   const { funnelStages } = useTenant()
   const { syncMoveToStage, isConnected } = useKanbanSync()
+  const { labelConfigs, isLoading: labelsLoading } = useFunnelLabelConfig()
   const [draggedLead, setDraggedLead] = useState<Lead | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [notesLead, setNotesLead] = useState<Lead | null>(null)
@@ -250,6 +259,21 @@ export default function Leads() {
         <div className="flex items-center gap-2 mb-4 text-xs text-[#00FF88]">
           <Zap size={12} />
           <span>Sincronizado com Kanban</span>
+        </div>
+      )}
+
+      {/* Etiquetas do funil */}
+      {!labelsLoading && labelConfigs.filter(l => l.visible).length > 0 && (
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <Tag size={12} className="text-[#888]" />
+          {labelConfigs.filter(l => l.visible).map(label => (
+            <span
+              key={label.id}
+              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-[#A855F718] text-[#A855F7] border border-[#A855F730]"
+            >
+              {label.label_name}
+            </span>
+          ))}
         </div>
       )}
 
@@ -373,7 +397,8 @@ export default function Leads() {
                           {/* Notes button */}
                           <button
                             onClick={() => setNotesLead(lead)}
-                            className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-[#FFD600] transition-colors relative"
+                            aria-label={`Notas de ${lead.name}`}
+                            className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-[#FFD600] transition-colors relative cursor-pointer"
                           >
                             <StickyNote size={14} />
                             {k && k.notes.length > 0 && (
@@ -386,7 +411,8 @@ export default function Leads() {
                           {k && (k.notes.length > 0 || k.offers.length > 0) && (
                             <button
                               onClick={() => toggleExpand(lead.id)}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors"
+                              aria-label={isExpanded ? 'Recolher detalhes' : 'Expandir detalhes'}
+                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
                             >
                               {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>
@@ -396,7 +422,8 @@ export default function Leads() {
                           {statusOrder.indexOf(col.status) > 0 && (
                             <button
                               onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) - 1])}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors"
+                              aria-label={`Mover ${lead.name} para etapa anterior`}
+                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
                             >
                               <ArrowRight size={14} className="rotate-180" />
                             </button>
@@ -404,7 +431,8 @@ export default function Leads() {
                           {statusOrder.indexOf(col.status) < statusOrder.length - 1 && (
                             <button
                               onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) + 1])}
-                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors"
+                              aria-label={`Mover ${lead.name} para próxima etapa`}
+                              className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors cursor-pointer"
                             >
                               <ArrowRight size={14} />
                             </button>

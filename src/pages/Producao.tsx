@@ -102,14 +102,16 @@ export default function Producao() {
                       <button
                         onClick={() => handleMove(order.id, order.status, 'left')}
                         disabled={colIndex === 0}
-                        className="p-1.5 rounded-lg bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#222] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label={`Mover ${order.clientName} para etapa anterior`}
+                        className="p-1.5 rounded-lg bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#222] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                       >
                         <ArrowLeft size={14} />
                       </button>
                       <button
                         onClick={() => handleMove(order.id, order.status, 'right')}
                         disabled={colIndex === statusOrder.length - 1}
-                        className="p-1.5 rounded-lg bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#222] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label={`Mover ${order.clientName} para próxima etapa`}
+                        className="p-1.5 rounded-lg bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-[#222] transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                       >
                         <ArrowRight size={14} />
                       </button>

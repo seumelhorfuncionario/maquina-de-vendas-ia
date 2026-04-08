@@ -165,7 +165,9 @@ export default function Dashboard() {
                 <button
                   key={opt.key}
                   onClick={() => toggleMetric(opt.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  aria-pressed={isActive}
+                  aria-label={`Métrica ${opt.label}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     isActive
                       ? 'border'
                       : 'bg-[#111] text-[#555] hover:text-[#888]'

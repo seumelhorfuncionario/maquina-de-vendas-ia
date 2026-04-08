@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 
 const allNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
@@ -25,10 +25,14 @@ const allNavItems = [
   { to: '/ia', icon: Bot, label: 'Visão da IA', feature: 'ia_vision' },
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean
+  onToggle: () => void
+}
+
+export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { user, logout } = useAuth()
   const { hasFeature } = useTenant()
-  const [collapsed, setCollapsed] = useState(false)
 
   const navItems = useMemo(
     () => allNavItems.filter(item => hasFeature(item.feature)),
@@ -46,8 +50,9 @@ export default function Sidebar() {
           </div>
         )}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="ml-auto p-1 rounded hover:bg-[#1a1a1a] text-[#888] hover:text-white transition-colors"
+          onClick={onToggle}
+          aria-label={collapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+          className="ml-auto p-1 rounded hover:bg-[#1a1a1a] text-[#888] hover:text-white transition-colors cursor-pointer"
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>

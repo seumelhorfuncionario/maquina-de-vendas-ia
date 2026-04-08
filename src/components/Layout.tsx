@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye } from 'lucide-react'
 import Sidebar from './Sidebar'
 import { useAuth } from '@/contexts/AuthContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
 function ViewingBanner() {
@@ -50,10 +50,13 @@ function ViewingBanner() {
 }
 
 export default function Layout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [])
+
   return (
     <div className="min-h-screen bg-[#050505]">
-      <Sidebar />
-      <div className="ml-[260px] transition-all duration-300">
+      <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
         <ViewingBanner />
         <main className="p-8">
           <Outlet />

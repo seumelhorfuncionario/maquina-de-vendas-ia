@@ -30,7 +30,7 @@ export default function StatCard({ title, value, subtitle, icon, color = 'positi
   const c = colorMap[color] || colorMap.positive
 
   return (
-    <div className={`relative rounded-2xl border ${c.border} bg-[#0a0a0a] p-5 ${c.glow} transition-all duration-300 hover:scale-[1.02]`}>
+    <div className={`relative rounded-2xl border ${c.border} bg-[#0a0a0a] p-5 ${c.glow} transition-all duration-300 hover:brightness-110 hover:border-opacity-60`}>
       <div className="flex items-start justify-between mb-3">
         <p className="text-xs font-medium text-[#888] uppercase tracking-wider">{title}</p>
         <div className={`w-9 h-9 rounded-xl ${c.bg} flex items-center justify-center ${c.text}`}>
