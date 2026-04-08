@@ -36,6 +36,7 @@ export const useLeads = () => {
         status: (chat.etapa_fu || 'Novo Lead') as LeadStatus,
         createdAt: chat.created_at ? chat.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
         value: undefined,
+        kanbanItemId: chat.id_kanban || undefined,
       }))
 
       setLeads(mappedLeads)

@@ -17,6 +17,7 @@ export interface Lead {
   status: LeadStatus
   createdAt: string
   value?: number
+  kanbanItemId?: string
 }
 
 export interface Product {
