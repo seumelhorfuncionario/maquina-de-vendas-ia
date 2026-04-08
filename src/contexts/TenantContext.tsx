@@ -29,10 +29,13 @@ interface TenantContextType {
 const TenantContext = createContext<TenantContextType | null>(null)
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isDemo, clientProfile } = useAuth()
+  const { isAuthenticated, isDemo, isSuperAdmin, clientProfile } = useAuth()
   const [features, setFeatures] = useState<TenantFeature[]>([])
   const [funnelStages, setFunnelStages] = useState<FunnelStage[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Resolve o clientId: super admin pode selecionar via localStorage
+  const resolvedClientId = clientProfile?.id || (isSuperAdmin ? localStorage.getItem('selectedClientId') : null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -44,10 +47,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
     if (isDemo) {
       loadDemoTenantData()
-    } else if (clientProfile?.id) {
-      loadRealTenantData(clientProfile.id)
+    } else if (resolvedClientId) {
+      loadRealTenantData(resolvedClientId)
+    } else {
+      setLoading(false)
     }
-  }, [isAuthenticated, isDemo, clientProfile?.id])
+  }, [isAuthenticated, isDemo, resolvedClientId])
 
   const loadDemoTenantData = () => {
     setFeatures([
@@ -100,7 +105,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }
 
   const hasFeature = (key: string): boolean => {
-    if (isDemo) return true
+    if (isDemo || isSuperAdmin) return true
     const feature = features.find(f => f.feature_key === key)
     return feature?.is_enabled ?? false
   }
