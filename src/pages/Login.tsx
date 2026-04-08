@@ -4,8 +4,8 @@ import { Mail, Lock, AlertCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
-  const [email, setEmail] = useState('carlos@quadrosart.com.br')
-  const [password, setPassword] = useState('demo123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -46,7 +46,7 @@ export default function Login() {
             </h1>
           </div>
           <p className="text-sm text-neutral-500">
-            Sua fábrica no piloto automático
+            Seu melhor funcionário
           </p>
         </div>
 
@@ -127,9 +127,6 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-neutral-600">
-            Demo: carlos@quadrosart.com.br / demo123
-          </p>
         </div>
       </div>
     </div>
