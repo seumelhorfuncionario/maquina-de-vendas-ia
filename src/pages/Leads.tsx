@@ -198,7 +198,7 @@ export default function Leads() {
                         {lead.name}
                       </span>
                       {lead.kanbanItemId && (
-                        <Zap size={10} className="text-[#00FF88] flex-shrink-0" title="Vinculado ao Kanban" />
+                        <span title="Vinculado ao Kanban"><Zap size={10} className="text-[#00FF88] flex-shrink-0" /></span>
                       )}
                     </div>
 
