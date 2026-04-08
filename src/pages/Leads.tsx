@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef } from 'react'
-import { User, Phone, Tag, Calendar, Globe, GripVertical, Loader2, Zap } from 'lucide-react'
+import { User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight, Loader2, Zap } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
 import { useAuth } from '../contexts/AuthContext'
@@ -225,6 +225,28 @@ export default function Leads() {
                         <div className="text-xs font-semibold" style={{ color: col.color }}>
                           {formatCurrency(lead.value)}
                         </div>
+                      )}
+                    </div>
+
+                    {/* Move buttons */}
+                    <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-[#1a1a1a]">
+                      {statusOrder.indexOf(col.status) > 0 && (
+                        <button
+                          onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) - 1])}
+                          className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors"
+                          title={`Mover para ${columns[statusOrder.indexOf(col.status) - 1]?.title}`}
+                        >
+                          <ArrowRight size={14} className="rotate-180" />
+                        </button>
+                      )}
+                      {statusOrder.indexOf(col.status) < statusOrder.length - 1 && (
+                        <button
+                          onClick={() => handleMove(lead, statusOrder[statusOrder.indexOf(col.status) + 1])}
+                          className="p-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] text-[#888] hover:text-white transition-colors"
+                          title={`Mover para ${columns[statusOrder.indexOf(col.status) + 1]?.title}`}
+                        >
+                          <ArrowRight size={14} />
+                        </button>
                       )}
                     </div>
                   </div>
