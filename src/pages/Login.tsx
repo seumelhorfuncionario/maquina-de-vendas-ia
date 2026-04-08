@@ -40,7 +40,7 @@ export default function Login() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <img src="/brand/logo-smf.png" alt="SMF Logo" className="w-10 h-10 rounded-lg" />
+            <img src="/brand/logo-smf.webp" alt="SMF Logo" className="w-10 h-10 rounded-lg" />
             <h1 className="text-2xl font-bold text-white tracking-tight">
               Máquina de Vendas IA
             </h1>

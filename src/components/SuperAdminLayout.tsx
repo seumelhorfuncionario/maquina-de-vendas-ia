@@ -25,7 +25,7 @@ export default function SuperAdminLayout() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo + Badge */}
           <div className="flex items-center gap-3">
-            <img src="/brand/logo-smf.png" alt="SMF Logo" className="w-8 h-8 rounded-lg" />
+            <img src="/brand/logo-smf.webp" alt="SMF Logo" className="w-8 h-8 rounded-lg" />
             <span className="text-lg font-bold text-white tracking-tight">
               Máquina de Vendas IA
             </span>
