@@ -10,7 +10,6 @@ import {
   Package,
   Bot,
   LogOut,
-  Zap,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -39,9 +38,7 @@ export default function Sidebar() {
   return (
     <aside className={`fixed top-0 left-0 h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] flex flex-col z-50 transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[260px]'}`}>
       <div className="p-5 border-b border-[#1a1a1a] flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#0088AA] flex items-center justify-center shrink-0">
-          <Zap size={20} className="text-white" />
-        </div>
+        <img src="/brand/logo-smf.png" alt="SMF Logo" className="w-9 h-9 rounded-lg shrink-0" />
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="text-sm font-bold text-white leading-tight">Maquina de Vendas</h1>
