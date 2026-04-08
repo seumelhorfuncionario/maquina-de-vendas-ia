@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import {
   User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight,
   Loader2, Zap, Trophy, X, AlertCircle, StickyNote, DollarSign,
-  UserCircle, Send, ChevronDown, ChevronUp,
+  UserCircle, Send, ChevronDown, ChevronUp, RefreshCw,
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
@@ -11,6 +11,7 @@ import { useTenant } from '@/contexts/TenantContext'
 import { useKanbanSync } from '@/hooks/useKanbanSync'
 import { useClientId } from '@/hooks/useClientId'
 import { useFunnelLabelConfig } from '@/hooks/useFunnelLabelConfig'
+import { useSync } from '@/hooks/useSync'
 import type { Lead, LeadStatus, KanbanNote } from '../types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -187,6 +188,7 @@ export default function Leads() {
   const { funnelStages } = useTenant()
   const { syncMoveToStage, isConnected } = useKanbanSync()
   const { labelConfigs, isLoading: labelsLoading } = useFunnelLabelConfig()
+  const { sync, syncing } = useSync()
   const [draggedLead, setDraggedLead] = useState<Lead | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [notesLead, setNotesLead] = useState<Lead | null>(null)
@@ -265,7 +267,21 @@ export default function Leads() {
 
   return (
     <div>
-      <PageHeader title="Leads" description="Kanban de gerenciamento de leads e funil de vendas" />
+      <PageHeader
+        title="Leads"
+        description="Kanban de gerenciamento de leads e funil de vendas"
+        action={
+          <button
+            onClick={async () => { await sync(); window.location.reload() }}
+            disabled={syncing}
+            aria-label="Sincronizar leads com CRM"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#00D4FF10] text-[#00D4FF] border border-[#00D4FF25] hover:bg-[#00D4FF20] transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Sincronizando...' : 'Sincronizar'}
+          </button>
+        }
+      />
 
       {isConnected && (
         <div className="flex items-center gap-2 mb-4 text-xs text-[#00FF88]">

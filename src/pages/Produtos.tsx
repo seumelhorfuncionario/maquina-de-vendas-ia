@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Plus, Pencil, Trash2, X, Package, Save, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Package, Save, Loader2, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
+import { useSync } from '@/hooks/useSync'
 import type { Product } from '../types'
 
 const emptyForm = { name: '', size: '', price: 0, cost: 0 }
@@ -118,6 +119,7 @@ function ProductModal({ editingId, form, setForm, currentMargin, marginColor, on
 
 export default function Produtos() {
   const { products, addProduct, updateProduct, deleteProduct, loading } = useData()
+  const { sync, syncing } = useSync()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
@@ -164,13 +166,24 @@ export default function Produtos() {
         title="Produtos"
         description="Cadastro e gestão de produtos"
         action={
-          <button
-            onClick={openNew}
-            className="flex items-center gap-2 bg-[#00FF88] hover:bg-[#00cc6e] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <Plus size={18} />
-            Novo Produto
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => { await sync(); window.location.reload() }}
+              disabled={syncing}
+              aria-label="Sincronizar produtos com CRM"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#00D4FF10] text-[#00D4FF] border border-[#00D4FF25] hover:bg-[#00D4FF20] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar'}
+            </button>
+            <button
+              onClick={openNew}
+              className="flex items-center gap-2 bg-[#00FF88] hover:bg-[#00cc6e] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+            >
+              <Plus size={18} />
+              Novo Produto
+            </button>
+          </div>
         }
       />
 

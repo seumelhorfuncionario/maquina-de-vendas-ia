@@ -10,6 +10,7 @@ import {
   BadgeDollarSign,
   Activity,
   Loader2,
+  RefreshCw,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -26,6 +27,7 @@ import { useData } from '../contexts/DataContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
 import { mockDashboard, mockChartData } from '../data/mock'
+import { useSync } from '@/hooks/useSync'
 
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -44,6 +46,7 @@ export default function Dashboard() {
   const realMetrics = useDashboardMetrics()
 
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
+  const { sync, syncing } = useSync()
 
   const d = isDemo ? mockDashboard : realMetrics.metrics
   const chartData = isDemo ? mockChartData : realMetrics.chartData
@@ -77,16 +80,27 @@ export default function Dashboard() {
         title="Dashboard"
         description="Visão geral da sua máquina de vendas"
         action={
-          <span
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide ${
-              d.machineActive
-                ? 'bg-[#00FF8810] text-[#00FF88] border border-[#00FF8825]'
-                : 'bg-[#FF4D6A10] text-[#FF4D6A] border border-[#FF4D6A25]'
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${d.machineActive ? 'bg-[#00FF88] animate-pulse' : 'bg-[#FF4D6A]'}`} />
-            {d.machineActive ? 'Máquina Ativa' : 'Pausada'}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => { await sync(); realMetrics.refetch?.() }}
+              disabled={syncing}
+              aria-label="Sincronizar com CRM"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#00D4FF10] text-[#00D4FF] border border-[#00D4FF25] hover:bg-[#00D4FF20] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar'}
+            </button>
+            <span
+              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide ${
+                d.machineActive
+                  ? 'bg-[#00FF8810] text-[#00FF88] border border-[#00FF8825]'
+                  : 'bg-[#FF4D6A10] text-[#FF4D6A] border border-[#FF4D6A25]'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${d.machineActive ? 'bg-[#00FF88] animate-pulse' : 'bg-[#FF4D6A]'}`} />
+              {d.machineActive ? 'Máquina Ativa' : 'Pausada'}
+            </span>
+          </div>
         }
       />
 
