@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { TenantProvider } from './contexts/TenantContext'
 import { DataProvider } from './contexts/DataContext'
 import Layout from './components/Layout'
@@ -33,7 +34,7 @@ function ProtectedRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#050505' }}>
+      <div className="min-h-screen flex items-center justify-center surface-base">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#00D4FF] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-neutral-500">Carregando...</span>
@@ -65,6 +66,7 @@ function ProtectedRoutes() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
@@ -89,5 +91,6 @@ export default function App() {
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }

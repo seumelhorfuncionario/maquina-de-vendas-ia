@@ -31,16 +31,17 @@ function ViewingBanner() {
   }
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-2.5 bg-[#00D4FF15] border-b border-[#00D4FF30]">
+    <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-2.5 border-b border-theme" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, var(--bg-card))' }}>
       <div className="flex items-center gap-3">
-        <Eye size={16} className="text-[#00D4FF]" />
-        <span className="text-sm text-[#00D4FF] font-medium">
-          Visualizando: <strong className="text-white">{clientName}</strong>
+        <Eye size={16} style={{ color: 'var(--accent-cyan)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
+          Visualizando: <strong className="text-theme-primary">{clientName}</strong>
         </span>
       </div>
       <button
         onClick={handleBack}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#00D4FF] hover:bg-[#00D4FF15] transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+        style={{ color: 'var(--accent-cyan)' }}
       >
         <ArrowLeft size={14} />
         Voltar ao Admin
@@ -54,7 +55,7 @@ export default function Layout() {
   const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [])
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen surface-base">
       <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
         <ViewingBanner />

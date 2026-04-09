@@ -72,8 +72,8 @@ export default function Dashboard() {
       <div>
         <PageHeader title="Dashboard" description="Visão geral da sua máquina de vendas" />
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-[#00D4FF]" />
-          <span className="ml-3 text-sm text-neutral-500">Carregando métricas...</span>
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
+          <span className="ml-3 text-sm text-theme-muted">Carregando métricas...</span>
         </div>
       </div>
     )
@@ -134,12 +134,12 @@ export default function Dashboard() {
 
       {/* Lista de agendamentos do mês */}
       {agents.agendamentos.length > 0 && (
-        <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 mb-8 animate-card-in stagger-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#A855F720] to-transparent" />
+        <div className="rounded-2xl border border-theme surface-card p-6 mb-8 animate-card-in stagger-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent-purple) 15%, transparent), transparent)' }} />
           <div className="flex items-center gap-2 mb-4">
-            <CalendarCheck size={16} className="text-[#00D4FF]" />
-            <h2 className="text-base font-bold text-white tracking-tight">Agendamentos do Mês</h2>
-            <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md bg-[#00D4FF10] text-[#00D4FF]">
+            <CalendarCheck size={16} style={{ color: 'var(--accent-cyan)' }} />
+            <h2 className="text-base font-bold text-theme-primary tracking-tight">Agendamentos do Mês</h2>
+            <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 10%, transparent)', color: 'var(--accent-cyan)' }}>
               {agents.agendamentosCount}
             </span>
           </div>
@@ -148,12 +148,12 @@ export default function Dashboard() {
               const date = new Date(ag.data_inicio)
               const isPast = date < new Date()
               return (
-                <div key={ag.id} className={`flex items-center justify-between rounded-xl bg-[#0e0e0e] border border-[#1a1a1a] px-4 py-3 ${isPast ? 'opacity-50' : ''}`}>
+                <div key={ag.id} className={`flex items-center justify-between rounded-xl surface-card-hover border border-theme px-4 py-3 ${isPast ? 'opacity-50' : ''}`} style={{ backgroundColor: 'var(--bg-card-hover)' }}>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-[11px] font-data text-[#00D4FF] w-[70px] flex-shrink-0">
+                    <span className="text-[11px] font-data w-[70px] flex-shrink-0" style={{ color: 'var(--accent-cyan)' }}>
                       {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-sm font-semibold text-white truncate">{ag.nome_cliente}</span>
+                    <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
                   </div>
                   <span className="text-[11px] text-[#666] truncate max-w-[250px] ml-3 hidden lg:block">{ag.procedimento}</span>
                 </div>
@@ -167,16 +167,15 @@ export default function Dashboard() {
       )}
 
       {/* Chart Section */}
-      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 animate-card-in stagger-8 relative overflow-hidden">
-        {/* Subtle top gradient */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00D4FF20] to-transparent" />
+      <div className="rounded-2xl border border-theme surface-card p-6 animate-card-in stagger-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent-cyan) 15%, transparent), transparent)' }} />
 
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">
+            <h2 className="text-base font-bold text-theme-primary tracking-tight">
               Desempenho de Vendas
             </h2>
-            <p className="text-[11px] text-[#555] mt-0.5 font-medium">
+            <p className="text-[11px] text-theme-muted mt-0.5 font-medium">
               Selecione as métricas para comparar
             </p>
           </div>
@@ -193,7 +192,7 @@ export default function Dashboard() {
                   className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                     isActive
                       ? 'border'
-                      : 'bg-[#111] text-[#555] hover:text-[#888] border border-transparent'
+                      : 'surface-elevated text-theme-muted hover:text-theme-secondary border border-transparent'
                   }`}
                   style={isActive ? {
                     backgroundColor: opt.color + '10',
@@ -218,28 +217,29 @@ export default function Dashboard() {
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#141414" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="name"
-              tick={{ fill: '#555', fontSize: 11, fontFamily: 'DM Mono' }}
-              axisLine={{ stroke: '#1a1a1a' }}
+              tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'DM Mono' }}
+              axisLine={{ stroke: 'var(--border)' }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: '#555', fontSize: 11, fontFamily: 'DM Mono' }}
+              tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'DM Mono' }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #222',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border)',
                 borderRadius: 12,
                 fontSize: 12,
                 fontFamily: 'DM Mono',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                color: 'var(--text-primary)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
               }}
-              labelStyle={{ color: '#888', fontFamily: 'Plus Jakarta Sans', fontWeight: 600 }}
+              labelStyle={{ color: 'var(--text-secondary)', fontFamily: 'Plus Jakarta Sans', fontWeight: 600 }}
             />
             {METRIC_OPTIONS.filter(opt => selectedMetrics.includes(opt.key)).map(opt => (
               <Area
@@ -251,7 +251,7 @@ export default function Dashboard() {
                 fill={`url(#grad-${opt.key})`}
                 name={opt.label}
                 dot={false}
-                activeDot={{ r: 4, strokeWidth: 2, fill: '#0a0a0a', stroke: opt.color }}
+                activeDot={{ r: 4, strokeWidth: 2, fill: 'var(--bg-card)', stroke: opt.color }}
               />
             ))}
           </AreaChart>
