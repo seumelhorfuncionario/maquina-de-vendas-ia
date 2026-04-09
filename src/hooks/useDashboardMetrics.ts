@@ -53,7 +53,14 @@ export const useDashboardMetrics = () => {
       firstOfMonth.setDate(1)
       const monthStart = firstOfMonth.toISOString().split('T')[0]
 
-      // Buscar tudo em paralelo
+      // Timeout de 15s para evitar loading infinito
+      const withTimeout = <T,>(promise: Promise<T>, ms = 15000): Promise<T> =>
+        Promise.race([
+          promise,
+          new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Query timeout')), ms)),
+        ])
+
+      // Buscar tudo em paralelo com timeout
       const [
         { count: leadsToday },
         { count: leadsMonth },
@@ -62,50 +69,43 @@ export const useDashboardMetrics = () => {
         { data: productsData },
         { data: historyData },
         { data: clientData },
-      ] = await Promise.all([
-        // Leads hoje (chats)
+      ] = await withTimeout(Promise.all([
         supabase
           .from('chats')
           .select('*', { count: 'exact', head: true })
           .eq('client_id', clientId)
           .gte('created_at', today),
-        // Leads no mês (chats)
         supabase
           .from('chats')
           .select('*', { count: 'exact', head: true })
           .eq('client_id', clientId)
           .gte('created_at', monthStart),
-        // Vendas do mês
         supabase
           .from('sales')
           .select('total, quantity, product_id')
           .eq('client_id', clientId)
           .gte('sale_date', monthStart),
-        // Custos de tráfego do mês
         supabase
           .from('traffic_costs')
           .select('spend')
           .eq('client_id', clientId)
           .gte('date', monthStart),
-        // Produtos (pra calcular custo material)
         supabase
           .from('products')
           .select('id, cost')
           .eq('client_id', clientId),
-        // Histórico 30 dias pro gráfico
         supabase
           .from('dashboard_metrics')
           .select('metric_date, total_leads, conversions_count, total_revenue')
           .eq('client_id', clientId)
           .order('metric_date', { ascending: true })
           .limit(30),
-        // Máquina ativa
         supabase
           .from('clients')
           .select('cw_enabled')
           .eq('id', clientId)
           .single(),
-      ])
+      ]))
 
       // Calcular receita
       const revenue = (salesData || []).reduce((sum, s) => sum + (s.total || 0), 0)
