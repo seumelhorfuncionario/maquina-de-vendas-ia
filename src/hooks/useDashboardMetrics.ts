@@ -38,16 +38,14 @@ export const useDashboardMetrics = () => {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }))
 
-      // Sync com Kanban StackLab antes de carregar métricas
+      // Sync com Kanban StackLab em background (fire-and-forget, não bloqueia métricas)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       if (supabaseUrl) {
-        try {
-          await fetch(`${supabaseUrl}/functions/v1/kanban-sync`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientId }),
-          })
-        } catch { /* silently ignore sync errors */ }
+        fetch(`${supabaseUrl}/functions/v1/kanban-sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId }),
+        }).catch(() => {})
       }
 
       const today = new Date().toISOString().split('T')[0]
