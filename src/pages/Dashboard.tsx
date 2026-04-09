@@ -121,12 +121,12 @@ export default function Dashboard() {
         <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />
       </div>
 
-      {/* Agents Cards — só mostra se tiver agentes configurados */}
-      {agents.config?.agent_whatsapp_id && (
+      {/* Agents Cards — só mostra se tiver dados do banco de agentes */}
+      {!agents.loading && (agents.agendamentosCount > 0 || agents.chatsWhatsapp > 0 || agents.chatsInstagram > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <StatCard title="Agendamentos no Mês" value={agents.agendamentosCount} icon={<CalendarCheck size={18} />} color="neutral" stagger={1} />
           <StatCard title="Chats WhatsApp" value={agents.chatsWhatsapp.toLocaleString()} icon={<MessageCircle size={18} />} color="positive" stagger={2} />
-          {agents.config?.agent_instagram_id && (
+          {agents.chatsInstagram > 0 && (
             <StatCard title="Chats Instagram" value={agents.chatsInstagram.toLocaleString()} icon={<Instagram size={18} />} color="purple" stagger={3} />
           )}
         </div>
