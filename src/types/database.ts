@@ -395,6 +395,7 @@ export type Database = {
           agent_whatsapp_id: number | null
           agent_instagram_id: number | null
           agents_supabase_ref: string | null
+          dashboard_config: Record<string, boolean> | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -422,6 +423,7 @@ export type Database = {
           agent_whatsapp_id?: number | null
           agent_instagram_id?: number | null
           agents_supabase_ref?: string | null
+          dashboard_config?: Record<string, boolean> | null
         }
         Update: {
           auth_user_id?: string | null
@@ -449,6 +451,7 @@ export type Database = {
           agent_whatsapp_id?: number | null
           agent_instagram_id?: number | null
           agents_supabase_ref?: string | null
+          dashboard_config?: Record<string, boolean> | null
         }
         Relationships: []
       }

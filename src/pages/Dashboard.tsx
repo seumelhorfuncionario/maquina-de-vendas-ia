@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Users,
   UserCheck,
@@ -32,6 +32,8 @@ import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
 import { mockDashboard, mockChartData } from '../data/mock'
 import { useSync } from '@/hooks/useSync'
 import { useAgentsData } from '@/hooks/useAgentsData'
+import { useClientId } from '@/hooks/useClientId'
+import { supabase } from '@/integrations/supabase/client'
 
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -52,6 +54,21 @@ export default function Dashboard() {
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
   const agents = useAgentsData()
+  const { clientId } = useClientId()
+
+  // Dashboard config — quais cards mostrar
+  const [dc, setDc] = useState<Record<string, boolean>>({
+    leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
+    revenue: true, traffic_cost: true, material_cost: true, profit: true,
+  })
+
+  useEffect(() => {
+    if (!clientId) return
+    supabase.from('clients').select('dashboard_config').eq('id', clientId).single()
+      .then(({ data }) => {
+        if (data?.dashboard_config) setDc(data.dashboard_config as Record<string, boolean>)
+      })
+  }, [clientId])
 
   const d = isDemo ? mockDashboard : realMetrics.metrics
   const chartData = isDemo ? mockChartData : realMetrics.chartData
@@ -111,14 +128,14 @@ export default function Dashboard() {
 
       {/* Stat Cards Grid — staggered entrance */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title="Leads Hoje" value={d.leadsToday} icon={<Users size={18} />} color="positive" stagger={1} />
-        <StatCard title="Leads no Mês" value={d.leadsMonth} icon={<Users size={18} />} color="positive" stagger={2} />
-        <StatCard title="Vendas Convertidas" value={d.conversions} icon={<UserCheck size={18} />} color="positive" stagger={3} />
-        <StatCard title="Taxa de Conversão" value={`${d.conversionRate}%`} icon={<Percent size={18} />} color="positive" stagger={4} />
-        <StatCard title="Receita Total" value={fmt(d.revenue)} icon={<DollarSign size={18} />} color="positive" stagger={5} />
-        <StatCard title="Custo com Tráfego" value={fmt(d.trafficCost)} icon={<Megaphone size={18} />} color="warning" stagger={6} />
-        <StatCard title="Custo com Materiais" value={fmt(d.materialCost)} icon={<Package size={18} />} color="warning" stagger={7} />
-        <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />
+        {dc.leads_today !== false && <StatCard title="Leads Hoje" value={d.leadsToday} icon={<Users size={18} />} color="positive" stagger={1} />}
+        {dc.leads_month !== false && <StatCard title="Leads no Mês" value={d.leadsMonth} icon={<Users size={18} />} color="positive" stagger={2} />}
+        {dc.conversions !== false && <StatCard title="Vendas Convertidas" value={d.conversions} icon={<UserCheck size={18} />} color="positive" stagger={3} />}
+        {dc.conversion_rate !== false && <StatCard title="Taxa de Conversão" value={`${d.conversionRate}%`} icon={<Percent size={18} />} color="positive" stagger={4} />}
+        {dc.revenue !== false && <StatCard title="Receita Total" value={fmt(d.revenue)} icon={<DollarSign size={18} />} color="positive" stagger={5} />}
+        {dc.traffic_cost !== false && <StatCard title="Custo com Tráfego" value={fmt(d.trafficCost)} icon={<Megaphone size={18} />} color="warning" stagger={6} />}
+        {dc.material_cost !== false && <StatCard title="Custo com Materiais" value={fmt(d.materialCost)} icon={<Package size={18} />} color="warning" stagger={7} />}
+        {dc.profit !== false && <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />}
       </div>
 
       {/* Agents Cards — só mostra se tiver dados do banco de agentes */}

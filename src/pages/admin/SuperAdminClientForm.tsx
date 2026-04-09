@@ -41,6 +41,16 @@ export default function SuperAdminClientForm() {
     agent_whatsapp_id: '',
     agent_instagram_id: '',
     agents_supabase_ref: 'wacotfqoarsbazrreeco',
+    dashboard_config: {
+      leads_today: true,
+      leads_month: true,
+      conversions: true,
+      conversion_rate: true,
+      revenue: true,
+      traffic_cost: true,
+      material_cost: true,
+      profit: true,
+    } as Record<string, boolean>,
   })
 
   const [allFeatures, setAllFeatures] = useState<FeatureRow[]>([])
@@ -85,6 +95,10 @@ export default function SuperAdminClientForm() {
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
           agents_supabase_ref: client.agents_supabase_ref || 'wacotfqoarsbazrreeco',
+          dashboard_config: (client.dashboard_config as Record<string, boolean>) || {
+            leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
+            revenue: true, traffic_cost: true, material_cost: true, profit: true,
+          },
         })
 
         // Load client features
@@ -139,6 +153,7 @@ export default function SuperAdminClientForm() {
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
+            dashboard_config: form.dashboard_config,
           })
           .eq('id', id!)
 
@@ -177,6 +192,7 @@ export default function SuperAdminClientForm() {
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
+            dashboard_config: form.dashboard_config,
           })
           .select('id')
           .single()
@@ -472,6 +488,44 @@ export default function SuperAdminClientForm() {
                 placeholder="wacotfqoarsbazrreeco"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Dashboard Cards */}
+        <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
+          <h2 className="text-base font-semibold text-white mb-4">Cards do Dashboard</h2>
+          <p className="text-xs text-[#888] mb-4">Escolha quais cards aparecem no dashboard deste cliente</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {[
+              { key: 'leads_today', label: 'Leads Hoje' },
+              { key: 'leads_month', label: 'Leads no Mês' },
+              { key: 'conversions', label: 'Vendas Convertidas' },
+              { key: 'conversion_rate', label: 'Taxa de Conversão' },
+              { key: 'revenue', label: 'Receita Total' },
+              { key: 'traffic_cost', label: 'Custo com Tráfego' },
+              { key: 'material_cost', label: 'Custo com Materiais' },
+              { key: 'profit', label: 'Lucro Líquido' },
+            ].map(card => (
+              <label
+                key={card.key}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border cursor-pointer transition-colors ${
+                  form.dashboard_config[card.key]
+                    ? 'bg-[#00D4FF10] border-[#00D4FF30] text-white'
+                    : 'bg-[#111] border-[#1a1a1a] text-[#888] hover:text-white'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.dashboard_config[card.key] ?? true}
+                  onChange={() => setForm({
+                    ...form,
+                    dashboard_config: { ...form.dashboard_config, [card.key]: !form.dashboard_config[card.key] },
+                  })}
+                  className="accent-[#00D4FF]"
+                />
+                <span className="text-sm font-medium">{card.label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
