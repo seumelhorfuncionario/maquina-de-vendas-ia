@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Users,
   UserCheck,
@@ -39,20 +39,23 @@ import { supabase } from '@/integrations/supabase/client'
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-const METRIC_OPTIONS = [
+const SALES_METRICS = [
   { key: 'receita', label: 'Receita', color: '#00FF88' },
   { key: 'vendas', label: 'Vendas', color: '#00D4FF' },
   { key: 'leads', label: 'Leads', color: '#A855F7' },
 ] as const
 
-type MetricKey = typeof METRIC_OPTIONS[number]['key']
+const SCHEDULING_METRICS = [
+  { key: 'agendamentos', label: 'Agendamentos', color: '#00D4FF' },
+  { key: 'receita', label: 'Receita Estimada', color: '#00FF88' },
+] as const
 
 export default function Dashboard() {
   const { isDemo } = useAuth()
   const { leads, sales } = useData()
   const realMetrics = useDashboardMetrics()
 
-  const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
   const { clientId } = useClientId()
 
@@ -61,25 +64,56 @@ export default function Dashboard() {
   const dateFrom = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString()
   const agents = useAgentsData(dateFrom)
 
-  // Dashboard config — quais cards mostrar
+  // Dashboard config + client_type
   const [dc, setDc] = useState<Record<string, boolean>>({
     leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
     revenue: true, traffic_cost: true, material_cost: true, profit: true,
   })
+  const [clientType, setClientType] = useState<string>('product_sales')
 
   useEffect(() => {
     if (!clientId) return
-    supabase.from('clients').select('dashboard_config').eq('id', clientId).single()
+    supabase.from('clients').select('dashboard_config, client_type').eq('id', clientId).single()
       .then(({ data }) => {
         if (data?.dashboard_config) setDc(data.dashboard_config as Record<string, boolean>)
+        if (data?.client_type) setClientType(data.client_type)
       })
   }, [clientId])
 
+  const isScheduling = clientType === 'scheduling'
+  const METRIC_OPTIONS = isScheduling ? SCHEDULING_METRICS : SALES_METRICS
+
+  // Inicializar métricas selecionadas com base no tipo
+  useEffect(() => {
+    if (isScheduling) setSelectedMetrics(['agendamentos', 'receita'])
+    else setSelectedMetrics(['receita', 'vendas'])
+  }, [isScheduling])
+
+  // Chart data para scheduling — agregar agendamentos por dia
+  const schedulingChartData = useMemo(() => {
+    if (!isScheduling || !agents.agendamentos.length) return []
+    const byDay = new Map<string, { agendamentos: number; receita: number }>()
+    for (const ag of agents.agendamentos) {
+      const day = ag.data_inicio.slice(0, 10)
+      const cur = byDay.get(day) || { agendamentos: 0, receita: 0 }
+      cur.agendamentos++
+      cur.receita += agents.appointmentValue
+      byDay.set(day, cur)
+    }
+    return Array.from(byDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, data]) => ({
+        name: new Date(day + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+        ...data,
+      }))
+  }, [isScheduling, agents.agendamentos, agents.appointmentValue])
+
   const d = isDemo ? mockDashboard : realMetrics.metrics
-  const chartData = isDemo ? mockChartData : realMetrics.chartData
+  const rawChartData = isDemo ? mockChartData : realMetrics.chartData
+  const chartData = isScheduling ? schedulingChartData : rawChartData
   const loading = !isDemo && realMetrics.loading
 
-  const toggleMetric = (key: MetricKey) => {
+  const toggleMetric = (key: string) => {
     setSelectedMetrics(prev => {
       if (prev.includes(key)) {
         if (prev.length === 1) return prev
@@ -214,7 +248,7 @@ export default function Dashboard() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-base font-bold text-theme-primary tracking-tight">
-              Desempenho de Vendas
+              {isScheduling ? 'Agendamentos no Período' : 'Desempenho de Vendas'}
             </h2>
             <p className="text-[11px] text-theme-muted mt-0.5 font-medium">
               Selecione as métricas para comparar
