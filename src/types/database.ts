@@ -392,6 +392,9 @@ export type Database = {
           monthly_revenue_goal: number | null
           qualified_criteria: string | null
           updated_at: string | null
+          agent_whatsapp_id: number | null
+          agent_instagram_id: number | null
+          agents_supabase_ref: string | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -416,6 +419,9 @@ export type Database = {
           monthly_revenue_goal?: number | null
           qualified_criteria?: string | null
           updated_at?: string | null
+          agent_whatsapp_id?: number | null
+          agent_instagram_id?: number | null
+          agents_supabase_ref?: string | null
         }
         Update: {
           auth_user_id?: string | null
@@ -440,6 +446,9 @@ export type Database = {
           monthly_revenue_goal?: number | null
           qualified_criteria?: string | null
           updated_at?: string | null
+          agent_whatsapp_id?: number | null
+          agent_instagram_id?: number | null
+          agents_supabase_ref?: string | null
         }
         Relationships: []
       }

@@ -11,6 +11,9 @@ import {
   Activity,
   Loader2,
   RefreshCw,
+  CalendarCheck,
+  MessageCircle,
+  Instagram,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -28,6 +31,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
 import { mockDashboard, mockChartData } from '../data/mock'
 import { useSync } from '@/hooks/useSync'
+import { useAgentsData } from '@/hooks/useAgentsData'
 
 const fmt = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -47,6 +51,7 @@ export default function Dashboard() {
 
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
+  const agents = useAgentsData()
 
   const d = isDemo ? mockDashboard : realMetrics.metrics
   const chartData = isDemo ? mockChartData : realMetrics.chartData
@@ -115,6 +120,51 @@ export default function Dashboard() {
         <StatCard title="Custo com Materiais" value={fmt(d.materialCost)} icon={<Package size={18} />} color="warning" stagger={7} />
         <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />
       </div>
+
+      {/* Agents Cards — só mostra se tiver agentes configurados */}
+      {agents.config?.agent_whatsapp_id && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <StatCard title="Agendamentos no Mês" value={agents.agendamentosCount} icon={<CalendarCheck size={18} />} color="neutral" stagger={1} />
+          <StatCard title="Chats WhatsApp" value={agents.chatsWhatsapp.toLocaleString()} icon={<MessageCircle size={18} />} color="positive" stagger={2} />
+          {agents.config?.agent_instagram_id && (
+            <StatCard title="Chats Instagram" value={agents.chatsInstagram.toLocaleString()} icon={<Instagram size={18} />} color="purple" stagger={3} />
+          )}
+        </div>
+      )}
+
+      {/* Lista de agendamentos do mês */}
+      {agents.agendamentos.length > 0 && (
+        <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 mb-8 animate-card-in stagger-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#A855F720] to-transparent" />
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarCheck size={16} className="text-[#00D4FF]" />
+            <h2 className="text-base font-bold text-white tracking-tight">Agendamentos do Mês</h2>
+            <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md bg-[#00D4FF10] text-[#00D4FF]">
+              {agents.agendamentosCount}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {agents.agendamentos.slice(0, 8).map(ag => {
+              const date = new Date(ag.data_inicio)
+              const isPast = date < new Date()
+              return (
+                <div key={ag.id} className={`flex items-center justify-between rounded-xl bg-[#0e0e0e] border border-[#1a1a1a] px-4 py-3 ${isPast ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-[11px] font-data text-[#00D4FF] w-[70px] flex-shrink-0">
+                      {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span className="text-sm font-semibold text-white truncate">{ag.nome_cliente}</span>
+                  </div>
+                  <span className="text-[11px] text-[#666] truncate max-w-[250px] ml-3 hidden lg:block">{ag.procedimento}</span>
+                </div>
+              )
+            })}
+            {agents.agendamentosCount > 8 && (
+              <p className="text-[11px] text-[#555] text-center pt-1">+{agents.agendamentosCount - 8} agendamentos</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Chart Section */}
       <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6 animate-card-in stagger-8 relative overflow-hidden">

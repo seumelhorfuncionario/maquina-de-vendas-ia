@@ -38,6 +38,9 @@ export default function SuperAdminClientForm() {
     cw_account_id: '',
     cw_base_url: '',
     cw_api_token: '',
+    agent_whatsapp_id: '',
+    agent_instagram_id: '',
+    agents_supabase_ref: 'wacotfqoarsbazrreeco',
   })
 
   const [allFeatures, setAllFeatures] = useState<FeatureRow[]>([])
@@ -79,6 +82,9 @@ export default function SuperAdminClientForm() {
           cw_account_id: client.cw_account_id || '',
           cw_base_url: client.cw_base_url || '',
           cw_api_token: client.cw_api_token || '',
+          agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
+          agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
+          agents_supabase_ref: client.agents_supabase_ref || 'wacotfqoarsbazrreeco',
         })
 
         // Load client features
@@ -130,6 +136,9 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
+            agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
+            agents_supabase_ref: form.agents_supabase_ref || null,
           })
           .eq('id', id!)
 
@@ -165,6 +174,9 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
+            agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
+            agents_supabase_ref: form.agents_supabase_ref || null,
           })
           .select('id')
           .single()
@@ -421,6 +433,46 @@ export default function SuperAdminClientForm() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Agentes IA */}
+        <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-white">Agentes IA</h2>
+            <span className="text-[10px] text-[#555] font-mono">{form.agents_supabase_ref || '—'}</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-[#888] mb-1 block">ID Agente WhatsApp</label>
+              <input
+                type="number"
+                value={form.agent_whatsapp_id}
+                onChange={e => setForm({ ...form, agent_whatsapp_id: e.target.value })}
+                className={inputClass}
+                placeholder="Ex: 36"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-[#888] mb-1 block">ID Agente Instagram</label>
+              <input
+                type="number"
+                value={form.agent_instagram_id}
+                onChange={e => setForm({ ...form, agent_instagram_id: e.target.value })}
+                className={inputClass}
+                placeholder="Ex: 37"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-sm text-[#888] mb-1 block">Supabase Ref (banco dos agentes)</label>
+              <input
+                type="text"
+                value={form.agents_supabase_ref}
+                onChange={e => setForm({ ...form, agents_supabase_ref: e.target.value })}
+                className={inputClass}
+                placeholder="wacotfqoarsbazrreeco"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Features */}
