@@ -41,6 +41,7 @@ export default function SuperAdminClientForm() {
     agent_whatsapp_id: '',
     agent_instagram_id: '',
     agents_supabase_ref: 'wacotfqoarsbazrreeco',
+    appointment_value: '',
     dashboard_config: {
       leads_today: true,
       leads_month: true,
@@ -95,6 +96,7 @@ export default function SuperAdminClientForm() {
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
           agents_supabase_ref: client.agents_supabase_ref || 'wacotfqoarsbazrreeco',
+          appointment_value: client.appointment_value ? String(client.appointment_value) : '',
           dashboard_config: (client.dashboard_config as Record<string, boolean>) || {
             leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
             revenue: true, traffic_cost: true, material_cost: true, profit: true,
@@ -153,6 +155,7 @@ export default function SuperAdminClientForm() {
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
+            appointment_value: form.appointment_value ? Number(form.appointment_value) : null,
             dashboard_config: form.dashboard_config,
           })
           .eq('id', id!)
@@ -192,6 +195,7 @@ export default function SuperAdminClientForm() {
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
+            appointment_value: form.appointment_value ? Number(form.appointment_value) : null,
             dashboard_config: form.dashboard_config,
           })
           .select('id')
@@ -476,6 +480,18 @@ export default function SuperAdminClientForm() {
                 onChange={e => setForm({ ...form, agent_instagram_id: e.target.value })}
                 className={inputClass}
                 placeholder="Ex: 37"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-[#888] mb-1 block">Valor por Atendimento (R$)</label>
+              <input
+                type="number"
+                value={form.appointment_value}
+                onChange={e => setForm({ ...form, appointment_value: e.target.value })}
+                className={inputClass}
+                placeholder="Ex: 120"
+                min={0}
+                step={0.01}
               />
             </div>
             <div className="md:col-span-2">

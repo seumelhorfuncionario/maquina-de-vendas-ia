@@ -14,6 +14,7 @@ import {
   CalendarCheck,
   MessageCircle,
   Instagram,
+  Calendar,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -53,8 +54,12 @@ export default function Dashboard() {
 
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
-  const agents = useAgentsData()
   const { clientId } = useClientId()
+
+  // Filtro de período
+  const [periodDays, setPeriodDays] = useState(30)
+  const dateFrom = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString()
+  const agents = useAgentsData(dateFrom)
 
   // Dashboard config — quais cards mostrar
   const [dc, setDc] = useState<Record<string, boolean>>({
@@ -103,6 +108,22 @@ export default function Dashboard() {
         description="Visão geral da sua máquina de vendas"
         action={
           <div className="flex items-center gap-2">
+            {/* Period selector */}
+            <div className="flex items-center gap-1 surface-elevated rounded-full border border-theme p-0.5">
+              {[{ days: 7, label: '7d' }, { days: 30, label: '30d' }].map(opt => (
+                <button
+                  key={opt.days}
+                  onClick={() => setPeriodDays(opt.days)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                    periodDays === opt.days
+                      ? 'surface-card text-theme-primary shadow-sm'
+                      : 'text-theme-muted hover:text-theme-secondary'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             <button
               onClick={async () => { await sync(); realMetrics.refetch?.() }}
               disabled={syncing}
@@ -140,11 +161,14 @@ export default function Dashboard() {
 
       {/* Agents Cards — só mostra se tiver dados do banco de agentes */}
       {!agents.loading && (agents.agendamentosCount > 0 || agents.chatsWhatsapp > 0 || agents.chatsInstagram > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <StatCard title="Agendamentos no Mês" value={agents.agendamentosCount} icon={<CalendarCheck size={18} />} color="neutral" stagger={1} />
-          <StatCard title="Chats WhatsApp" value={agents.chatsWhatsapp.toLocaleString()} icon={<MessageCircle size={18} />} color="positive" stagger={2} />
-          {agents.chatsInstagram > 0 && (
-            <StatCard title="Chats Instagram" value={agents.chatsInstagram.toLocaleString()} icon={<Instagram size={18} />} color="purple" stagger={3} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard title={`Agendamentos (${periodDays}d)`} value={agents.agendamentosCount} icon={<CalendarCheck size={18} />} color="neutral" stagger={1} />
+          {agents.appointmentValue > 0 && (
+            <StatCard title="Receita Estimada" value={fmt(agents.estimatedRevenue)} icon={<DollarSign size={18} />} color="positive" stagger={2} />
+          )}
+          <StatCard title={`Chats WhatsApp (${periodDays}d)`} value={agents.chatsWhatsapp.toLocaleString()} icon={<MessageCircle size={18} />} color="positive" stagger={3} subtitle={`Total: ${agents.chatsWhatsappTotal.toLocaleString()}`} />
+          {(agents.chatsInstagram > 0 || agents.chatsInstagramTotal > 0) && (
+            <StatCard title={`Chats Instagram (${periodDays}d)`} value={agents.chatsInstagram.toLocaleString()} icon={<Instagram size={18} />} color="purple" stagger={4} subtitle={`Total: ${agents.chatsInstagramTotal.toLocaleString()}`} />
           )}
         </div>
       )}

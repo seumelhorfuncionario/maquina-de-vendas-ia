@@ -17,7 +17,11 @@ interface AgentsData {
   agendamentos: Agendamento[]
   agendamentosCount: number
   chatsWhatsapp: number
+  chatsWhatsappTotal: number
   chatsInstagram: number
+  chatsInstagramTotal: number
+  appointmentValue: number
+  estimatedRevenue: number
   loading: boolean
 }
 
@@ -25,11 +29,15 @@ const EMPTY: AgentsData = {
   agendamentos: [],
   agendamentosCount: 0,
   chatsWhatsapp: 0,
+  chatsWhatsappTotal: 0,
   chatsInstagram: 0,
+  chatsInstagramTotal: 0,
+  appointmentValue: 0,
+  estimatedRevenue: 0,
   loading: false,
 }
 
-export const useAgentsData = () => {
+export const useAgentsData = (dateFrom?: string) => {
   const { clientId, loading: clientLoading } = useClientId()
   const [state, setState] = useState<AgentsData>({ ...EMPTY, loading: true })
 
@@ -43,7 +51,7 @@ export const useAgentsData = () => {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/agents-proxy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId }),
+        body: JSON.stringify({ clientId, dateFrom }),
       })
 
       if (!res.ok) {
@@ -57,14 +65,18 @@ export const useAgentsData = () => {
         agendamentos: data.agendamentos || [],
         agendamentosCount: data.agendamentosCount || 0,
         chatsWhatsapp: data.chatsWhatsapp || 0,
+        chatsWhatsappTotal: data.chatsWhatsappTotal || 0,
         chatsInstagram: data.chatsInstagram || 0,
+        chatsInstagramTotal: data.chatsInstagramTotal || 0,
+        appointmentValue: data.appointmentValue || 0,
+        estimatedRevenue: data.estimatedRevenue || 0,
         loading: false,
       })
     } catch (err) {
       console.error('Error fetching agents data:', err)
       setState(EMPTY)
     }
-  }, [clientId])
+  }, [clientId, dateFrom])
 
   useEffect(() => {
     if (!clientLoading) fetchData()

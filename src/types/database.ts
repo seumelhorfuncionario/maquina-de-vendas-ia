@@ -396,6 +396,7 @@ export type Database = {
           agent_instagram_id: number | null
           agents_supabase_ref: string | null
           dashboard_config: Record<string, boolean> | null
+          appointment_value: number | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -424,6 +425,7 @@ export type Database = {
           agent_instagram_id?: number | null
           agents_supabase_ref?: string | null
           dashboard_config?: Record<string, boolean> | null
+          appointment_value?: number | null
         }
         Update: {
           auth_user_id?: string | null
@@ -452,6 +454,7 @@ export type Database = {
           agent_instagram_id?: number | null
           agents_supabase_ref?: string | null
           dashboard_config?: Record<string, boolean> | null
+          appointment_value?: number | null
         }
         Relationships: []
       }
