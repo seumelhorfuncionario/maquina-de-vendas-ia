@@ -108,10 +108,28 @@ export default function Dashboard() {
       }))
   }, [isScheduling, agents.agendamentos, agents.appointmentValue])
 
-  const d = isDemo ? mockDashboard : realMetrics.metrics
+  // Para scheduling, métricas principais vêm do banco de agentes (não das tabelas locais)
+  const schedulingMetrics = useMemo(() => {
+    const totalChats = agents.chatsWhatsapp + agents.chatsInstagram
+    return {
+      leadsToday: 0,
+      leadsMonth: totalChats,
+      conversions: agents.agendamentosCount,
+      conversionRate: totalChats > 0
+        ? Math.round((agents.agendamentosCount / totalChats) * 100 * 10) / 10
+        : 0,
+      revenue: agents.estimatedRevenue,
+      trafficCost: 0,
+      materialCost: 0,
+      profit: agents.estimatedRevenue,
+      machineActive: realMetrics.metrics.machineActive,
+    }
+  }, [agents, realMetrics.metrics.machineActive])
+
+  const d = isDemo ? mockDashboard : isScheduling ? schedulingMetrics : realMetrics.metrics
   const rawChartData = isDemo ? mockChartData : realMetrics.chartData
   const chartData = isScheduling ? schedulingChartData : rawChartData
-  const loading = !isDemo && realMetrics.loading
+  const loading = !isDemo && (isScheduling ? agents.loading : realMetrics.loading)
 
   const toggleMetric = (key: string) => {
     setSelectedMetrics(prev => {
@@ -183,14 +201,14 @@ export default function Dashboard() {
 
       {/* Stat Cards Grid — staggered entrance */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {dc.leads_today !== false && <StatCard title="Leads Hoje" value={d.leadsToday} icon={<Users size={18} />} color="positive" stagger={1} />}
-        {dc.leads_month !== false && <StatCard title="Leads no Mês" value={d.leadsMonth} icon={<Users size={18} />} color="positive" stagger={2} />}
-        {dc.conversions !== false && <StatCard title="Vendas Convertidas" value={d.conversions} icon={<UserCheck size={18} />} color="positive" stagger={3} />}
-        {dc.conversion_rate !== false && <StatCard title="Taxa de Conversão" value={`${d.conversionRate}%`} icon={<Percent size={18} />} color="positive" stagger={4} />}
-        {dc.revenue !== false && <StatCard title="Receita Total" value={fmt(d.revenue)} icon={<DollarSign size={18} />} color="positive" stagger={5} />}
+        {dc.leads_today !== false && !isScheduling && <StatCard title="Leads Hoje" value={d.leadsToday} icon={<Users size={18} />} color="positive" stagger={1} />}
+        {dc.leads_month !== false && <StatCard title={isScheduling ? `Atendimentos (${periodDays}d)` : "Leads no Mês"} value={d.leadsMonth} icon={isScheduling ? <MessageCircle size={18} /> : <Users size={18} />} color="positive" stagger={2} />}
+        {dc.conversions !== false && <StatCard title={isScheduling ? "Agendamentos" : "Vendas Convertidas"} value={d.conversions} icon={isScheduling ? <CalendarCheck size={18} /> : <UserCheck size={18} />} color="positive" stagger={3} />}
+        {dc.conversion_rate !== false && <StatCard title={isScheduling ? "Taxa de Agendamento" : "Taxa de Conversão"} value={`${d.conversionRate}%`} icon={<Percent size={18} />} color="positive" stagger={4} />}
+        {dc.revenue !== false && !(isScheduling && !agents.appointmentValue) && <StatCard title={isScheduling ? "Receita Estimada" : "Receita Total"} value={fmt(d.revenue)} icon={<DollarSign size={18} />} color="positive" stagger={5} />}
         {dc.traffic_cost !== false && <StatCard title="Custo com Tráfego" value={fmt(d.trafficCost)} icon={<Megaphone size={18} />} color="warning" stagger={6} />}
         {dc.material_cost !== false && <StatCard title="Custo com Materiais" value={fmt(d.materialCost)} icon={<Package size={18} />} color="warning" stagger={7} />}
-        {dc.profit !== false && <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />}
+        {dc.profit !== false && !isScheduling && <StatCard title="Lucro Líquido" value={fmt(d.profit)} icon={<BadgeDollarSign size={18} />} color="positive" subtitle="Resultado final do período" stagger={8} />}
       </div>
 
       {/* Agents Cards — só mostra se tiver dados do banco de agentes */}
