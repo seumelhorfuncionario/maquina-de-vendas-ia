@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useClientId } from './useClientId'
-import type { Lead, LeadStatus, KanbanData } from '../types'
+import type { Lead, LeadStatus, LeadChannel, KanbanData } from '../types'
 
 export const useLeads = () => {
   const { clientId, loading: clientLoading } = useClientId()
@@ -29,12 +29,14 @@ export const useLeads = () => {
 
       const mappedLeads: Lead[] = (data || []).map(chat => {
         const kd = (chat as any).kanban_data as KanbanData | null
+        const canal = ((chat as any).canal || 'whatsapp') as LeadChannel
         return {
           id: String(chat.id),
           name: chat.nome || 'Sem nome',
           phone: chat.phone || '',
           product: chat.tags || '',
           origin: chat.Agente || 'WhatsApp',
+          channel: canal,
           status: (chat.etapa_fu || 'Novo Lead') as LeadStatus,
           createdAt: chat.created_at ? chat.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
           value: kd?.value || undefined,

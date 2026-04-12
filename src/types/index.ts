@@ -40,12 +40,15 @@ export interface KanbanData {
   scheduled_at?: string
 }
 
+export type LeadChannel = 'whatsapp' | 'instagram' | 'web'
+
 export interface Lead {
   id: string
   name: string
   phone: string
   product: string
   origin: string
+  channel: LeadChannel
   status: LeadStatus
   createdAt: string
   value?: number

@@ -1,8 +1,9 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import {
-  User, Phone, Tag, Calendar, Globe, GripVertical, ArrowRight,
+  User, Phone, Tag, Calendar, GripVertical, ArrowRight,
   Loader2, Zap, Trophy, X, AlertCircle, StickyNote, DollarSign,
   UserCircle, Send, ChevronDown, ChevronUp, RefreshCw,
+  MessageCircle, Instagram,
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useData } from '../contexts/DataContext'
@@ -394,12 +395,14 @@ export default function Leads() {
                           </div>
                         )}
 
-                        {!lead.product && !k && (
-                          <div className="flex items-center gap-2 text-[11px] text-[#666]">
-                            <Globe size={11} className="flex-shrink-0" />
-                            <span>{lead.origin}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 text-[11px] text-[#666]">
+                          {lead.channel === 'instagram' ? (
+                            <Instagram size={11} className="flex-shrink-0 text-[#E1306C]" />
+                          ) : (
+                            <MessageCircle size={11} className="flex-shrink-0 text-[#25D366]" />
+                          )}
+                          <span>{lead.channel === 'instagram' ? 'Instagram' : 'WhatsApp'}</span>
+                        </div>
 
                         <div className="flex items-center gap-2 text-[11px] text-[#555] font-data">
                           <Calendar size={11} className="flex-shrink-0" />
