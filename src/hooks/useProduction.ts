@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useClientId } from './useClientId'
 import type { ProductionOrder, ProductionStatus } from '../types'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+
 export const useProduction = () => {
   const { clientId, loading: clientLoading } = useClientId()
   const [production, setProduction] = useState<ProductionOrder[]>([])
@@ -58,6 +60,7 @@ export const useProduction = () => {
     setProduction(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p))
 
     try {
+      // Atualizar no banco local
       const { error } = await supabase
         .from('production_orders')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -66,6 +69,34 @@ export const useProduction = () => {
       if (error) {
         console.error('Error updating production status:', error)
         fetchProduction()
+        return
+      }
+
+      // Sync bidirecional: atualizar no Chatwoot (funil de produção)
+      const order = production.find(p => p.id === id)
+      if (!order) return
+
+      // Buscar o kanban_item_id do notes
+      const { data: orderData } = await supabase
+        .from('production_orders')
+        .select('notes')
+        .eq('id', id)
+        .single()
+
+      const notes = orderData?.notes || ''
+      const kanbanMatch = notes.match(/kanban_item:(\d+)/)
+      if (kanbanMatch && clientId && SUPABASE_URL) {
+        const kanbanItemId = kanbanMatch[1]
+        fetch(`${SUPABASE_URL}/functions/v1/kanban-move`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId,
+            kanbanItemId,
+            newStageName: newStatus,
+            isProduction: true,
+          }),
+        }).catch(err => console.error('Production kanban sync error:', err))
       }
     } catch (err) {
       console.error('Error moving production order:', err)
