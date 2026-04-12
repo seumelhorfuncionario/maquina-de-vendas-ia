@@ -220,6 +220,7 @@ export type Database = {
       chats: {
         Row: {
           Agente: string | null
+          canal: string | null
           client_id: string | null
           conversation_id: string | null
           created_at: string | null
@@ -234,6 +235,7 @@ export type Database = {
         }
         Insert: {
           Agente?: string | null
+          canal?: string | null
           client_id?: string | null
           conversation_id?: string | null
           created_at?: string | null
@@ -248,6 +250,7 @@ export type Database = {
         }
         Update: {
           Agente?: string | null
+          canal?: string | null
           client_id?: string | null
           conversation_id?: string | null
           created_at?: string | null
@@ -1031,6 +1034,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "traffic_costs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_appointments: {
+        Row: {
+          id: string
+          client_id: string
+          appointment_date: string
+          count: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          appointment_date?: string
+          count?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          appointment_date?: string
+          count?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_appointments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"

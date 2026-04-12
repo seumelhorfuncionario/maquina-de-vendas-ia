@@ -15,6 +15,8 @@ import {
   MessageCircle,
   Instagram,
   Calendar,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -33,7 +35,9 @@ import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
 import { mockDashboard, mockChartData } from '../data/mock'
 import { useSync } from '@/hooks/useSync'
 import { useAgentsData } from '@/hooks/useAgentsData'
+import { useManualAppointments } from '@/hooks/useManualAppointments'
 import { useClientId } from '@/hooks/useClientId'
+import { useTenant } from '@/contexts/TenantContext'
 import { supabase } from '@/integrations/supabase/client'
 
 const fmt = (v: number) =>
@@ -50,6 +54,119 @@ const SCHEDULING_METRICS = [
   { key: 'receita', label: 'Receita Estimada', color: '#00FF88' },
 ] as const
 
+function ManualAppointmentsCard({
+  appointments,
+  appointmentValue,
+  totalCount,
+  estimatedRevenue,
+  onUpsert,
+  onDelete,
+}: {
+  appointments: { id: string; appointment_date: string; count: number; notes: string | null }[]
+  appointmentValue: number
+  totalCount: number
+  estimatedRevenue: number
+  onUpsert: (date: string, count: number, notes?: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+}) {
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [count, setCount] = useState(1)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    if (count < 1) return
+    setSaving(true)
+    await onUpsert(date, count)
+    setCount(1)
+    setSaving(false)
+  }
+
+  return (
+    <div className="rounded-2xl border border-theme surface-card p-6 mb-8 animate-card-in relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent-green) 15%, transparent), transparent)' }} />
+
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <CalendarCheck size={16} style={{ color: 'var(--accent-green)' }} />
+          <h2 className="text-base font-bold text-theme-primary tracking-tight">Agendamentos Manuais</h2>
+          <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-green) 10%, transparent)', color: 'var(--accent-green)' }}>
+            {totalCount}
+          </span>
+        </div>
+        {appointmentValue > 0 && (
+          <span className="text-xs font-data text-theme-muted">
+            Receita: <span className="text-[#00FF88] font-bold">{estimatedRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+          </span>
+        )}
+      </div>
+
+      {/* Input row */}
+      <div className="flex items-end gap-3 mb-4">
+        <div className="flex-1 max-w-[180px]">
+          <label className="text-[10px] text-theme-muted mb-1 block font-medium">Data</label>
+          <input
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            className="w-full bg-[var(--bg-elevated)] border border-theme rounded-xl px-3 py-2 text-sm text-theme-primary outline-none focus:border-[#00D4FF] transition-colors font-data"
+          />
+        </div>
+        <div className="w-[100px]">
+          <label className="text-[10px] text-theme-muted mb-1 block font-medium">Quantidade</label>
+          <input
+            type="number"
+            value={count}
+            onChange={e => setCount(Math.max(1, Number(e.target.value)))}
+            min={1}
+            className="w-full bg-[var(--bg-elevated)] border border-theme rounded-xl px-3 py-2 text-sm text-theme-primary outline-none focus:border-[#00D4FF] transition-colors font-data text-center"
+          />
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#00FF88] hover:bg-[#00cc6e] text-black text-sm font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+          Salvar
+        </button>
+      </div>
+
+      {/* List */}
+      {appointments.length > 0 && (
+        <div className="space-y-1.5">
+          {appointments.map(a => (
+            <div key={a.id} className="flex items-center justify-between rounded-xl border border-theme px-4 py-2.5" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+              <div className="flex items-center gap-4">
+                <span className="text-[11px] font-data w-[80px]" style={{ color: 'var(--accent-cyan)' }}>
+                  {new Date(a.appointment_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                </span>
+                <span className="text-sm font-bold text-theme-primary">{a.count}</span>
+                <span className="text-[11px] text-theme-muted">agendamento{a.count !== 1 ? 's' : ''}</span>
+                {appointmentValue > 0 && (
+                  <span className="text-[11px] font-data text-[#00FF88]">
+                    {(a.count * appointmentValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => onDelete(a.id)}
+                className="p-1.5 rounded-lg hover:bg-[#FF4D6A15] text-[#555] hover:text-[#FF4D6A] transition-colors cursor-pointer"
+                aria-label="Remover"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {appointments.length === 0 && (
+        <p className="text-[11px] text-theme-muted text-center py-4">Nenhum agendamento registrado no período</p>
+      )}
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { isDemo } = useAuth()
   const { leads, sales } = useData()
@@ -58,11 +175,15 @@ export default function Dashboard() {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
   const { clientId } = useClientId()
+  const { hasFeature } = useTenant()
 
   // Filtro de período
   const [periodDays, setPeriodDays] = useState(30)
   const dateFrom = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString()
+  const dateFromStr = dateFrom.split('T')[0]
   const agents = useAgentsData(dateFrom)
+  const manualAppts = useManualAppointments(dateFromStr)
+  const hasManualScheduling = hasFeature('manual_scheduling')
 
   // Dashboard config + client_type
   const [dc, setDc] = useState<Record<string, boolean>>({
@@ -89,42 +210,59 @@ export default function Dashboard() {
     else setSelectedMetrics(['receita', 'vendas'])
   }, [isScheduling])
 
-  // Chart data para scheduling — agregar agendamentos por dia
+  // Chart data para scheduling — agregar agendamentos (agente + manuais) por dia
   const schedulingChartData = useMemo(() => {
-    if (!isScheduling || !agents.agendamentos.length) return []
+    if (!isScheduling) return []
     const byDay = new Map<string, { agendamentos: number; receita: number }>()
+    const apptValue = manualAppts.appointmentValue || agents.appointmentValue || 0
     for (const ag of agents.agendamentos) {
       const day = ag.data_inicio.slice(0, 10)
       const cur = byDay.get(day) || { agendamentos: 0, receita: 0 }
       cur.agendamentos++
-      cur.receita += agents.appointmentValue
+      cur.receita += apptValue
       byDay.set(day, cur)
     }
+    if (hasManualScheduling) {
+      for (const ma of manualAppts.appointments) {
+        const day = ma.appointment_date
+        const cur = byDay.get(day) || { agendamentos: 0, receita: 0 }
+        cur.agendamentos += ma.count
+        cur.receita += ma.count * apptValue
+        byDay.set(day, cur)
+      }
+    }
+    if (byDay.size === 0) return []
     return Array.from(byDay.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([day, data]) => ({
         name: new Date(day + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
         ...data,
       }))
-  }, [isScheduling, agents.agendamentos, agents.appointmentValue])
+  }, [isScheduling, agents.agendamentos, agents.appointmentValue, hasManualScheduling, manualAppts.appointments, manualAppts.appointmentValue])
 
-  // Para scheduling, métricas principais vêm do banco de agentes (não das tabelas locais)
+  // Para scheduling, métricas vêm do banco de agentes OU de agendamentos manuais
   const schedulingMetrics = useMemo(() => {
     const totalChats = agents.chatsWhatsapp + agents.chatsInstagram
+    // Se manual_scheduling ativo, somar agendamentos manuais
+    const agentCount = agents.agendamentosCount
+    const manualCount = hasManualScheduling ? manualAppts.totalCount : 0
+    const totalAppointments = agentCount + manualCount
+    const manualRevenue = hasManualScheduling ? manualAppts.estimatedRevenue : 0
+    const totalRevenue = agents.estimatedRevenue + manualRevenue
     return {
       leadsToday: 0,
       leadsMonth: totalChats,
-      conversions: agents.agendamentosCount,
+      conversions: totalAppointments,
       conversionRate: totalChats > 0
-        ? Math.round((agents.agendamentosCount / totalChats) * 100 * 10) / 10
+        ? Math.round((totalAppointments / totalChats) * 100 * 10) / 10
         : 0,
-      revenue: agents.estimatedRevenue,
+      revenue: totalRevenue,
       trafficCost: 0,
       materialCost: 0,
-      profit: agents.estimatedRevenue,
+      profit: totalRevenue,
       machineActive: realMetrics.metrics.machineActive,
     }
-  }, [agents, realMetrics.metrics.machineActive])
+  }, [agents, realMetrics.metrics.machineActive, hasManualScheduling, manualAppts.totalCount, manualAppts.estimatedRevenue])
 
   const d = isDemo ? mockDashboard : isScheduling ? schedulingMetrics : realMetrics.metrics
   const rawChartData = isDemo ? mockChartData : realMetrics.chartData
@@ -257,6 +395,18 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Agendamentos Manuais — input direto no dash */}
+      {hasManualScheduling && (
+        <ManualAppointmentsCard
+          appointments={manualAppts.appointments}
+          appointmentValue={manualAppts.appointmentValue}
+          totalCount={manualAppts.totalCount}
+          estimatedRevenue={manualAppts.estimatedRevenue}
+          onUpsert={manualAppts.upsertAppointment}
+          onDelete={manualAppts.deleteAppointment}
+        />
       )}
 
       {/* Chart Section */}
