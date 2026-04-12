@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Eye, Pencil, Loader2, Users } from 'lucide-react'
+import { Search, Plus, Eye, Pencil, Loader2, Users, Copy, Check } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 
 interface ClientRow {
@@ -19,6 +19,7 @@ export default function SuperAdminClients() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
     loadClients()
@@ -132,6 +133,7 @@ export default function SuperAdminClients() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#111] text-[#888]">
+              <th className="text-left px-5 py-3 font-medium">ID</th>
               <th className="text-left px-5 py-3 font-medium">Empresa</th>
               <th className="text-left px-5 py-3 font-medium">Email</th>
               <th className="text-left px-5 py-3 font-medium">Nicho</th>
@@ -147,6 +149,20 @@ export default function SuperAdminClients() {
                 key={client.id}
                 className="border-b border-[#1a1a1a] hover:bg-[#111] transition-colors"
               >
+                <td className="px-5 py-3">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(client.id)
+                      setCopiedId(client.id)
+                      setTimeout(() => setCopiedId(null), 2000)
+                    }}
+                    className="inline-flex items-center gap-1 text-[10px] font-mono text-[#666] hover:text-[#00D4FF] transition-colors cursor-pointer"
+                    title={client.id}
+                  >
+                    {client.id.slice(0, 8)}...
+                    {copiedId === client.id ? <Check size={11} className="text-[#00FF88]" /> : <Copy size={11} />}
+                  </button>
+                </td>
                 <td className="px-5 py-3 text-white font-medium">{client.business_name}</td>
                 <td className="px-5 py-3 text-[#888]">{client.email}</td>
                 <td className="px-5 py-3 text-[#ccc]">{client.business_niche}</td>
@@ -198,7 +214,7 @@ export default function SuperAdminClients() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-12 text-center">
+                <td colSpan={8} className="px-5 py-12 text-center">
                   <Users size={36} className="mx-auto mb-3 text-[#555]" />
                   <p className="text-[#888]">Nenhum cliente encontrado</p>
                 </td>
