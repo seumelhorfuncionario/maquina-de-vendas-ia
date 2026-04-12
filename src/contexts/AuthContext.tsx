@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isDemo, setIsDemo] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [initialCheckDone, setInitialCheckDone] = useState(false)
 
   useEffect(() => {
     checkExistingSession()
@@ -44,7 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setClientProfile(null)
           setIsDemo(false)
           setIsSuperAdmin(false)
-        } else if (session?.user && !isDemo) {
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          // Only reload profile on token refresh, not on INITIAL_SESSION
+          // (initial session is handled by checkExistingSession)
           await loadFullProfile(session.user.id, session.user.email || '')
         }
       }
@@ -69,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error checking session:', error)
     } finally {
       setLoading(false)
+      setInitialCheckDone(true)
     }
   }
 
