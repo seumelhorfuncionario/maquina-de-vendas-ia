@@ -19,6 +19,7 @@ import {
   FileText,
   Send,
   ArrowLeft,
+  Columns3,
 } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
@@ -369,7 +370,7 @@ export default function Criativos() {
 
   const [localPosts, setLocalPosts] = useState<ContentPost[]>(mockContentPosts)
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+  const [viewMode, setViewMode] = useState<'kanban' | 'calendar' | 'list'>('kanban')
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null)
 
   // Calendar navigation — default to current month
@@ -551,34 +552,119 @@ export default function Criativos() {
           })}
         </div>
 
-        {/* View toggle — hidden on mobile */}
-        <div className="hidden md:flex items-center gap-1 surface-elevated rounded-xl border border-theme p-0.5">
-          <button
-            onClick={() => setViewMode('calendar')}
-            aria-label="Visualização calendário"
-            aria-pressed={viewMode === 'calendar'}
-            className={`p-2 rounded-lg transition-all cursor-pointer ${
-              viewMode === 'calendar'
-                ? 'surface-card text-theme-primary shadow-sm'
-                : 'text-theme-muted hover:text-theme-secondary'
-            }`}
-          >
-            <Calendar size={15} />
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            aria-label="Visualização lista"
-            aria-pressed={viewMode === 'list'}
-            className={`p-2 rounded-lg transition-all cursor-pointer ${
-              viewMode === 'list'
-                ? 'surface-card text-theme-primary shadow-sm'
-                : 'text-theme-muted hover:text-theme-secondary'
-            }`}
-          >
-            <List size={15} />
-          </button>
+        {/* View toggle */}
+        <div className="flex items-center gap-1 surface-elevated rounded-xl border border-theme p-0.5">
+          {([
+            { key: 'kanban' as const, icon: Columns3, label: 'Kanban' },
+            { key: 'calendar' as const, icon: Calendar, label: 'Calendário' },
+            { key: 'list' as const, icon: List, label: 'Lista' },
+          ]).map(v => (
+            <button
+              key={v.key}
+              onClick={() => setViewMode(v.key)}
+              aria-label={`Visualização ${v.label}`}
+              aria-pressed={viewMode === v.key}
+              className={`p-2 rounded-lg transition-all cursor-pointer ${
+                viewMode === v.key
+                  ? 'surface-card text-theme-primary shadow-sm'
+                  : 'text-theme-muted hover:text-theme-secondary'
+              }`}
+            >
+              <v.icon size={15} />
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* ──────── Kanban View ──────── */}
+      {viewMode === 'kanban' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-card-in">
+          {(['review', 'approved', 'draft', 'published'] as ContentStatus[]).map(status => {
+            const sCfg = statusConfig[status]
+            const columnPosts = posts.filter(p => p.status === status)
+            return (
+              <div key={status} className="rounded-2xl border border-theme surface-card relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${sCfg.color}, transparent)` }} />
+
+                {/* Column header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: sCfg.color }} />
+                    <span className="text-sm font-bold text-theme-primary">{sCfg.label}</span>
+                  </div>
+                  <span
+                    className="text-[10px] font-bold font-data px-1.5 py-0.5 rounded-md"
+                    style={{ backgroundColor: sCfg.bg, color: sCfg.color }}
+                  >
+                    {columnPosts.length}
+                  </span>
+                </div>
+
+                {/* Cards */}
+                <div className="p-2 space-y-2 min-h-[200px]">
+                  {columnPosts.map((post, i) => {
+                    const tCfg = typeConfig[post.contentType]
+                    const TypeIcon = tCfg.icon
+                    return (
+                      <button
+                        key={post.id}
+                        onClick={() => setSelectedPost(post)}
+                        className={`w-full text-left rounded-xl border border-theme p-3 transition-all cursor-pointer card-hover-lift animate-row-in row-stagger-${Math.min(i + 1, 8)}`}
+                        style={{ '--glow-color': sCfg.color, backgroundColor: 'var(--bg-card-hover)' } as React.CSSProperties}
+                      >
+                        {/* Thumbnail placeholder */}
+                        {post.thumbnailUrl ? (
+                          <img src={post.thumbnailUrl} alt="" className="w-full h-24 object-cover rounded-lg mb-2" />
+                        ) : (
+                          <div className="w-full h-24 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${sCfg.color} 5%, transparent)` }}>
+                            <TypeIcon size={24} style={{ color: sCfg.color, opacity: 0.4 }} />
+                          </div>
+                        )}
+
+                        <p className="text-sm font-semibold text-theme-primary leading-tight line-clamp-2 mb-1.5">
+                          {post.title}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <PlatformIcon platform={post.platform} size={11} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: sCfg.color }}>
+                              {tCfg.label}
+                            </span>
+                          </div>
+                          {post.scheduledDate && (
+                            <span className="text-[10px] font-data text-theme-muted">
+                              {new Date(post.scheduledDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Tags */}
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {post.tags.slice(0, 2).map(tag => (
+                              <span key={tag} className="text-[9px] font-medium px-1.5 py-0.5 rounded-md surface-elevated text-theme-muted">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+
+                  {columnPosts.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-8 text-theme-muted">
+                      <FileText size={18} className="mb-1 opacity-30" />
+                      <span className="text-[11px]">Nenhum post</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* ──────── Calendar View ──────── */}
       {viewMode === 'calendar' && (
@@ -694,7 +780,7 @@ export default function Criativos() {
       )}
 
       {/* ──────── List View ──────── */}
-      {viewMode === 'list' && (
+      {(viewMode === 'list') && (
         <ListView posts={filteredPosts} onSelect={setSelectedPost} />
       )}
 

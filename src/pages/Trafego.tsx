@@ -46,13 +46,13 @@ const fmtPct = (v: number) => v.toFixed(2) + '%'
 
 /* ───── Lookup maps ───── */
 const OBJECTIVE_LABELS: Record<CampaignObjective, string> = {
-  OUTCOME_TRAFFIC: 'Trafego',
+  OUTCOME_TRAFFIC: 'Tráfego',
   OUTCOME_ENGAGEMENT: 'Engajamento',
   OUTCOME_LEADS: 'Leads',
   OUTCOME_SALES: 'Vendas',
   OUTCOME_AWARENESS: 'Alcance',
   LINK_CLICKS: 'Cliques',
-  CONVERSIONS: 'Conversoes',
+  CONVERSIONS: 'Conversões',
 }
 
 const OBJECTIVE_COLORS: Record<CampaignObjective, string> = {
@@ -69,7 +69,7 @@ const STATUS_CONFIG: Record<CampaignStatus, { label: string; color: string }> = 
   ACTIVE: { label: 'Ativo', color: 'var(--accent-green)' },
   PAUSED: { label: 'Pausado', color: 'var(--accent-yellow)' },
   ARCHIVED: { label: 'Arquivado', color: 'var(--text-muted)' },
-  DELETED: { label: 'Excluido', color: 'var(--text-ghost)' },
+  DELETED: { label: 'Excluído', color: 'var(--text-ghost)' },
 }
 
 const CLASSIFICATION_CONFIG: Record<CreativeClassification, { emoji: string; label: string; colorVar: string }> = {
@@ -131,12 +131,13 @@ export default function Trafego() {
   const { isDemo } = useAuth()
   const hook = useTrafficData()
 
-  /* ── Data branching ── */
-  const campaigns: Campaign[] = isDemo ? mockCampaigns : (hook.campaigns ?? [])
-  const creatives: CreativePerformance[] = isDemo ? mockCreatives : (hook.creatives ?? [])
-  const alerts: TrafficAlert[] = isDemo ? mockAlerts : (hook.alerts ?? [])
-  const comparison: TrafficComparison[] = isDemo ? mockComparison : (hook.comparison ?? [])
-  const summary = isDemo ? mockTrafficSummary : (hook.summary ?? { spend: 0, revenue: 0, cpc: 0, ctr: 0 })
+  /* ── Data branching: mock quando demo OU quando banco vazio ── */
+  const hasRealData = !hook.loading && (hook.campaigns?.length ?? 0) > 0
+  const campaigns: Campaign[] = isDemo || !hasRealData ? mockCampaigns : hook.campaigns
+  const creatives: CreativePerformance[] = isDemo || !hasRealData ? mockCreatives : hook.creatives
+  const alerts: TrafficAlert[] = isDemo || !hasRealData ? mockAlerts : hook.alerts
+  const comparison: TrafficComparison[] = isDemo || !hasRealData ? mockComparison : hook.comparison
+  const summary = isDemo || !hasRealData ? mockTrafficSummary : hook.summary
   const loading = !isDemo && hook.loading
 
   /* ── Campaign sort state ── */
@@ -191,10 +192,10 @@ export default function Trafego() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Trafego" description="Gestao de campanhas Meta Ads" />
+        <PageHeader title="Tráfego" description="Gestão de campanhas Meta Ads" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
-          <span className="ml-3 text-sm text-theme-muted">Carregando dados de trafego...</span>
+          <span className="ml-3 text-sm text-theme-muted">Carregando dados de tráfego...</span>
         </div>
       </div>
     )
@@ -238,7 +239,7 @@ export default function Trafego() {
           stagger={2}
         />
         <StatCard
-          title="CPC Medio"
+          title="CPC Médio"
           value={fmt(summary.cpc)}
           icon={<MousePointerClick size={18} />}
           color="neutral"
@@ -380,17 +381,17 @@ export default function Trafego() {
 
         <div className="flex items-center gap-2 mb-5">
           <BarChart3 size={16} style={{ color: 'var(--accent-cyan)' }} />
-          <h2 className="text-base font-bold text-theme-primary tracking-tight">Comparativo de Periodo</h2>
+          <h2 className="text-base font-bold text-theme-primary tracking-tight">Comparativo de Período</h2>
         </div>
 
         <div className="overflow-x-auto -mx-6 px-6">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-theme">
-                <th className="pb-3 pr-4 text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Metrica</th>
+                <th className="pb-3 pr-4 text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Métrica</th>
                 <th className="pb-3 pr-4 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Hoje</th>
                 <th className="pb-3 pr-4 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Ontem</th>
-                <th className="pb-3 pr-4 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Media 7d</th>
+                <th className="pb-3 pr-4 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Média 7d</th>
                 <th className="pb-3 pr-4 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">vs Ontem</th>
                 <th className="pb-3 text-right text-[10px] font-semibold text-theme-muted uppercase tracking-widest">vs 7d</th>
               </tr>
@@ -454,7 +455,7 @@ export default function Trafego() {
               {comparison.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-sm text-theme-muted">
-                    Sem dados comparativos disponiveis
+                    Sem dados comparativos disponíveis
                   </td>
                 </tr>
               )}
@@ -490,7 +491,7 @@ export default function Trafego() {
             <button
               onClick={() => setViewMode('card')}
               aria-pressed={viewMode === 'card'}
-              aria-label="Visualizacao em cards"
+              aria-label="Visualização em cards"
               className={`p-1.5 rounded-md transition-all cursor-pointer ${
                 viewMode === 'card'
                   ? 'surface-card text-theme-primary shadow-sm'
@@ -502,7 +503,7 @@ export default function Trafego() {
             <button
               onClick={() => setViewMode('table')}
               aria-pressed={viewMode === 'table'}
-              aria-label="Visualizacao em tabela"
+              aria-label="Visualização em tabela"
               className={`p-1.5 rounded-md transition-all cursor-pointer ${
                 viewMode === 'table'
                   ? 'surface-card text-theme-primary shadow-sm'
@@ -726,7 +727,7 @@ export default function Trafego() {
 
           <div className="flex items-center gap-2 mb-5">
             <AlertTriangle size={16} style={{ color: 'var(--accent-red)' }} />
-            <h2 className="text-base font-bold text-theme-primary tracking-tight">Alertas de Trafego</h2>
+            <h2 className="text-base font-bold text-theme-primary tracking-tight">Alertas de Tráfego</h2>
             <span
               className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md"
               style={{

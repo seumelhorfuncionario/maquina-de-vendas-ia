@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #050505; }
+
+  .slide {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .slide .bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .slide .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5,5,5,0.3) 0%, rgba(5,5,5,0.85) 70%, rgba(5,5,5,0.95) 100%);
+  }
+
+  .slide .content {
+    position: relative;
+    z-index: 2;
+    padding: 60px;
+    width: 100%;
+  }
+
+  /* Header bar */
+  .slide .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 40px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.5px;
+  }
+
+  .accent-line {
+    width: 80px;
+    height: 3px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .label {
+    font-family: 'Space Grotesk', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 900;
+    font-size: 56px;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .subtitle {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+
+  /* ── Post 1: Outono ── */
+  #post1 .bg { background-image: url('backgrounds/bg_outono.png'); }
+  #post1 .accent-line { background: #D2691E; }
+  #post1 .label { color: #D2691E; }
+  #post1 .title .highlight { color: #FFB347; }
+  #post1 .badge { background: rgba(210,105,30,0.15); color: #FFB347; border: 1px solid rgba(210,105,30,0.3); }
+
+  /* ── Post 2: Antes e Depois ── */
+  #post2 .bg { background-image: url('backgrounds/bg_antes_depois.png'); }
+  #post2 .accent-line { background: #00FF88; }
+  #post2 .label { color: #00FF88; }
+  #post2 .title .highlight { color: #00FF88; }
+  #post2 .badge { background: rgba(0,255,136,0.1); color: #00FF88; border: 1px solid rgba(0,255,136,0.25); }
+
+  /* ── Post 3: Tamanhos ── */
+  #post3 .bg { background-image: url('backgrounds/bg_tamanhos.png'); }
+  #post3 .accent-line { background: #00D4FF; }
+  #post3 .label { color: #00D4FF; }
+  #post3 .title .highlight { color: #00D4FF; }
+  #post3 .subtitle .hl { color: #A855F7; font-weight: 700; }
+  #post3 .badge { background: rgba(0,212,255,0.1); color: #00D4FF; border: 1px solid rgba(0,212,255,0.25); }
+</style>
+</head>
+<body>
+
+<!-- POST 1: Lan&#231;amento Cole&#231;&#227;o Outono -->
+<div class="slide" id="post1">
+  <div class="bg"></div>
+  <div class="overlay"></div>
+  <div class="header">
+    <span>@artenossa.cv</span>
+    <span>Abril 2026</span>
+  </div>
+  <div class="content">
+    <div class="accent-line"></div>
+    <div class="label">Nova Cole&#231;&#227;o</div>
+    <div class="title">
+      Cole&#231;&#227;o<br><span class="highlight">Outono 2026</span> &#127810;
+    </div>
+    <div class="subtitle">
+      Tons terrosos, texturas naturais<br>e o aconchego que s&#243; a arte traz.
+    </div>
+    <div class="badge">&#9758; Ver modelos</div>
+  </div>
+</div>
+
+<!-- POST 2: Antes e Depois -->
+<div class="slide" id="post2">
+  <div class="bg"></div>
+  <div class="overlay"></div>
+  <div class="header">
+    <span>@artenossa.cv</span>
+    <span>Transforma&#231;&#227;o</span>
+  </div>
+  <div class="content">
+    <div class="accent-line"></div>
+    <div class="label">Antes &amp; Depois</div>
+    <div class="title">
+      O poder de<br>um <span class="highlight">quadro</span> &#10024;
+    </div>
+    <div class="subtitle">
+      Veja como a sala da Maria mudou<br>com nosso Canvas Premium 90x60.
+    </div>
+    <div class="badge">&#9758; Quero transformar meu espa&#231;o</div>
+  </div>
+</div>
+
+<!-- POST 3: Guia de Tamanhos -->
+<div class="slide" id="post3">
+  <div class="bg"></div>
+  <div class="overlay"></div>
+  <div class="header">
+    <span>@artenossa.cv</span>
+    <span>Dica</span>
+  </div>
+  <div class="content">
+    <div class="accent-line"></div>
+    <div class="label">&#128208; Guia Pr&#225;tico</div>
+    <div class="title">
+      <span class="highlight">Tamanho ideal</span><br>do quadro
+    </div>
+    <div class="subtitle">
+      Sof&#225; 2m &#8594; Quadro <span class="hl">1,20m</span><br>
+      Cama queen &#8594; Quadro <span class="hl">1,00m</span><br>
+      Rack TV &#8594; <span class="hl">3 quadros</span> menores
+    </div>
+    <div class="badge">Salve para depois &#128278;</div>
+  </div>
+</div>
+
+</body>
+</html>
