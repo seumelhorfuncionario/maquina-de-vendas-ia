@@ -40,8 +40,7 @@ export default function SuperAdminClientForm() {
     cw_api_token: '',
     agent_whatsapp_id: '',
     agent_instagram_id: '',
-    kanban_api_url: '',
-    kanban_api_token: '',
+    kanban_board_ids: [] as string[],
     agents_supabase_ref: 'wacotfqoarsbazrreeco',
     appointment_value: '',
     dashboard_config: {
@@ -95,8 +94,7 @@ export default function SuperAdminClientForm() {
           cw_account_id: client.cw_account_id || '',
           cw_base_url: client.cw_base_url || '',
           cw_api_token: client.cw_api_token || '',
-          kanban_api_url: client.kanban_api_url || '',
-          kanban_api_token: client.kanban_api_token || '',
+          kanban_board_ids: (client as any).kanban_board_ids || [],
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
           agents_supabase_ref: client.agents_supabase_ref || 'wacotfqoarsbazrreeco',
@@ -156,14 +154,13 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
-            kanban_api_url: form.kanban_api_url || null,
-            kanban_api_token: form.kanban_api_token || null,
+            kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
             appointment_value: form.appointment_value ? Number(form.appointment_value) : null,
             dashboard_config: form.dashboard_config,
-          })
+          } as any)
           .eq('id', id!)
 
         if (updateError) throw updateError
@@ -198,14 +195,13 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
-            kanban_api_url: form.kanban_api_url || null,
-            kanban_api_token: form.kanban_api_token || null,
+            kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
             appointment_value: form.appointment_value ? Number(form.appointment_value) : null,
             dashboard_config: form.dashboard_config,
-          })
+          } as any)
           .select('id')
           .single()
 
@@ -449,7 +445,7 @@ export default function SuperAdminClientForm() {
                   placeholder="https://crm.exemplo.com"
                 />
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <label className="text-sm text-[#888] mb-1 block">API Token</label>
                 <input
                   type="text"
@@ -459,25 +455,44 @@ export default function SuperAdminClientForm() {
                   placeholder="Token de API do CRM"
                 />
               </div>
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Kanban API URL</label>
+              <div className="md:col-span-2">
+                <label className="text-sm text-[#888] mb-1 block">IDs dos Kanbans</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {form.kanban_board_ids.map((boardId, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#00D4FF10] border border-[#00D4FF30] text-[#00D4FF] text-xs font-mono"
+                    >
+                      {boardId.slice(0, 8)}...
+                      <button
+                        type="button"
+                        onClick={() => setForm({
+                          ...form,
+                          kanban_board_ids: form.kanban_board_ids.filter((_, i) => i !== idx),
+                        })}
+                        className="hover:text-[#FF4D6A] transition-colors cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
                 <input
                   type="text"
-                  value={form.kanban_api_url}
-                  onChange={e => setForm({ ...form, kanban_api_url: e.target.value })}
                   className={inputClass}
-                  placeholder="https://crm.exemplo.com/api/v1"
+                  placeholder="Cole o UUID do board e pressione Enter"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const val = (e.target as HTMLInputElement).value.trim()
+                      if (val && !form.kanban_board_ids.includes(val)) {
+                        setForm({ ...form, kanban_board_ids: [...form.kanban_board_ids, val] })
+                        ;(e.target as HTMLInputElement).value = ''
+                      }
+                    }
+                  }}
                 />
-              </div>
-              <div>
-                <label className="text-sm text-[#888] mb-1 block">Kanban API Token</label>
-                <input
-                  type="text"
-                  value={form.kanban_api_token}
-                  onChange={e => setForm({ ...form, kanban_api_token: e.target.value })}
-                  className={inputClass}
-                  placeholder="Token do Kanban"
-                />
+                <p className="text-[10px] text-[#555] mt-1">UUID do board no CRM. Pode adicionar varios.</p>
               </div>
             </div>
           )}
