@@ -162,10 +162,12 @@ function PostDetailModal({
   post,
   onClose,
   onStatusChange,
+  onImagePreview,
 }: {
   post: ContentPost
   onClose: () => void
   onStatusChange: (postId: string, newStatus: ContentStatus, notes?: string) => void
+  onImagePreview: (url: string | null) => void
 }) {
   const [localNotes, setLocalNotes] = useState(post.notes || '')
   const cfg = statusConfig[post.status]
@@ -208,6 +210,18 @@ function PostDetailModal({
         </button>
 
         <div className="p-6">
+          {/* Media preview */}
+          {(post.mediaUrl || post.thumbnailUrl) && (
+            <div className="mb-4 rounded-xl overflow-hidden">
+              <img
+                src={post.mediaUrl || post.thumbnailUrl || ''}
+                alt={post.title}
+                className="w-full max-h-[300px] object-cover cursor-pointer hover:brightness-110 transition-all"
+                onClick={() => onImagePreview(post.mediaUrl || post.thumbnailUrl)}
+              />
+            </div>
+          )}
+
           {/* Title */}
           <h2 className="text-lg font-extrabold text-theme-primary tracking-tight pr-10 mb-3">
             {post.title}
@@ -372,6 +386,7 @@ export default function Criativos() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
   const [viewMode, setViewMode] = useState<'kanban' | 'calendar' | 'list'>('kanban')
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   // Calendar navigation — default to current month
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear())
@@ -579,7 +594,7 @@ export default function Criativos() {
       {/* ──────── Kanban View ──────── */}
       {viewMode === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-card-in">
-          {(['review', 'approved', 'draft', 'published'] as ContentStatus[]).map(status => {
+          {(['draft', 'review', 'approved', 'published'] as ContentStatus[]).map(status => {
             const sCfg = statusConfig[status]
             const columnPosts = posts.filter(p => p.status === status)
             return (
@@ -612,11 +627,20 @@ export default function Criativos() {
                         className={`w-full text-left rounded-xl border border-theme p-3 transition-all cursor-pointer card-hover-lift animate-row-in row-stagger-${Math.min(i + 1, 8)}`}
                         style={{ '--glow-color': sCfg.color, backgroundColor: 'var(--bg-card-hover)' } as React.CSSProperties}
                       >
-                        {/* Thumbnail placeholder */}
+                        {/* Thumbnail */}
                         {post.thumbnailUrl ? (
-                          <img src={post.thumbnailUrl} alt="" className="w-full h-24 object-cover rounded-lg mb-2" />
+                          <div className="relative group/thumb mb-2">
+                            <img src={post.thumbnailUrl} alt="" className="w-full h-32 object-cover rounded-lg" />
+                            <div
+                              className="absolute inset-0 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
+                              style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                              onClick={e => { e.stopPropagation(); setImagePreview(post.thumbnailUrl) }}
+                            >
+                              <Eye size={20} className="text-white" />
+                            </div>
+                          </div>
                         ) : (
-                          <div className="w-full h-24 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${sCfg.color} 5%, transparent)` }}>
+                          <div className="w-full h-32 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${sCfg.color} 5%, transparent)` }}>
                             <TypeIcon size={24} style={{ color: sCfg.color, opacity: 0.4 }} />
                           </div>
                         )}
@@ -795,12 +819,32 @@ export default function Criativos() {
         </div>
       )}
 
+      {/* ──────── Image Preview Modal ──────── */}
+      {imagePreview && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-backdrop cursor-pointer"
+          onClick={() => setImagePreview(null)}
+        >
+          <div className="relative animate-modal-in max-w-[90vmin] max-h-[90vmin]">
+            <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+            <button
+              onClick={() => setImagePreview(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-black/70 border border-white/20 flex items-center justify-center text-white hover:bg-black transition-colors cursor-pointer"
+              aria-label="Fechar preview"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ──────── Post Detail Modal ──────── */}
       {selectedPost && (
         <PostDetailModal
           post={selectedPost}
           onClose={() => setSelectedPost(null)}
           onStatusChange={handleStatusChange}
+          onImagePreview={setImagePreview}
         />
       )}
     </div>
