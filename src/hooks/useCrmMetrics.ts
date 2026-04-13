@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientId } from './useClientId';
 
-export interface ChatwootLabel {
+export interface CrmLabel {
   id: number;
   title: string;
   description: string;
@@ -10,7 +10,7 @@ export interface ChatwootLabel {
   conversations_count: number;
 }
 
-export interface ChatwootConversation {
+export interface CrmConversation {
   id: number;
   inbox_id: number;
   status: string;
@@ -27,31 +27,31 @@ export interface ChatwootConversation {
   custom_attributes?: Record<string, any>;
 }
 
-export interface ChatwootInbox {
+export interface CrmInbox {
   id: number;
   name: string;
   channel_type: string;
 }
 
-export interface ChatwootMetrics {
+export interface CrmMetrics {
   conversationsCount: number;
   openConversationsCount: number;
   outgoingMessagesCount: number;
   incomingMessagesCount: number;
   avgFirstResponseTime: number | null;
   avgResolutionTime: number | null;
-  labels: ChatwootLabel[];
-  conversations: ChatwootConversation[];
-  inboxes: ChatwootInbox[];
+  labels: CrmLabel[];
+  conversations: CrmConversation[];
+  inboxes: CrmInbox[];
   loading: boolean;
   error: string | null;
   enabled: boolean;
   lastSyncAt: string | null;
 }
 
-export const useChatwootMetrics = (timePeriod: number = 30) => {
+export const useCrmMetrics = (timePeriod: number = 30) => {
   const { clientId, loading: clientLoading } = useClientId();
-  const [metrics, setMetrics] = useState<ChatwootMetrics>({
+  const [metrics, setMetrics] = useState<CrmMetrics>({
     conversationsCount: 0,
     openConversationsCount: 0,
     outgoingMessagesCount: 0,
@@ -179,11 +179,11 @@ export const useChatwootMetrics = (timePeriod: number = 30) => {
         lastSyncAt: data.synced_at,
       });
     } catch (error) {
-      console.error('Error fetching Chatwoot metrics:', error);
+      console.error('Error fetching CRM metrics:', error);
       setMetrics(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch Chatwoot metrics',
+        error: error instanceof Error ? error.message : 'Failed to fetch CRM metrics',
       }));
     }
   };

@@ -138,7 +138,7 @@ export default function SuperAdminClients() {
               <th className="text-left px-5 py-3 font-medium">Email</th>
               <th className="text-left px-5 py-3 font-medium">Nicho</th>
               <th className="text-left px-5 py-3 font-medium">Tipo</th>
-              <th className="text-center px-5 py-3 font-medium">Chatwoot</th>
+              <th className="text-center px-5 py-3 font-medium">CRM</th>
               <th className="text-center px-5 py-3 font-medium">Ativo</th>
               <th className="text-right px-5 py-3 font-medium">Acoes</th>
             </tr>

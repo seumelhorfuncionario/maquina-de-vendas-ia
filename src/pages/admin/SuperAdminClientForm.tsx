@@ -40,6 +40,8 @@ export default function SuperAdminClientForm() {
     cw_api_token: '',
     agent_whatsapp_id: '',
     agent_instagram_id: '',
+    kanban_api_url: '',
+    kanban_api_token: '',
     agents_supabase_ref: 'wacotfqoarsbazrreeco',
     appointment_value: '',
     dashboard_config: {
@@ -93,6 +95,8 @@ export default function SuperAdminClientForm() {
           cw_account_id: client.cw_account_id || '',
           cw_base_url: client.cw_base_url || '',
           cw_api_token: client.cw_api_token || '',
+          kanban_api_url: client.kanban_api_url || '',
+          kanban_api_token: client.kanban_api_token || '',
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
           agents_supabase_ref: client.agents_supabase_ref || 'wacotfqoarsbazrreeco',
@@ -152,6 +156,8 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            kanban_api_url: form.kanban_api_url || null,
+            kanban_api_token: form.kanban_api_token || null,
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
@@ -192,6 +198,8 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            kanban_api_url: form.kanban_api_url || null,
+            kanban_api_token: form.kanban_api_token || null,
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
             agents_supabase_ref: form.agents_supabase_ref || null,
@@ -401,10 +409,10 @@ export default function SuperAdminClientForm() {
           </div>
         </div>
 
-        {/* Chatwoot */}
+        {/* CRM */}
         <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">Chatwoot</h2>
+            <h2 className="text-base font-semibold text-white">CRM</h2>
             <button
               type="button"
               onClick={() => setForm({ ...form, cw_enabled: !form.cw_enabled })}
@@ -428,7 +436,7 @@ export default function SuperAdminClientForm() {
                   value={form.cw_account_id}
                   onChange={e => setForm({ ...form, cw_account_id: e.target.value })}
                   className={inputClass}
-                  placeholder="ID da conta Chatwoot"
+                  placeholder="ID da conta no CRM"
                 />
               </div>
               <div>
@@ -438,17 +446,37 @@ export default function SuperAdminClientForm() {
                   value={form.cw_base_url}
                   onChange={e => setForm({ ...form, cw_base_url: e.target.value })}
                   className={inputClass}
-                  placeholder="https://chatwoot.exemplo.com"
+                  placeholder="https://crm.exemplo.com"
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
                 <label className="text-sm text-[#888] mb-1 block">API Token</label>
                 <input
                   type="text"
                   value={form.cw_api_token}
                   onChange={e => setForm({ ...form, cw_api_token: e.target.value })}
                   className={inputClass}
-                  placeholder="Token de API do Chatwoot"
+                  placeholder="Token de API do CRM"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#888] mb-1 block">Kanban API URL</label>
+                <input
+                  type="text"
+                  value={form.kanban_api_url}
+                  onChange={e => setForm({ ...form, kanban_api_url: e.target.value })}
+                  className={inputClass}
+                  placeholder="https://crm.exemplo.com/api/v1"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-[#888] mb-1 block">Kanban API Token</label>
+                <input
+                  type="text"
+                  value={form.kanban_api_token}
+                  onChange={e => setForm({ ...form, kanban_api_token: e.target.value })}
+                  className={inputClass}
+                  placeholder="Token do Kanban"
                 />
               </div>
             </div>

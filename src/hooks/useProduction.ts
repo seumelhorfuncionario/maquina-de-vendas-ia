@@ -72,7 +72,7 @@ export const useProduction = () => {
         return
       }
 
-      // Sync bidirecional: atualizar no Chatwoot (funil de produção)
+      // Sync bidirecional: atualizar no CRM (funil de produção)
       const order = production.find(p => p.id === id)
       if (!order) return
 
