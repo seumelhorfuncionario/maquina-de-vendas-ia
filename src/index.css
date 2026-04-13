@@ -265,7 +265,8 @@ body::before {
   50% { border-left-color: color-mix(in srgb, var(--alert-color) 50%, transparent); }
 }
 .animate-alert-pulse {
-  animation: alertPulse 2.5s ease-in-out infinite;
+  animation: fadeInScale 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+             alertPulse 2.5s ease-in-out 0.5s infinite;
 }
 
 /* Creative card hover float */

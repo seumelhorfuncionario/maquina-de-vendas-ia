@@ -747,7 +747,7 @@ export default function Trafego() {
               return (
                 <div
                   key={alert.id}
-                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-colors animate-row-in row-stagger-${Math.min(idx + 1, 4)} animate-alert-pulse`}
+                  className="flex items-start gap-3 rounded-xl border px-4 py-3 transition-colors animate-alert-pulse"
                   style={{
                     '--alert-color': borderColor,
                     backgroundColor: 'var(--bg-card-hover)',
