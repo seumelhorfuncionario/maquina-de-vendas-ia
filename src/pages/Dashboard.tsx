@@ -296,7 +296,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Dashboard" description="Visão geral da sua máquina de vendas" />
+        <PageHeader title="Dashboard" description="Visão geral do seu motor de vendas" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
           <span className="ml-3 text-sm text-theme-muted">Carregando métricas...</span>
@@ -309,7 +309,7 @@ export default function Dashboard() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="Visão geral da sua máquina de vendas"
+        description="Visão geral do seu motor de vendas"
         action={
           <div className="flex items-center gap-2">
             {/* Period selector */}
@@ -345,7 +345,7 @@ export default function Dashboard() {
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${d.machineActive ? 'bg-[#00FF88] animate-pulse' : 'bg-[#FF4D6A]'}`} />
-              {d.machineActive ? 'Máquina Ativa' : 'Pausada'}
+              {d.machineActive ? 'Motor Ativo' : 'Pausado'}
             </span>
           </div>
         }

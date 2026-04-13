@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: superAdmin.id,
         name: superAdmin.name || 'Admin',
         email: email,
-        company: 'Maquina de Vendas IA',
+        company: 'Motor de Vendas IA',
       })
     }
 
