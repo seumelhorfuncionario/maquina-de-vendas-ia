@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;0,800;1,700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1080px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px; position: relative; overflow: hidden;
+  }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+  .overlay { position: absolute; inset: 0; background: rgba(5,5,5,0.80); z-index: 1; }
+  .content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+  .emoji { font-size: 72px; margin-bottom: 40px; }
+  .accent-line { width: 80px; height: 3px; background: #FFD600; margin-bottom: 40px; border-radius: 2px; }
+  .headline {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800; font-size: 50px;
+    color: rgba(255,255,255,0.95);
+    text-align: center; line-height: 1.3; margin-bottom: 32px;
+  }
+  .headline .accent { color: #FFD600; font-style: italic; }
+  .subtexto {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400; font-size: 27px;
+    color: rgba(255,255,255,0.65);
+    text-align: center; line-height: 1.5; max-width: 800px;
+  }
+  .branding {
+    position: absolute; bottom: 30px; left: 0; right: 0;
+    text-align: center; color: rgba(255,255,255,0.35);
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; z-index: 2;
+  }
+</style>
+</head>
+<body>
+  <img class="bg" src="../backgrounds/bg_outono.png" />
+  <div class="overlay"></div>
+  <div class="content">
+    <div class="emoji">&#128161;</div>
+    <div class="accent-line"></div>
+    <div class="headline">Nunca pendure quadros<br>na <span class="accent">altura errada</span></div>
+    <div class="subtexto">O centro do quadro deve ficar a 1,60m do ch&#227;o.<br>&#201; a altura m&#233;dia dos olhos &#8212; regra universal de galerias.</div>
+  </div>
+  <div class="branding">@artenossa.cv</div>
+</body>
+</html>

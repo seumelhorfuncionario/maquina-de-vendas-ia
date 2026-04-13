@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1080px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px; position: relative; overflow: hidden;
+  }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+  .overlay { position: absolute; inset: 0; background: rgba(5,5,5,0.82); z-index: 1; }
+  .content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+  .number {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 900; font-size: 140px;
+    color: #00FF88; line-height: 1; margin-bottom: 32px;
+  }
+  .context {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400; font-size: 30px;
+    color: rgba(255,255,255,0.90);
+    text-align: center; line-height: 1.5; max-width: 750px;
+    margin-bottom: 44px;
+  }
+  .separator { width: 60px; height: 2px; background: rgba(255,255,255,0.2); margin-bottom: 24px; }
+  .source {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; color: rgba(255,255,255,0.35);
+    text-align: center;
+  }
+  .branding {
+    position: absolute; bottom: 30px; left: 0; right: 0;
+    text-align: center; color: rgba(255,255,255,0.35);
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; z-index: 2;
+  }
+</style>
+</head>
+<body>
+  <img class="bg" src="../backgrounds/bg_tamanhos.png" />
+  <div class="overlay"></div>
+  <div class="content">
+    <div class="number">78%</div>
+    <div class="context">dos brasileiros consideram a decora&#231;&#227;o<br>essencial para o bem-estar em casa</div>
+    <div class="separator"></div>
+    <div class="source">Pesquisa Datafolha / Decora&#231;&#227;o 2026</div>
+  </div>
+  <div class="branding">@artenossa.cv</div>
+</body>
+</html>
