@@ -199,6 +199,160 @@ body::before {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+/* ===== ENHANCED ANIMATIONS — Traffic & Creatives ===== */
+
+/* Progress bar fill animation */
+@keyframes barFill {
+  from { width: 0%; }
+}
+.animate-bar-fill {
+  animation: barFill 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.3s;
+}
+
+/* Shimmer shine sweep for winner badges */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    color-mix(in srgb, var(--accent-green) 20%, transparent) 37%,
+    transparent 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Pulse glow for active status dots */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50% { box-shadow: 0 0 6px 2px currentColor; opacity: 0.7; }
+}
+.animate-pulse-dot {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Table row slide-in from left */
+@keyframes slideInRow {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-row-in {
+  opacity: 0;
+  animation: slideInRow 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Stagger delays for table rows */
+.row-stagger-1 { animation-delay: 0.05s; }
+.row-stagger-2 { animation-delay: 0.10s; }
+.row-stagger-3 { animation-delay: 0.15s; }
+.row-stagger-4 { animation-delay: 0.20s; }
+.row-stagger-5 { animation-delay: 0.25s; }
+.row-stagger-6 { animation-delay: 0.30s; }
+.row-stagger-7 { animation-delay: 0.35s; }
+.row-stagger-8 { animation-delay: 0.40s; }
+.row-stagger-9 { animation-delay: 0.45s; }
+.row-stagger-10 { animation-delay: 0.50s; }
+.row-stagger-11 { animation-delay: 0.55s; }
+.row-stagger-12 { animation-delay: 0.60s; }
+
+/* Alert attention pulse */
+@keyframes alertPulse {
+  0%, 100% { border-left-color: var(--alert-color); }
+  50% { border-left-color: color-mix(in srgb, var(--alert-color) 50%, transparent); }
+}
+.animate-alert-pulse {
+  animation: alertPulse 2.5s ease-in-out infinite;
+}
+
+/* Creative card hover float */
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px -8px color-mix(in srgb, var(--glow-color, var(--accent-cyan)) 15%, transparent);
+}
+
+/* Modal slide-up entrance */
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-modal-in {
+  animation: modalSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Backdrop fade */
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-backdrop {
+  animation: backdropFade 0.2s ease-out forwards;
+}
+
+/* Number count-up feel via scale */
+@keyframes countPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-count-pop {
+  opacity: 0;
+  animation: countPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.2s;
+}
+
+/* Calendar cell hover */
+.calendar-cell {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.calendar-cell:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+/* Gradient mesh background for section headers */
+.gradient-mesh-traffic {
+  background:
+    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--accent-yellow) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, color-mix(in srgb, var(--accent-cyan) 3%, transparent) 0%, transparent 50%);
+}
+
+.gradient-mesh-creatives {
+  background:
+    radial-gradient(ellipse at 15% 30%, color-mix(in srgb, var(--accent-purple) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 70%, color-mix(in srgb, var(--accent-green) 3%, transparent) 0%, transparent 50%);
+}
+
+/* Comparison arrow bounce */
+@keyframes arrowBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.animate-arrow-bounce {
+  animation: arrowBounce 1.5s ease-in-out infinite;
+}
+
+/* Winner card border animation */
+@keyframes winnerBorderGlow {
+  0%, 100% { border-color: color-mix(in srgb, var(--accent-green) 40%, transparent); box-shadow: 0 0 24px -8px color-mix(in srgb, var(--accent-green) 15%, transparent); }
+  50% { border-color: color-mix(in srgb, var(--accent-green) 60%, transparent); box-shadow: 0 0 32px -4px color-mix(in srgb, var(--accent-green) 25%, transparent); }
+}
+.animate-winner-glow {
+  animation: winnerBorderGlow 3s ease-in-out infinite;
+}
+
+/* Stagger for extended lists (9-16) */
+.stagger-9 { animation-delay: 0.36s; }
+.stagger-10 { animation-delay: 0.40s; }
+.stagger-11 { animation-delay: 0.44s; }
+.stagger-12 { animation-delay: 0.48s; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-card-in,

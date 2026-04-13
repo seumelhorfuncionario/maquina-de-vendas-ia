@@ -1048,6 +1048,7 @@ export type Database = {
           appointment_date: string
           count: number
           notes: string | null
+          value: number | null
           created_at: string
           updated_at: string
         }
@@ -1057,6 +1058,7 @@ export type Database = {
           appointment_date?: string
           count?: number
           notes?: string | null
+          value?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -1066,6 +1068,7 @@ export type Database = {
           appointment_date?: string
           count?: number
           notes?: string | null
+          value?: number | null
           created_at?: string
           updated_at?: string
         }

@@ -7,6 +7,7 @@ interface ManualAppointment {
   appointment_date: string
   count: number
   notes: string | null
+  value: number | null
 }
 
 export const useManualAppointments = (dateFrom?: string) => {
@@ -36,7 +37,7 @@ export const useManualAppointments = (dateFrom?: string) => {
 
       const { data, error } = await supabase
         .from('manual_appointments')
-        .select('id, appointment_date, count, notes')
+        .select('id, appointment_date, count, notes, value')
         .eq('client_id', clientId)
         .gte('appointment_date', since)
         .order('appointment_date', { ascending: false })
@@ -55,9 +56,12 @@ export const useManualAppointments = (dateFrom?: string) => {
   }, [clientLoading, fetchAppointments])
 
   const totalCount = appointments.reduce((sum, a) => sum + a.count, 0)
-  const estimatedRevenue = totalCount * appointmentValue
+  const estimatedRevenue = appointments.reduce((sum, a) => {
+    // Se o valor foi informado, usa direto; senão, fallback para count × appointmentValue
+    return sum + (a.value != null ? a.value : a.count * appointmentValue)
+  }, 0)
 
-  const upsertAppointment = async (date: string, count: number, notes?: string) => {
+  const upsertAppointment = async (date: string, count: number, notes?: string, value?: number | null) => {
     if (!clientId) return
 
     const { data: existing } = await supabase
@@ -67,15 +71,17 @@ export const useManualAppointments = (dateFrom?: string) => {
       .eq('appointment_date', date)
       .maybeSingle()
 
+    const payload = { count, notes: notes || null, value: value ?? null }
+
     if (existing) {
       await supabase
         .from('manual_appointments')
-        .update({ count, notes: notes || null, updated_at: new Date().toISOString() })
+        .update({ ...payload, updated_at: new Date().toISOString() })
         .eq('id', existing.id)
     } else {
       await supabase
         .from('manual_appointments')
-        .insert({ client_id: clientId, appointment_date: date, count, notes: notes || null })
+        .insert({ client_id: clientId, appointment_date: date, ...payload })
     }
 
     fetchAppointments()

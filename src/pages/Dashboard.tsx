@@ -62,22 +62,25 @@ function ManualAppointmentsCard({
   onUpsert,
   onDelete,
 }: {
-  appointments: { id: string; appointment_date: string; count: number; notes: string | null }[]
+  appointments: { id: string; appointment_date: string; count: number; notes: string | null; value: number | null }[]
   appointmentValue: number
   totalCount: number
   estimatedRevenue: number
-  onUpsert: (date: string, count: number, notes?: string) => Promise<void>
+  onUpsert: (date: string, count: number, notes?: string, value?: number | null) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [count, setCount] = useState(1)
+  const [value, setValue] = useState<string>('')
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
     if (count < 1) return
     setSaving(true)
-    await onUpsert(date, count)
+    const parsedValue = value.trim() !== '' ? parseFloat(value.replace(',', '.')) : null
+    await onUpsert(date, count, undefined, parsedValue)
     setCount(1)
+    setValue('')
     setSaving(false)
   }
 
@@ -93,7 +96,7 @@ function ManualAppointmentsCard({
             {totalCount}
           </span>
         </div>
-        {appointmentValue > 0 && (
+        {(appointmentValue > 0 || estimatedRevenue > 0) && (
           <span className="text-xs font-data text-theme-muted">
             Receita: <span className="text-[#00FF88] font-bold">{estimatedRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
           </span>
@@ -111,14 +114,25 @@ function ManualAppointmentsCard({
             className="w-full bg-[var(--bg-elevated)] border border-theme rounded-xl px-3 py-2 text-sm text-theme-primary outline-none focus:border-[#00D4FF] transition-colors font-data"
           />
         </div>
-        <div className="w-[100px]">
-          <label className="text-[10px] text-theme-muted mb-1 block font-medium">Quantidade</label>
+        <div className="w-[80px]">
+          <label className="text-[10px] text-theme-muted mb-1 block font-medium">Qtd</label>
           <input
             type="number"
             value={count}
             onChange={e => setCount(Math.max(1, Number(e.target.value)))}
             min={1}
             className="w-full bg-[var(--bg-elevated)] border border-theme rounded-xl px-3 py-2 text-sm text-theme-primary outline-none focus:border-[#00D4FF] transition-colors font-data text-center"
+          />
+        </div>
+        <div className="w-[120px]">
+          <label className="text-[10px] text-theme-muted mb-1 block font-medium">Valor (R$)</label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            placeholder={appointmentValue > 0 ? (count * appointmentValue).toFixed(2) : '0,00'}
+            className="w-full bg-[var(--bg-elevated)] border border-theme rounded-xl px-3 py-2 text-sm text-theme-primary outline-none focus:border-[#00D4FF] transition-colors font-data text-center placeholder:text-[#555]"
           />
         </div>
         <button
@@ -142,9 +156,9 @@ function ManualAppointmentsCard({
                 </span>
                 <span className="text-sm font-bold text-theme-primary">{a.count}</span>
                 <span className="text-[11px] text-theme-muted">agendamento{a.count !== 1 ? 's' : ''}</span>
-                {appointmentValue > 0 && (
+                {(a.value != null || appointmentValue > 0) && (
                   <span className="text-[11px] font-data text-[#00FF88]">
-                    {(a.count * appointmentValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    {(a.value != null ? a.value : a.count * appointmentValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </span>
                 )}
               </div>
@@ -227,7 +241,7 @@ export default function Dashboard() {
         const day = ma.appointment_date
         const cur = byDay.get(day) || { agendamentos: 0, receita: 0 }
         cur.agendamentos += ma.count
-        cur.receita += ma.count * apptValue
+        cur.receita += ma.value != null ? ma.value : ma.count * apptValue
         byDay.set(day, cur)
       }
     }

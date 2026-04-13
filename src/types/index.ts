@@ -112,3 +112,95 @@ export interface ChartData {
   leads: number
   receita: number
 }
+
+// --- Traffic Dashboard Types ---
+export type CampaignObjective = 'OUTCOME_TRAFFIC' | 'OUTCOME_ENGAGEMENT' | 'OUTCOME_LEADS' | 'OUTCOME_SALES' | 'OUTCOME_AWARENESS' | 'LINK_CLICKS' | 'CONVERSIONS'
+export type CampaignStatus = 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DELETED'
+
+export interface Campaign {
+  id: string
+  campaignId: string
+  campaignName: string
+  objective: CampaignObjective
+  status: CampaignStatus
+  spend: number
+  revenue: number
+  purchases: number
+  impressions: number
+  clicks: number
+  leads: number
+  cpm: number
+  cpc: number
+  ctr: number
+  roas: number
+  linkClicks: number
+  videoViews: number
+  engagement: number
+  messagingReplies: number
+  costPerResult: number
+  date: string
+}
+
+export type CreativeClassification = 'winner' | 'positive' | 'neutral' | 'negative' | 'fatigue'
+
+export interface CreativePerformance {
+  id: string
+  creativeId: string
+  creativeName: string
+  campaignId: string | null
+  adSetName: string | null
+  spend: number
+  revenue: number
+  purchases: number
+  impressions: number
+  clicks: number
+  roas: number
+  ctr: number
+  cpc: number
+  classification: CreativeClassification
+  thumbnailUrl: string | null
+  date: string
+}
+
+export interface TrafficAlert {
+  id: string
+  type: 'low_roas' | 'cpm_spike' | 'fatigue' | 'high_cpc' | 'low_ctr'
+  severity: 'warning' | 'danger'
+  title: string
+  description: string
+  campaignName?: string
+  value?: number
+}
+
+export interface TrafficComparison {
+  metric: string
+  label: string
+  today: number
+  yesterday: number
+  last7d: number
+  todayVsYesterday: number
+  todayVsLast7d: number
+  format: 'currency' | 'number' | 'percent' | 'multiplier'
+}
+
+// --- Content Calendar Types ---
+export type ContentType = 'image' | 'video' | 'carousel' | 'story' | 'reel'
+export type ContentPlatform = 'instagram' | 'facebook' | 'tiktok' | 'linkedin'
+export type ContentStatus = 'draft' | 'review' | 'approved' | 'published'
+
+export interface ContentPost {
+  id: string
+  title: string
+  contentType: ContentType
+  caption: string | null
+  mediaUrl: string | null
+  thumbnailUrl: string | null
+  platform: ContentPlatform
+  status: ContentStatus
+  scheduledDate: string | null
+  publishedAt: string | null
+  approvedAt: string | null
+  notes: string | null
+  tags: string[] | null
+  createdAt: string
+}

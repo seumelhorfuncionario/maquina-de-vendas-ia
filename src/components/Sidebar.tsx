@@ -10,6 +10,8 @@ import {
   DollarSign,
   Package,
   Bot,
+  Megaphone,
+  Palette,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +28,8 @@ const allNavItems = [
   { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
   { to: '/ia', icon: Bot, label: 'Visão da IA', feature: 'ia_vision' },
+  { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
+  { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
 
 interface SidebarProps {
