@@ -21,23 +21,47 @@ export const useProduction = () => {
       setLoading(true)
       setError(null)
 
-      // Busca orders com phone via sales → chats
-      const { data, error: fetchError } = await (supabase.from as any)('production_orders')
-        .select('*, sales(chat_id, chats(phone))')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
+      // Busca orders + chats em paralelo para resolver phone
+      const [{ data, error: fetchError }, { data: chatsData }] = await Promise.all([
+        supabase
+          .from('production_orders')
+          .select('*')
+          .eq('client_id', clientId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('chats')
+          .select('id_kanban, nome, phone')
+          .eq('client_id', clientId),
+      ])
 
       if (fetchError) throw fetchError
 
-      const mapped: ProductionOrder[] = (data || []).map((p: any) => ({
-        id: p.id,
-        clientName: p.customer_name,
-        product: p.product_name,
-        quantity: p.quantity || 1,
-        status: (p.status as ProductionStatus) || 'pending',
-        createdAt: p.created_at || new Date().toISOString(),
-        phone: p.sales?.chats?.phone || undefined,
-      }))
+      // Build lookup maps: id_kanban → phone, nome → phone
+      const phoneByKanban = new Map<string, string>()
+      const phoneByName = new Map<string, string>()
+      for (const ch of (chatsData || []) as any[]) {
+        if (ch.phone) {
+          if (ch.id_kanban) phoneByKanban.set(ch.id_kanban, ch.phone)
+          if (ch.nome) phoneByName.set(ch.nome, ch.phone)
+        }
+      }
+
+      const mapped: ProductionOrder[] = (data || []).map((p: any) => {
+        // Resolve phone: primeiro por kanban_item no notes, fallback por nome
+        const kanbanMatch = (p.notes || '').match(/kanban_item:(\d+)/)
+        const kanbanId = kanbanMatch?.[1]
+        const phone = (kanbanId && phoneByKanban.get(kanbanId)) || phoneByName.get(p.customer_name) || undefined
+
+        return {
+          id: p.id,
+          clientName: p.customer_name,
+          product: p.product_name,
+          quantity: p.quantity || 1,
+          status: (p.status as ProductionStatus) || 'pending',
+          createdAt: p.created_at || new Date().toISOString(),
+          phone,
+        }
+      })
 
       setProduction(mapped)
     } catch (err) {
