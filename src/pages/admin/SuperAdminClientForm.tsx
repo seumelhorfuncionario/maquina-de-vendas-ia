@@ -38,6 +38,7 @@ export default function SuperAdminClientForm() {
     cw_account_id: '',
     cw_base_url: '',
     cw_api_token: '',
+    meta_ads_account_id: '',
     agent_whatsapp_id: '',
     agent_instagram_id: '',
     kanban_board_ids: [] as string[],
@@ -94,6 +95,7 @@ export default function SuperAdminClientForm() {
           cw_account_id: client.cw_account_id || '',
           cw_base_url: client.cw_base_url || '',
           cw_api_token: client.cw_api_token || '',
+          meta_ads_account_id: client.meta_ads_account_id || '',
           kanban_board_ids: (client as any).kanban_board_ids || [],
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
@@ -154,6 +156,7 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            meta_ads_account_id: form.meta_ads_account_id || null,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -195,6 +198,7 @@ export default function SuperAdminClientForm() {
             cw_account_id: form.cw_account_id || null,
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
+            meta_ads_account_id: form.meta_ads_account_id || null,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -496,6 +500,24 @@ export default function SuperAdminClientForm() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Meta Ads */}
+        <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
+          <h2 className="text-base font-semibold text-white mb-4">Meta Ads</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-[#888] mb-1 block">ID da Conta de Anuncios</label>
+              <input
+                type="text"
+                value={form.meta_ads_account_id}
+                onChange={e => setForm({ ...form, meta_ads_account_id: e.target.value })}
+                className={inputClass}
+                placeholder="act_1234567890"
+              />
+              <p className="text-[10px] text-[#555] mt-1">Formato: act_XXXXXXXXXX (encontre no Gerenciador de Anuncios)</p>
+            </div>
+          </div>
         </div>
 
         {/* Agentes IA */}
