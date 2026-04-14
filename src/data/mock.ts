@@ -4,7 +4,7 @@ export const mockUser = {
   id: '1',
   name: 'Luiz - Arte Nossa',
   email: 'carlos@quadrosart.com.br',
-  company: 'Arte Nossa Comunicacao Visual',
+  company: 'Arte Nossa Comunicação Visual',
 }
 
 export const mockProducts: Product[] = [
