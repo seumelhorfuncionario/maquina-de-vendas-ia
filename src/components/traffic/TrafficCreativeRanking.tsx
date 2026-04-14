@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone, ImageOff } from 'lucide-react'
+import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone } from 'lucide-react'
 import Tooltip from '@/components/Tooltip'
 import type { CreativePerformance } from '@/types'
 import { fmt, fmtPct, ctrColor, sortBy, CLASSIFICATION_CONFIG, type SortDir } from '@/types/traffic'
@@ -62,13 +62,17 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
     )
   }
 
+  const isVideo = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url)
+
   const Thumb = ({ url, name }: { url: string | null; name: string }) => {
-    if (!url) {
+    if (!url) return null
+    if (isVideo(url)) {
       return (
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--text-ghost) 20%, transparent)' }}>
-          <ImageOff size={14} className="text-theme-muted" />
-        </div>
+        <video src={url} muted loop playsInline preload="metadata"
+          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+          onMouseEnter={e => (e.target as HTMLVideoElement).play()}
+          onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+        />
       )
     }
     return (
@@ -112,10 +116,24 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
           {topCreatives.map(cr => {
             return (
               <div key={cr.id}
-                className="rounded-xl border p-4 transition-colors"
+                className="rounded-xl border overflow-hidden transition-colors"
                 style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: 'var(--border)' }}>
-                <div className="flex items-start gap-3 mb-3">
-                  <Thumb url={cr.thumbnailUrl} name={cr.creativeName} />
+                {/* Video/image preview */}
+                {cr.thumbnailUrl && isVideo(cr.thumbnailUrl) && (
+                  <video src={cr.thumbnailUrl} muted loop playsInline preload="metadata"
+                    className="w-full h-36 object-cover"
+                    onMouseEnter={e => (e.target as HTMLVideoElement).play()}
+                    onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+                  />
+                )}
+                {cr.thumbnailUrl && !isVideo(cr.thumbnailUrl) && (
+                  <img src={cr.thumbnailUrl} alt={cr.creativeName} loading="lazy"
+                    className="w-full h-36 object-cover"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
+                )}
+                <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-theme-primary leading-tight truncate">
                       {cr.creativeName}
@@ -146,6 +164,7 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
                     </Tooltip>
                     <span className="text-[12px] font-data font-semibold block" style={{ color: ctrColor(cr.ctr) }}>{fmtPct(cr.ctr)}</span>
                   </div>
+                </div>
                 </div>
               </div>
             )
