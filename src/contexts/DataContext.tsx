@@ -6,6 +6,7 @@ import { useLeads } from '@/hooks/useLeads'
 import { useProducts } from '@/hooks/useProducts'
 import { useSales } from '@/hooks/useSales'
 import { useProduction } from '@/hooks/useProduction'
+import { useKanbanAutoSync } from '@/hooks/useKanbanAutoSync'
 
 interface DataContextType {
   leads: Lead[]
@@ -58,7 +59,31 @@ function DemoDataProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Wrapper que garante sync do kanban ANTES de montar os hooks de dados.
+ * Isso evita race condition onde useLeads/useProduction buscam dados velhos
+ * enquanto o sync ainda está rodando.
+ */
 function RealDataProvider({ children }: { children: ReactNode }) {
+  const { synced } = useKanbanAutoSync()
+
+  if (!synced) {
+    return (
+      <DataContext.Provider value={{
+        leads: [], products: [], sales: [], production: [], loading: true,
+        moveLeadStatus: () => {}, moveProductionStatus: () => {},
+        addProduct: () => {}, updateProduct: () => {}, deleteProduct: () => {},
+      }}>
+        {children}
+      </DataContext.Provider>
+    )
+  }
+
+  return <RealDataAfterSync>{children}</RealDataAfterSync>
+}
+
+/** Só monta depois que o sync finalizou — hooks buscam dados já atualizados */
+function RealDataAfterSync({ children }: { children: ReactNode }) {
   const {
     leads,
     loading: leadsLoading,
