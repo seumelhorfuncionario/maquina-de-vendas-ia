@@ -14,21 +14,21 @@ export const OBJECTIVE_GROUP_MAP: Record<CampaignObjective, ObjectiveGroup> = {
 }
 
 export const GROUP_CONFIG: Record<ObjectiveGroup, { label: string; icon: string; colorVar: string; description: string }> = {
-  leads:      { label: 'Captacao de Leads', icon: 'Users',          colorVar: '--accent-green',  description: 'Campanhas focadas em gerar leads e mensagens' },
-  sales:      { label: 'Vendas',            icon: 'ShoppingCart',   colorVar: '--accent-green',  description: 'Campanhas com objetivo de conversao e vendas' },
-  traffic:    { label: 'Trafego',           icon: 'MousePointerClick', colorVar: '--accent-cyan', description: 'Campanhas de cliques e captacao de seguidores' },
-  engagement: { label: 'Engajamento',       icon: 'Heart',          colorVar: '--accent-purple', description: 'Campanhas de engajamento e visualizacoes' },
+  leads:      { label: 'Captação de Leads', icon: 'Users',          colorVar: '--accent-green',  description: 'Campanhas focadas em gerar leads e mensagens' },
+  sales:      { label: 'Vendas',             icon: 'ShoppingCart',   colorVar: '--accent-green',  description: 'Campanhas com objetivo de conversão e vendas' },
+  traffic:    { label: 'Tráfego',            icon: 'MousePointerClick', colorVar: '--accent-cyan', description: 'Campanhas de cliques e captação de seguidores' },
+  engagement: { label: 'Engajamento',        icon: 'Heart',          colorVar: '--accent-purple', description: 'Campanhas de engajamento e visualizações' },
 }
 
 /* ═══ Lookup maps (extracted from old Trafego.tsx) ═══ */
 export const OBJECTIVE_LABELS: Record<CampaignObjective, string> = {
-  OUTCOME_TRAFFIC: 'Trafego',
+  OUTCOME_TRAFFIC: 'Tráfego',
   OUTCOME_ENGAGEMENT: 'Engajamento',
   OUTCOME_LEADS: 'Leads',
   OUTCOME_SALES: 'Vendas',
   OUTCOME_AWARENESS: 'Alcance',
   LINK_CLICKS: 'Cliques',
-  CONVERSIONS: 'Conversoes',
+  CONVERSIONS: 'Conversões',
 }
 
 export const OBJECTIVE_COLORS: Record<CampaignObjective, string> = {
@@ -45,7 +45,7 @@ export const STATUS_CONFIG: Record<CampaignStatus, { label: string; color: strin
   ACTIVE: { label: 'Ativo', color: 'var(--accent-green)' },
   PAUSED: { label: 'Pausado', color: 'var(--accent-yellow)' },
   ARCHIVED: { label: 'Arquivado', color: 'var(--text-muted)' },
-  DELETED: { label: 'Excluido', color: 'var(--text-ghost)' },
+  DELETED: { label: 'Excluído', color: 'var(--text-ghost)' },
 }
 
 export const CLASSIFICATION_CONFIG: Record<CreativeClassification, { emoji: string; label: string; colorVar: string }> = {

@@ -79,7 +79,7 @@ export default function TrafficOverview({ campaigns, insights, onTabChange }: Pr
           const keyMetric = group === 'leads' ? `${fmtNum(camps.reduce((s, c) => s + c.leads + c.messagingReplies, 0))} leads`
             : group === 'sales' ? `ROAS ${(camps.reduce((s, c) => s + c.revenue, 0) / (spend || 1)).toFixed(2)}x`
             : group === 'traffic' ? `${fmtNum(camps.reduce((s, c) => s + c.linkClicks, 0))} cliques`
-            : `${fmtNum(camps.reduce((s, c) => s + c.engagement, 0))} interacoes`
+            : `${fmtNum(camps.reduce((s, c) => s + c.engagement, 0))} interações`
 
           return (
             <button

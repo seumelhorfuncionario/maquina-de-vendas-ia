@@ -13,23 +13,23 @@ export interface ColumnDef {
 }
 
 const COLUMN_TOOLTIPS: Record<string, string> = {
-  spend: 'Valor total investido nesta campanha no periodo.',
+  spend: 'Valor total investido nesta campanha no período.',
   clicks: 'Total de cliques (todos os tipos).',
-  cpc: 'Custo por Clique. Quanto custa cada clique em media.',
-  ctr: 'Click-Through Rate. % de pessoas que clicaram apos ver. Acima de 2% e bom.',
-  cpm: 'Custo por Mil impressoes. Quanto custa para 1.000 pessoas verem o anuncio.',
-  impressions: 'Quantas vezes o anuncio foi exibido no total.',
+  cpc: 'Custo por Clique. Quanto custa cada clique em média.',
+  ctr: 'Click-Through Rate. % de pessoas que clicaram após ver. Acima de 2% é bom.',
+  cpm: 'Custo por Mil impressões. Quanto custa para 1.000 pessoas verem o anúncio.',
+  impressions: 'Quantas vezes o anúncio foi exibido no total.',
   linkClicks: 'Cliques no link de destino (diferente de cliques gerais).',
-  leads: 'Leads gerados: cadastros, mensagens ou formularios preenchidos.',
+  leads: 'Leads gerados: cadastros, mensagens ou formulários preenchidos.',
   messagingReplies: 'Respostas recebidas via Messenger, WhatsApp ou Instagram Direct.',
-  revenue: 'Receita total gerada por vendas atribuidas a esta campanha.',
-  roas: 'Return on Ad Spend. Receita / Gasto. Acima de 3x e considerado bom.',
-  purchases: 'Numero de compras concluidas atribuidas a campanha.',
-  engagement: 'Total de interacoes: curtidas, comentarios, compartilhamentos e reacoes.',
-  videoViews: 'Visualizacoes de video (3 segundos ou mais).',
-  costPerResult: 'Custo medio por resultado principal da campanha.',
+  revenue: 'Receita total gerada por vendas atribuídas a esta campanha.',
+  roas: 'Return on Ad Spend. Receita / Gasto. Acima de 3x é considerado bom.',
+  purchases: 'Número de compras concluídas atribuídas à campanha.',
+  engagement: 'Total de interações: curtidas, comentários, compartilhamentos e reações.',
+  videoViews: 'Visualizações de vídeo (3 segundos ou mais).',
+  costPerResult: 'Custo médio por resultado principal da campanha.',
   objective: 'Objetivo da campanha configurado no Facebook Ads.',
-  status: 'Status atual da campanha no gerenciador de anuncios.',
+  status: 'Status atual da campanha no gerenciador de anúncios.',
 }
 
 const DEFAULT_COLUMNS: ColumnDef[] = [

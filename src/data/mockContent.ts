@@ -14,7 +14,7 @@ export const mockContentPosts: ContentPost[] = [
     caption: '🎬 Veja como seus quadros são feitos! Do design à entrega final.\n\nConheça nosso processo de produção e entenda por que cada peça é única.',
     mediaUrl: null, thumbnailUrl: null, platform: 'instagram', status: 'draft',
     scheduledDate: '2026-04-28', publishedAt: null, approvedAt: null, notes: null,
-    tags: ['bastidores', 'producao'], createdAt: '2026-04-10T11:00:00Z',
+    tags: ['bastidores', 'produção'], createdAt: '2026-04-10T11:00:00Z',
   },
   {
     id: 'cp3', title: 'Post LinkedIn: Cases de Escritórios', contentType: 'carousel',

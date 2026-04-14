@@ -16,7 +16,7 @@ const COLUMNS: ColumnDef[] = [
   { key: 'cpc', label: 'CPC', align: 'right' },
   { key: 'ctr', label: 'CTR', align: 'right' },
   { key: 'cpm', label: 'CPM', align: 'right' },
-  { key: 'impressions', label: 'Impressoes', align: 'right' },
+  { key: 'impressions', label: 'Impressões', align: 'right' },
 ]
 
 interface Props {
@@ -43,11 +43,11 @@ export default function TrafficTraffic({ campaigns, creatives, insights }: Props
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Custo por Clique" value={fmt(cpc)} icon={<MousePointerClick size={18} />} color="neutral" stagger={1} />
         <StatCard title="Total de Cliques" value={fmtNum(totalClicks)} icon={<BarChart3 size={18} />} color="positive" stagger={2} />
-        <StatCard title="Impressoes" value={fmtNum(totalImpressions)} icon={<Eye size={18} />} color="neutral" stagger={3} />
-        <StatCard title="CPM Medio" value={fmt(cpm)} icon={<DollarSign size={18} />} color="yellow" stagger={4} />
+        <StatCard title="Impressões" value={fmtNum(totalImpressions)} icon={<Eye size={18} />} color="neutral" stagger={3} />
+        <StatCard title="CPM Médio" value={fmt(cpm)} icon={<DollarSign size={18} />} color="yellow" stagger={4} />
       </div>
 
-      <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Trafego" accent="--accent-cyan" />
+      <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Tráfego" accent="--accent-cyan" />
 
       <TrafficCreativeRanking creatives={creatives} accent="--accent-cyan" />
     </div>

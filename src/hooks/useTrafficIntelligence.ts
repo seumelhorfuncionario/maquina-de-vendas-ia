@@ -18,14 +18,14 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
       const groupSpend = camps.reduce((s, c) => s + c.spend, 0)
       const pct = totalSpend > 0 ? (groupSpend / totalSpend) * 100 : 0
       if (pct > 40) {
-        const groupLabel = group === 'leads' ? 'captacao de leads' : group === 'sales' ? 'vendas' : group === 'traffic' ? 'trafego' : 'engajamento'
+        const groupLabel = group === 'leads' ? 'captação de leads' : group === 'sales' ? 'vendas' : group === 'traffic' ? 'tráfego' : 'engajamento'
         insights.push({
           id: `alloc-${group}`,
           group: 'general',
           type: 'info',
-          title: 'Concentracao de investimento',
-          description: `${pct.toFixed(0)}% do orcamento (${fmt(groupSpend)}) esta em campanhas de ${groupLabel}.`,
-          metric: { label: 'Concentracao', value: `${pct.toFixed(0)}%` },
+          title: 'Concentração de investimento',
+          description: `${pct.toFixed(0)}% do orçamento (${fmt(groupSpend)}) está em campanhas de ${groupLabel}.`,
+          metric: { label: 'Concentração', value: `${pct.toFixed(0)}%` },
           priority: 3,
         })
       }
@@ -44,8 +44,8 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
           group: 'leads',
           type: avgCPL < 30 ? 'positive' : avgCPL < 80 ? 'info' : 'warning',
           title: 'Custo por lead',
-          description: `Suas campanhas geram leads a ${fmt(avgCPL)} em media. ${totalLeads} leads com ${fmt(leadSpend)} investidos.`,
-          metric: { label: 'CPL medio', value: fmt(avgCPL) },
+          description: `Suas campanhas geram leads a ${fmt(avgCPL)} em média. ${totalLeads} leads com ${fmt(leadSpend)} investidos.`,
+          metric: { label: 'CPL médio', value: fmt(avgCPL) },
           priority: 1,
         })
       }
@@ -66,7 +66,7 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
             group: 'leads',
             type: 'positive',
             title: 'Campanha destaque',
-            description: `"${best.campaignName}" gera leads a ${fmt(bestCPL)}, ${diff.toFixed(0)}% abaixo da media. Considere escalar.`,
+            description: `"${best.campaignName}" gera leads a ${fmt(bestCPL)}, ${diff.toFixed(0)}% abaixo da média. Considere escalar.`,
             metric: { label: 'CPL', value: fmt(bestCPL) },
             priority: 2,
           })
@@ -101,8 +101,8 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
           group: 'traffic',
           type: avgCPC < 0.50 ? 'positive' : avgCPC < 1.50 ? 'info' : 'warning',
           title: 'Custo por clique',
-          description: `Custo medio de ${fmt(avgCPC)} por clique. ${fmtNum(totalClicks)} cliques com ${fmt(trafSpend)} investidos.`,
-          metric: { label: 'CPC medio', value: fmt(avgCPC) },
+          description: `Custo médio de ${fmt(avgCPC)} por clique. ${fmtNum(totalClicks)} cliques com ${fmt(trafSpend)} investidos.`,
+          metric: { label: 'CPC médio', value: fmt(avgCPC) },
           priority: 1,
         })
       }
@@ -135,8 +135,8 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
             id: `traffic-cpc-high-${c.id}`,
             group: 'traffic',
             type: 'warning',
-            title: 'CPC acima da media',
-            description: `"${c.campaignName}" tem CPC de ${fmt(c.spend / c.linkClicks)}, mais que o dobro da media.`,
+            title: 'CPC acima da média',
+            description: `"${c.campaignName}" tem CPC de ${fmt(c.spend / c.linkClicks)}, mais que o dobro da média.`,
             priority: 3,
           })
         }
@@ -156,7 +156,7 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
           group: 'engagement',
           type: costPerEng < 0.20 ? 'positive' : 'info',
           title: 'Custo por engajamento',
-          description: `${fmt(costPerEng)} por interacao. ${fmtNum(totalEng)} engajamentos totais.`,
+          description: `${fmt(costPerEng)} por interação. ${fmtNum(totalEng)} engajamentos totais.`,
           metric: { label: 'CPE', value: fmt(costPerEng) },
           priority: 1,
         })
@@ -188,8 +188,8 @@ export function useTrafficIntelligence(campaigns: Campaign[]): TrafficInsight[] 
         id: `ctr-low-${c.id}`,
         group: OBJECTIVE_GROUP_MAP[c.objective] || 'general',
         type: 'danger',
-        title: 'CTR critico',
-        description: `"${c.campaignName}" esta ativa com CTR de ${fmtPct(c.ctr)}. Considere pausar ou trocar criativo.`,
+        title: 'CTR crítico',
+        description: `"${c.campaignName}" está ativa com CTR de ${fmtPct(c.ctr)}. Considere pausar ou trocar criativo.`,
         priority: 1,
       })
     }

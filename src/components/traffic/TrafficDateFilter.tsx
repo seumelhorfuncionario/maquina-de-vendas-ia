@@ -24,11 +24,11 @@ function buildPresets(): { label: string; from: string; to: string }[] {
   return [
     { label: 'Hoje', from: todayISO, to: todayISO },
     { label: 'Ontem', from: daysAgo(1), to: daysAgo(1) },
-    { label: 'Ultimos 7 dias', from: daysAgo(6), to: todayISO },
-    { label: 'Ultimos 14 dias', from: daysAgo(13), to: todayISO },
-    { label: 'Ultimos 30 dias', from: daysAgo(29), to: todayISO },
-    { label: 'Este mes', from: toISO(firstOfMonth), to: todayISO },
-    { label: 'Mes passado', from: toISO(lastMonth), to: toISO(lastMonthEnd) },
+    { label: 'Últimos 7 dias', from: daysAgo(6), to: todayISO },
+    { label: 'Últimos 14 dias', from: daysAgo(13), to: todayISO },
+    { label: 'Últimos 30 dias', from: daysAgo(29), to: todayISO },
+    { label: 'Este mês', from: toISO(firstOfMonth), to: todayISO },
+    { label: 'Mês passado', from: toISO(lastMonth), to: toISO(lastMonthEnd) },
   ]
 }
 
@@ -40,7 +40,7 @@ interface Props {
 export function getDefaultDateRange(): DateRange {
   const today = new Date()
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-  return { from: toISO(firstOfMonth), to: toISO(today), label: 'Este mes' }
+  return { from: toISO(firstOfMonth), to: toISO(today), label: 'Este mês' }
 }
 
 export default function TrafficDateFilter({ value, onChange }: Props) {
@@ -116,7 +116,7 @@ export default function TrafficDateFilter({ value, onChange }: Props) {
                 onChange={e => setCustomFrom(e.target.value)}
                 className="flex-1 px-2 py-1 rounded-md border border-theme bg-transparent text-xs text-theme-secondary outline-none focus:border-[var(--accent-cyan)]"
               />
-              <span className="text-[10px] text-theme-muted">ate</span>
+              <span className="text-[10px] text-theme-muted">até</span>
               <input
                 type="date"
                 value={customTo}

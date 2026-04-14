@@ -50,7 +50,7 @@ export default function TrafficLeads({ campaigns, creatives, insights }: Props) 
         <StatCard title="Investido" value={fmt(totalSpend)} icon={<Target size={18} />} color="yellow" stagger={4} />
       </div>
 
-      <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Captacao" accent="--accent-green" />
+      <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Captação" accent="--accent-green" />
 
       <TrafficCreativeRanking creatives={creatives} accent="--accent-green" />
     </div>

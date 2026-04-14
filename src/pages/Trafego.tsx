@@ -71,22 +71,22 @@ export default function Trafego() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Trafego" description="Inteligencia em campanhas Meta Ads" />
+        <PageHeader title="Tráfego" description="Inteligência em campanhas Meta Ads" />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent-cyan)' }} />
-          <span className="ml-3 text-sm text-theme-muted">Carregando dados de trafego...</span>
+          <span className="ml-3 text-sm text-theme-muted">Carregando dados de tráfego...</span>
         </div>
       </div>
     )
   }
 
-  const tabLabel = (tab: TabKey) => tab === 'overview' ? 'Visao Geral' : GROUP_CONFIG[tab].label
+  const tabLabel = (tab: TabKey) => tab === 'overview' ? 'Visão Geral' : GROUP_CONFIG[tab].label
 
   return (
     <div className="gradient-mesh-traffic">
       <PageHeader
-        title="Trafego"
-        description="Inteligencia em campanhas Meta Ads"
+        title="Tráfego"
+        description="Inteligência em campanhas Meta Ads"
         action={
           <div className="flex items-center gap-3">
             <TrafficDateFilter value={dateRange} onChange={setDateRange} />

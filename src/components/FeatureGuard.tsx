@@ -40,10 +40,10 @@ export function FeatureGuard({
             </div>
             <div>
               <h3 className="font-semibold text-lg text-white mb-2">
-                Recurso nao disponivel
+                Recurso não disponível
               </h3>
               <p className="text-neutral-500 text-sm">
-                Esta funcionalidade nao esta incluida no seu plano atual.
+                Esta funcionalidade não está incluída no seu plano atual.
               </p>
             </div>
           </div>

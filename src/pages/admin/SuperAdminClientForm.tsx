@@ -515,7 +515,7 @@ export default function SuperAdminClientForm() {
                 className={inputClass}
                 placeholder="act_1234567890"
               />
-              <p className="text-[10px] text-[#555] mt-1">Formato: act_XXXXXXXXXX (encontre no Gerenciador de Anuncios)</p>
+              <p className="text-[10px] text-[#555] mt-1">Formato: act_XXXXXXXXXX (encontre no Gerenciador de Anúncios)</p>
             </div>
           </div>
         </div>

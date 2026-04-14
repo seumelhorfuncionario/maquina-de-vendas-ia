@@ -7,18 +7,18 @@ import { fmt, fmtPct, ctrColor, sortBy, CLASSIFICATION_CONFIG, type SortDir } fr
 type ViewMode = 'card' | 'table'
 
 const CLASSIFICATION_TOOLTIPS: Record<string, string> = {
-  winner: 'Criativo com melhor desempenho da conta. ROAS acima de 3x ou custo por resultado muito abaixo da media.',
-  positive: 'Criativo com bom desempenho. Metricas acima da media da conta, vale manter e escalar.',
-  neutral: 'Desempenho na media. Nao se destaca positiva nem negativamente. Monitore.',
-  negative: 'Desempenho abaixo da media. Gasto alto com CTR baixo. Considere pausar ou reformular.',
-  fatigue: 'Criativo em fadiga. Ja performou bem mas o publico esta saturado. Troque por variacao nova.',
+  winner: 'Criativo com melhor desempenho da conta. ROAS acima de 3x ou custo por resultado muito abaixo da média.',
+  positive: 'Criativo com bom desempenho. Métricas acima da média da conta, vale manter e escalar.',
+  neutral: 'Desempenho na média. Não se destaca positiva nem negativamente. Monitore.',
+  negative: 'Desempenho abaixo da média. Gasto alto com CTR baixo. Considere pausar ou reformular.',
+  fatigue: 'Criativo em fadiga. Já performou bem mas o público está saturado. Troque por variação nova.',
 }
 
 const METRIC_TOOLTIPS: Record<string, string> = {
-  spend: 'Valor total investido neste criativo no periodo.',
+  spend: 'Valor total investido neste criativo no período.',
   clicks: 'Total de cliques recebidos (inclui todos os tipos de clique).',
-  ctr: 'Click-Through Rate. Percentual de pessoas que clicaram apos ver o anuncio. Acima de 2% e bom.',
-  cpc: 'Custo por Clique. Quanto voce paga em media por cada clique.',
+  ctr: 'Click-Through Rate. Percentual de pessoas que clicaram após ver o anúncio. Acima de 2% é bom.',
+  cpc: 'Custo por Clique. Quanto você paga em média por cada clique.',
 }
 
 interface Props {
@@ -170,7 +170,7 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
                   { key: 'clicks' as keyof CreativePerformance, label: 'Cliques', align: 'right', tip: METRIC_TOOLTIPS.clicks },
                   { key: 'ctr' as keyof CreativePerformance, label: 'CTR', align: 'right', tip: METRIC_TOOLTIPS.ctr },
                   { key: 'cpc' as keyof CreativePerformance, label: 'CPC', align: 'right', tip: METRIC_TOOLTIPS.cpc },
-                  { key: 'classification' as keyof CreativePerformance, label: 'Class.', align: 'center', tip: 'Classificacao automatica baseada no desempenho do criativo.' },
+                  { key: 'classification' as keyof CreativePerformance, label: 'Class.', align: 'center', tip: 'Classificação automática baseada no desempenho do criativo.' },
                 ] as const).map(col => (
                   <th key={col.key}
                     className={`group pb-3 pr-4 last:pr-0 text-[10px] font-semibold text-theme-muted uppercase tracking-widest whitespace-nowrap cursor-pointer select-none ${
