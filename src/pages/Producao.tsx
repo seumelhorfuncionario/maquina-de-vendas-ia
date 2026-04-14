@@ -1,5 +1,7 @@
-import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar, Loader2 } from 'lucide-react'
+import { useMemo } from 'react'
+import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar, Loader2, Clock, Cog, CheckCircle2, Truck } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
+import StatCard from '../components/StatCard'
 import { useData } from '../contexts/DataContext'
 import type { ProductionStatus } from '../types'
 
@@ -17,8 +19,25 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+const STATUS_METRICS: { status: ProductionStatus; label: string; icon: typeof Clock; color: 'neutral' | 'warning' | 'purple' | 'positive' }[] = [
+  { status: 'pending', label: 'Novos Pedidos', icon: Clock, color: 'neutral' },
+  { status: 'producing', label: 'Em Produção', icon: Cog, color: 'warning' },
+  { status: 'done', label: 'Finalizados', icon: CheckCircle2, color: 'purple' },
+  { status: 'delivered', label: 'Entregues', icon: Truck, color: 'positive' },
+]
+
 export default function Producao() {
   const { production, moveProductionStatus, loading } = useData()
+
+  const metrics = useMemo(() => {
+    const counts: Record<ProductionStatus, number> = { pending: 0, producing: 0, done: 0, delivered: 0 }
+    let totalQty = 0
+    for (const p of production) {
+      counts[p.status] = (counts[p.status] || 0) + 1
+      totalQty += p.quantity
+    }
+    return { counts, total: production.length, totalQty }
+  }, [production])
 
   const handleMove = (id: string, currentStatus: ProductionStatus, direction: 'left' | 'right') => {
     const currentIndex = statusOrder.indexOf(currentStatus)
@@ -45,6 +64,21 @@ export default function Producao() {
         title="Produção"
         description="Acompanhe o status dos pedidos em produção"
       />
+
+      {/* Status metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {STATUS_METRICS.map((m, i) => (
+          <StatCard
+            key={m.status}
+            title={m.label}
+            value={metrics.counts[m.status]}
+            icon={<m.icon size={18} />}
+            color={m.color}
+            stagger={i + 1}
+            subtitle={m.status === 'pending' && metrics.total > 0 ? `${metrics.total} pedidos · ${metrics.totalQty} unidades` : undefined}
+          />
+        ))}
+      </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {columns.map((col) => {
