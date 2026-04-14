@@ -31,7 +31,7 @@ const emptySummary: TrafficSummary = {
   engagement: 0, videoViews: 0, revenue: 0, leads: 0,
 }
 
-export const useTrafficData = () => {
+export const useTrafficData = (dateFrom?: string, dateTo?: string) => {
   const { clientId, loading: clientLoading } = useClientId()
   const [data, setData] = useState<TrafficData>({
     campaigns: [], creatives: [], summary: emptySummary,
@@ -44,21 +44,22 @@ export const useTrafficData = () => {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }))
 
-      const firstOfMonth = new Date()
-      firstOfMonth.setDate(1)
-      const monthStart = firstOfMonth.toISOString().split('T')[0]
+      const from = dateFrom || (() => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0] })()
+      const to = dateTo || new Date().toISOString().split('T')[0]
 
       // Tables not yet in auto-generated database.ts — cast needed
       const [{ data: campRows, error: campErr }, { data: crRows, error: crErr }] = await Promise.all([
         (supabase.from as any)('campaigns')
           .select('*')
           .eq('client_id', clientId)
-          .gte('date', monthStart)
+          .gte('date', from)
+          .lte('date', to)
           .order('spend', { ascending: false }),
         (supabase.from as any)('creatives_performance')
           .select('*')
           .eq('client_id', clientId)
-          .gte('date', monthStart)
+          .gte('date', from)
+          .lte('date', to)
           .order('spend', { ascending: false }),
       ])
 
@@ -170,7 +171,7 @@ export const useTrafficData = () => {
         error: err instanceof Error ? err.message : 'Erro ao buscar dados de tráfego',
       }))
     }
-  }, [clientId])
+  }, [clientId, dateFrom, dateTo])
 
   useEffect(() => {
     if (!clientLoading && clientId) fetchData()

@@ -10,6 +10,7 @@ import TrafficLeads from '@/components/traffic/TrafficLeads'
 import TrafficSales from '@/components/traffic/TrafficSales'
 import TrafficTraffic from '@/components/traffic/TrafficTraffic'
 import TrafficEngagement from '@/components/traffic/TrafficEngagement'
+import TrafficDateFilter, { getDefaultDateRange, type DateRange } from '@/components/traffic/TrafficDateFilter'
 import { type ObjectiveGroup, groupCampaigns, GROUP_CONFIG, OBJECTIVE_GROUP_MAP } from '@/types/traffic'
 import type { Campaign, CreativePerformance } from '@/types'
 
@@ -25,7 +26,8 @@ const TAB_ICONS: Record<TabKey, typeof LayoutGrid> = {
 
 export default function Trafego() {
   const { isDemo } = useAuth()
-  const hook = useTrafficData()
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
+  const hook = useTrafficData(dateRange.from, dateRange.to)
 
   const hasRealData = !hook.loading && (hook.campaigns?.length ?? 0) > 0
   const campaigns: Campaign[] = isDemo || !hasRealData ? mockCampaigns : hook.campaigns
@@ -86,10 +88,13 @@ export default function Trafego() {
         title="Trafego"
         description="Inteligencia em campanhas Meta Ads"
         action={
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-[#00D4FF10] text-[#00D4FF] border border-[#00D4FF25]">
-            <Megaphone size={13} />
-            {campaigns.length} campanhas
-          </span>
+          <div className="flex items-center gap-3">
+            <TrafficDateFilter value={dateRange} onChange={setDateRange} />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-[#00D4FF10] text-[#00D4FF] border border-[#00D4FF25]">
+              <Megaphone size={13} />
+              {campaigns.length} campanhas
+            </span>
+          </div>
         }
       />
 
