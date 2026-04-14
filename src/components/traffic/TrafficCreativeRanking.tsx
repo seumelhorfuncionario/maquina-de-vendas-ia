@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone, ExternalLink } from 'lucide-react'
+import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone } from 'lucide-react'
 import Tooltip from '@/components/Tooltip'
 import type { CreativePerformance } from '@/types'
 import { fmt, fmtPct, ctrColor, sortBy, CLASSIFICATION_CONFIG, type SortDir } from '@/types/traffic'
@@ -64,31 +64,22 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
 
   const isVideo = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url)
 
-  const adLink = (creativeId: string) => `https://www.facebook.com/ads/library/?id=${creativeId}`
-
-  const Thumb = ({ url, name, creativeId }: { url: string | null; name: string; creativeId: string }) => {
+  const Thumb = ({ url, name }: { url: string | null; name: string }) => {
     if (!url) return null
-    const media = isVideo(url) ? (
-      <video src={url} muted loop playsInline preload="metadata"
-        className="w-10 h-10 rounded-lg object-cover"
-        onMouseEnter={e => (e.target as HTMLVideoElement).play()}
-        onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
-      />
-    ) : (
+    if (isVideo(url)) {
+      return (
+        <video src={url} muted loop playsInline preload="metadata"
+          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+          onMouseEnter={e => (e.target as HTMLVideoElement).play()}
+          onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+        />
+      )
+    }
+    return (
       <img src={url} alt={name} loading="lazy"
-        className="w-10 h-10 rounded-lg object-cover"
+        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
         onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
-    )
-    return (
-      <a href={adLink(creativeId)} target="_blank" rel="noopener noreferrer"
-        className="flex-shrink-0 relative group/thumb" title="Ver no Facebook Ads">
-        {media}
-        <span className="absolute inset-0 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <ExternalLink size={14} className="text-white" />
-        </span>
-      </a>
     )
   }
 
@@ -128,12 +119,11 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
                 className="rounded-xl border p-4 transition-colors"
                 style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: 'var(--border)' }}>
                 <div className="flex items-start gap-3 mb-3">
-                  <Thumb url={cr.thumbnailUrl} name={cr.creativeName} creativeId={cr.creativeId} />
+                  <Thumb url={cr.thumbnailUrl} name={cr.creativeName} />
                   <div className="flex-1 min-w-0">
-                    <a href={adLink(cr.creativeId)} target="_blank" rel="noopener noreferrer"
-                      className="text-sm font-semibold text-theme-primary leading-tight truncate block hover:text-[var(--accent-cyan)] transition-colors">
+                    <p className="text-sm font-semibold text-theme-primary leading-tight truncate">
                       {cr.creativeName}
-                    </a>
+                    </p>
                     {cr.adSetName && (
                       <p className="text-[10px] text-theme-muted mt-0.5 truncate">{cr.adSetName}</p>
                     )}
@@ -206,11 +196,8 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
                     <td className="py-3 pr-4">
                       <div className="flex items-center gap-2.5">
-                        <Thumb url={cr.thumbnailUrl} name={cr.creativeName} creativeId={cr.creativeId} />
-                        <a href={adLink(cr.creativeId)} target="_blank" rel="noopener noreferrer"
-                          className="text-sm font-medium text-theme-primary max-w-[180px] truncate hover:text-[var(--accent-cyan)] transition-colors">
-                          {cr.creativeName}
-                        </a>
+                        <Thumb url={cr.thumbnailUrl} name={cr.creativeName} />
+                        <span className="text-sm font-medium text-theme-primary max-w-[180px] truncate">{cr.creativeName}</span>
                       </div>
                     </td>
                     <td className="py-3 pr-4 text-[12px] text-theme-muted max-w-[150px] truncate">{cr.adSetName || '-'}</td>
