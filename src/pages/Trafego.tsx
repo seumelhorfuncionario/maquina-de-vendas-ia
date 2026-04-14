@@ -5,6 +5,8 @@ import PageHeader from '@/components/PageHeader'
 import { mockCampaigns, mockCreatives } from '@/data/mockTraffic'
 import { useTrafficData } from '@/hooks/useTrafficData'
 import { useTrafficIntelligence } from '@/hooks/useTrafficIntelligence'
+import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
+import { mockDashboard } from '@/data/mock'
 import TrafficOverview from '@/components/traffic/TrafficOverview'
 import TrafficLeads from '@/components/traffic/TrafficLeads'
 import TrafficSales from '@/components/traffic/TrafficSales'
@@ -28,6 +30,7 @@ export default function Trafego() {
   const { isDemo } = useAuth()
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
   const hook = useTrafficData(dateRange.from, dateRange.to)
+  const dashboardData = useDashboardMetrics()
 
   const hasRealData = !hook.loading && (hook.campaigns?.length ?? 0) > 0
   const campaigns: Campaign[] = isDemo || !hasRealData ? mockCampaigns : hook.campaigns
@@ -133,6 +136,8 @@ export default function Trafego() {
           campaigns={campaigns}
           insights={insights}
           onTabChange={tab => setActiveTab(tab)}
+          dashboardMetrics={isDemo ? mockDashboard : dashboardData.metrics}
+          isDemo={isDemo}
         />
       )}
       {activeTab === 'leads' && (

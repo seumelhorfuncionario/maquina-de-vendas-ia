@@ -1,7 +1,8 @@
 import { DollarSign, TrendingUp, Zap, BarChart3, Users, ShoppingCart, MousePointerClick, Heart } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import TrafficInsightCard from './TrafficInsightCard'
-import type { Campaign } from '@/types'
+import SalesFunnel from './SalesFunnel'
+import type { Campaign, DashboardMetrics } from '@/types'
 import type { TrafficInsight, ObjectiveGroup } from '@/types/traffic'
 import { fmt, fmtNum, groupCampaigns, GROUP_CONFIG } from '@/types/traffic'
 
@@ -16,9 +17,11 @@ interface Props {
   campaigns: Campaign[]
   insights: TrafficInsight[]
   onTabChange: (tab: ObjectiveGroup) => void
+  dashboardMetrics?: DashboardMetrics | null
+  isDemo?: boolean
 }
 
-export default function TrafficOverview({ campaigns, insights, onTabChange }: Props) {
+export default function TrafficOverview({ campaigns, insights, onTabChange, dashboardMetrics, isDemo }: Props) {
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalClicks = campaigns.reduce((s, c) => s + c.clicks, 0)
   const totalImpressions = campaigns.reduce((s, c) => s + c.impressions, 0)
@@ -60,6 +63,9 @@ export default function TrafficOverview({ campaigns, insights, onTabChange }: Pr
           stagger={4}
         />
       </div>
+
+      {/* Sales Funnel */}
+      <SalesFunnel campaigns={campaigns} dashboardMetrics={dashboardMetrics} isDemo={isDemo} />
 
       {/* Top insights */}
       {(generalInsights.length > 0 || topInsights.length > 0) && (
