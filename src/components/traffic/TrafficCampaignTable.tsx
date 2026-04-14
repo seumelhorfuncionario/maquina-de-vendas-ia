@@ -1,0 +1,143 @@
+import { useState, useMemo } from 'react'
+import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import type { Campaign } from '@/types'
+import { fmt, fmtNum, fmtPct, ctrColor, sortBy, OBJECTIVE_LABELS, OBJECTIVE_COLORS, STATUS_CONFIG, type SortDir } from '@/types/traffic'
+
+export interface ColumnDef {
+  key: keyof Campaign
+  label: string
+  align: 'left' | 'right' | 'center'
+  render?: (c: Campaign) => React.ReactNode
+}
+
+const DEFAULT_COLUMNS: ColumnDef[] = [
+  { key: 'campaignName', label: 'Campanha', align: 'left' },
+  { key: 'objective', label: 'Objetivo', align: 'left' },
+  { key: 'spend', label: 'Gasto', align: 'right' },
+  { key: 'clicks', label: 'Cliques', align: 'right' },
+  { key: 'cpc', label: 'CPC', align: 'right' },
+  { key: 'ctr', label: 'CTR', align: 'right' },
+  { key: 'status', label: 'Status', align: 'center' },
+]
+
+interface Props {
+  campaigns: Campaign[]
+  columns?: ColumnDef[]
+  title?: string
+  accent?: string
+}
+
+export default function TrafficCampaignTable({ campaigns, columns = DEFAULT_COLUMNS, title, accent = '--accent-yellow' }: Props) {
+  const [sortKey, setSortKey] = useState<keyof Campaign>('spend')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const sorted = useMemo(() => sortBy(campaigns, sortKey, sortDir), [campaigns, sortKey, sortDir])
+
+  const handleSort = (key: keyof Campaign) => {
+    if (sortKey === key) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
+
+  const SortIcon = ({ active, dir }: { active: boolean; dir: SortDir }) => {
+    if (!active) return <ArrowUpDown size={12} className="text-theme-muted ml-1 inline-block opacity-0 group-hover:opacity-100 transition-opacity" />
+    return dir === 'asc'
+      ? <ChevronUp size={12} className="ml-1 inline-block" style={{ color: 'var(--accent-cyan)' }} />
+      : <ChevronDown size={12} className="ml-1 inline-block" style={{ color: 'var(--accent-cyan)' }} />
+  }
+
+  const renderCell = (c: Campaign, col: ColumnDef) => {
+    if (col.render) return col.render(c)
+    switch (col.key) {
+      case 'campaignName':
+        return <span className="text-sm font-medium text-theme-primary max-w-[220px] truncate block">{c.campaignName}</span>
+      case 'objective': {
+        const objColor = OBJECTIVE_COLORS[c.objective]
+        return (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+            style={{ backgroundColor: `color-mix(in srgb, var(${objColor}) 10%, transparent)`, color: `var(${objColor})` }}>
+            {OBJECTIVE_LABELS[c.objective]}
+          </span>
+        )
+      }
+      case 'status': {
+        const sc = STATUS_CONFIG[c.status]
+        return (
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium whitespace-nowrap">
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.status === 'ACTIVE' ? 'animate-pulse-dot' : ''}`}
+              style={{ backgroundColor: sc.color }} />
+            <span style={{ color: sc.color }}>{sc.label}</span>
+          </span>
+        )
+      }
+      case 'spend': case 'cpm': case 'cpc': case 'costPerResult':
+        return <span className="font-data text-[13px] text-theme-secondary">{fmt(c[col.key] as number)}</span>
+      case 'ctr':
+        return <span className="font-data text-[13px] font-semibold" style={{ color: ctrColor(c.ctr) }}>{fmtPct(c.ctr)}</span>
+      case 'roas':
+        return <span className="font-data text-[13px] font-semibold" style={{ color: c.roas >= 1 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{(c.roas).toFixed(2)}x</span>
+      case 'clicks': case 'impressions': case 'linkClicks': case 'videoViews': case 'engagement': case 'leads': case 'messagingReplies': case 'purchases':
+        return <span className="font-data text-[13px] text-theme-secondary">{fmtNum(c[col.key] as number)}</span>
+      case 'revenue':
+        return <span className="font-data text-[13px]" style={{ color: 'var(--accent-green)' }}>{fmt(c.revenue)}</span>
+      default:
+        return <span className="text-theme-secondary text-[13px]">{String(c[col.key])}</span>
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-theme surface-card p-6 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, color-mix(in srgb, var(${accent}) 15%, transparent), transparent)` }} />
+
+      {title && (
+        <div className="flex items-center gap-2 mb-5">
+          <h2 className="text-base font-bold text-theme-primary tracking-tight">{title}</h2>
+          <span className="text-[11px] font-bold font-data px-2 py-0.5 rounded-md"
+            style={{ backgroundColor: `color-mix(in srgb, var(${accent}) 10%, transparent)`, color: `var(${accent})` }}>
+            {campaigns.length}
+          </span>
+        </div>
+      )}
+
+      <div className="overflow-x-auto -mx-6 px-6">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-theme">
+              {columns.map(col => (
+                <th key={col.key}
+                  className={`group pb-3 pr-4 last:pr-0 text-[10px] font-semibold text-theme-muted uppercase tracking-widest whitespace-nowrap cursor-pointer select-none ${
+                    col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
+                  }`}
+                  onClick={() => handleSort(col.key)}>
+                  {col.label}
+                  <SortIcon active={sortKey === col.key} dir={sortDir} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(c => (
+              <tr key={c.id} className="border-b border-theme last:border-b-0 transition-colors"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                {columns.map(col => (
+                  <td key={col.key} className={`py-3 pr-4 last:pr-0 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}`}>
+                    {renderCell(c, col)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {sorted.length === 0 && (
+              <tr>
+                <td colSpan={columns.length} className="py-10 text-center text-sm text-theme-muted">
+                  Nenhuma campanha encontrada
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
