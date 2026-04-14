@@ -21,21 +21,22 @@ export const useProduction = () => {
       setLoading(true)
       setError(null)
 
-      const { data, error: fetchError } = await supabase
-        .from('production_orders')
-        .select('*')
+      // Busca orders com phone via sales → chats
+      const { data, error: fetchError } = await (supabase.from as any)('production_orders')
+        .select('*, sales(chat_id, chats(phone))')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
 
       if (fetchError) throw fetchError
 
-      const mapped: ProductionOrder[] = (data || []).map(p => ({
+      const mapped: ProductionOrder[] = (data || []).map((p: any) => ({
         id: p.id,
         clientName: p.customer_name,
         product: p.product_name,
         quantity: p.quantity || 1,
         status: (p.status as ProductionStatus) || 'pending',
         createdAt: p.created_at || new Date().toISOString(),
+        phone: p.sales?.chats?.phone || undefined,
       }))
 
       setProduction(mapped)

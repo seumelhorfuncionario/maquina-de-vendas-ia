@@ -371,7 +371,18 @@ export default function Leads() {
                       <div className="space-y-1.5 ml-[22px]">
                         <div className="flex items-center gap-2 text-[11px] text-[#666] font-data">
                           <Phone size={11} className="flex-shrink-0" />
-                          <span>{lead.phone}</span>
+                          {lead.phone ? (
+                            <a
+                              href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-[#25D366] transition-colors"
+                            >
+                              {lead.phone}
+                            </a>
+                          ) : (
+                            <span>-</span>
+                          )}
                         </div>
 
                         {k && k.value > 0 && (

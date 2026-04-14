@@ -85,6 +85,7 @@ export interface ProductionOrder {
   quantity: number
   status: ProductionStatus
   createdAt: string
+  phone?: string
 }
 
 export interface FinancialSummary {

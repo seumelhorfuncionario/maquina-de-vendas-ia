@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar, Loader2, Clock, Cog, CheckCircle2, Truck } from 'lucide-react'
+import { Package, User, ArrowRight, ArrowLeft, Hash, Calendar, Loader2, Clock, Cog, CheckCircle2, Truck, Phone } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
 import { useData } from '../contexts/DataContext'
@@ -121,6 +121,20 @@ export default function Producao() {
                       <Package size={14} className="text-[#888]" />
                       <span className="text-xs text-[#aaa]">{order.product}</span>
                     </div>
+
+                    {order.phone && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <Phone size={14} className="text-[#888]" />
+                        <a
+                          href={`https://wa.me/55${order.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-[#aaa] hover:text-[#25D366] transition-colors"
+                        >
+                          {order.phone}
+                        </a>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 mb-1">
                       <Hash size={14} className="text-[#888]" />
