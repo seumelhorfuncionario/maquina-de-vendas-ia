@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import Tooltip from '@/components/Tooltip'
 import type { Campaign } from '@/types'
 import { fmt, fmtNum, fmtPct, ctrColor, sortBy, OBJECTIVE_LABELS, OBJECTIVE_COLORS, STATUS_CONFIG, type SortDir } from '@/types/traffic'
 
@@ -7,7 +8,28 @@ export interface ColumnDef {
   key: keyof Campaign
   label: string
   align: 'left' | 'right' | 'center'
+  tip?: string
   render?: (c: Campaign) => React.ReactNode
+}
+
+const COLUMN_TOOLTIPS: Record<string, string> = {
+  spend: 'Valor total investido nesta campanha no periodo.',
+  clicks: 'Total de cliques (todos os tipos).',
+  cpc: 'Custo por Clique. Quanto custa cada clique em media.',
+  ctr: 'Click-Through Rate. % de pessoas que clicaram apos ver. Acima de 2% e bom.',
+  cpm: 'Custo por Mil impressoes. Quanto custa para 1.000 pessoas verem o anuncio.',
+  impressions: 'Quantas vezes o anuncio foi exibido no total.',
+  linkClicks: 'Cliques no link de destino (diferente de cliques gerais).',
+  leads: 'Leads gerados: cadastros, mensagens ou formularios preenchidos.',
+  messagingReplies: 'Respostas recebidas via Messenger, WhatsApp ou Instagram Direct.',
+  revenue: 'Receita total gerada por vendas atribuidas a esta campanha.',
+  roas: 'Return on Ad Spend. Receita / Gasto. Acima de 3x e considerado bom.',
+  purchases: 'Numero de compras concluidas atribuidas a campanha.',
+  engagement: 'Total de interacoes: curtidas, comentarios, compartilhamentos e reacoes.',
+  videoViews: 'Visualizacoes de video (3 segundos ou mais).',
+  costPerResult: 'Custo medio por resultado principal da campanha.',
+  objective: 'Objetivo da campanha configurado no Facebook Ads.',
+  status: 'Status atual da campanha no gerenciador de anuncios.',
 }
 
 const DEFAULT_COLUMNS: ColumnDef[] = [
@@ -103,16 +125,23 @@ export default function TrafficCampaignTable({ campaigns, columns = DEFAULT_COLU
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-theme">
-              {columns.map(col => (
-                <th key={col.key}
-                  className={`group pb-3 pr-4 last:pr-0 text-[10px] font-semibold text-theme-muted uppercase tracking-widest whitespace-nowrap cursor-pointer select-none ${
-                    col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
-                  }`}
-                  onClick={() => handleSort(col.key)}>
-                  {col.label}
-                  <SortIcon active={sortKey === col.key} dir={sortDir} />
-                </th>
-              ))}
+              {columns.map(col => {
+                const tip = col.tip || COLUMN_TOOLTIPS[col.key]
+                return (
+                  <th key={col.key}
+                    className={`group pb-3 pr-4 last:pr-0 text-[10px] font-semibold text-theme-muted uppercase tracking-widest whitespace-nowrap cursor-pointer select-none ${
+                      col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
+                    }`}
+                    onClick={() => handleSort(col.key)}>
+                    {tip ? (
+                      <Tooltip content={tip} position="bottom">
+                        <span className="cursor-help">{col.label}</span>
+                      </Tooltip>
+                    ) : col.label}
+                    <SortIcon active={sortKey === col.key} dir={sortDir} />
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           <tbody>

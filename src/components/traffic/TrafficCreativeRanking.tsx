@@ -1,9 +1,25 @@
 import { useState, useMemo } from 'react'
-import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone } from 'lucide-react'
+import { BarChart3, Table2, ArrowUpDown, ChevronUp, ChevronDown, Megaphone, ImageOff } from 'lucide-react'
+import Tooltip from '@/components/Tooltip'
 import type { CreativePerformance } from '@/types'
 import { fmt, fmtPct, ctrColor, sortBy, CLASSIFICATION_CONFIG, type SortDir } from '@/types/traffic'
 
 type ViewMode = 'card' | 'table'
+
+const CLASSIFICATION_TOOLTIPS: Record<string, string> = {
+  winner: 'Criativo com melhor desempenho da conta. ROAS acima de 3x ou custo por resultado muito abaixo da media.',
+  positive: 'Criativo com bom desempenho. Metricas acima da media da conta, vale manter e escalar.',
+  neutral: 'Desempenho na media. Nao se destaca positiva nem negativamente. Monitore.',
+  negative: 'Desempenho abaixo da media. Gasto alto com CTR baixo. Considere pausar ou reformular.',
+  fatigue: 'Criativo em fadiga. Ja performou bem mas o publico esta saturado. Troque por variacao nova.',
+}
+
+const METRIC_TOOLTIPS: Record<string, string> = {
+  spend: 'Valor total investido neste criativo no periodo.',
+  clicks: 'Total de cliques recebidos (inclui todos os tipos de clique).',
+  ctr: 'Click-Through Rate. Percentual de pessoas que clicaram apos ver o anuncio. Acima de 2% e bom.',
+  cpc: 'Custo por Clique. Quanto voce paga em media por cada clique.',
+}
 
 interface Props {
   creatives: CreativePerformance[]
@@ -31,8 +47,37 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
 
   if (creatives.length === 0) return null
 
-  // Top 5 by spend for card view
   const topCreatives = sorted.slice(0, 12)
+
+  const ClassBadge = ({ classification }: { classification: string }) => {
+    const cfg = CLASSIFICATION_CONFIG[classification as keyof typeof CLASSIFICATION_CONFIG] || CLASSIFICATION_CONFIG.neutral
+    const tip = CLASSIFICATION_TOOLTIPS[classification] || ''
+    return (
+      <Tooltip content={tip}>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap cursor-help"
+          style={{ backgroundColor: `color-mix(in srgb, var(${cfg.colorVar}) 12%, transparent)`, color: `var(${cfg.colorVar})` }}>
+          {cfg.emoji} {cfg.label}
+        </span>
+      </Tooltip>
+    )
+  }
+
+  const Thumb = ({ url, name }: { url: string | null; name: string }) => {
+    if (!url) {
+      return (
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--text-ghost) 20%, transparent)' }}>
+          <ImageOff size={14} className="text-theme-muted" />
+        </div>
+      )
+    }
+    return (
+      <img src={url} alt={name} loading="lazy"
+        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+    )
+  }
 
   return (
     <div className="rounded-2xl border border-theme surface-card p-6 relative overflow-hidden">
@@ -64,38 +109,42 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
       {/* Card view */}
       {viewMode === 'card' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topCreatives.map((cr, i) => {
-            const cfg = CLASSIFICATION_CONFIG[cr.classification] || CLASSIFICATION_CONFIG.neutral
+          {topCreatives.map(cr => {
             return (
               <div key={cr.id}
                 className="rounded-xl border p-4 transition-colors"
                 style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: 'var(--border)' }}>
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-sm font-semibold text-theme-primary leading-tight pr-2 truncate flex-1">
-                    {cr.creativeName}
-                  </p>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0"
-                    style={{ backgroundColor: `color-mix(in srgb, var(${cfg.colorVar}) 12%, transparent)`, color: `var(${cfg.colorVar})` }}>
-                    {cfg.emoji} {cfg.label}
-                  </span>
+                <div className="flex items-start gap-3 mb-3">
+                  <Thumb url={cr.thumbnailUrl} name={cr.creativeName} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-theme-primary leading-tight truncate">
+                      {cr.creativeName}
+                    </p>
+                    {cr.adSetName && (
+                      <p className="text-[10px] text-theme-muted mt-0.5 truncate">{cr.adSetName}</p>
+                    )}
+                  </div>
+                  <ClassBadge classification={cr.classification} />
                 </div>
-
-                {cr.adSetName && (
-                  <p className="text-[10px] text-theme-muted mb-2 truncate">{cr.adSetName}</p>
-                )}
 
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <span className="text-[10px] text-theme-muted block">Gasto</span>
-                    <span className="text-[12px] font-data text-theme-secondary">{fmt(cr.spend)}</span>
+                    <Tooltip content={METRIC_TOOLTIPS.spend}>
+                      <span className="text-[10px] text-theme-muted cursor-help">Gasto</span>
+                    </Tooltip>
+                    <span className="text-[12px] font-data text-theme-secondary block">{fmt(cr.spend)}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-theme-muted block">Cliques</span>
-                    <span className="text-[12px] font-data text-theme-secondary">{cr.clicks.toLocaleString('pt-BR')}</span>
+                    <Tooltip content={METRIC_TOOLTIPS.clicks}>
+                      <span className="text-[10px] text-theme-muted cursor-help">Cliques</span>
+                    </Tooltip>
+                    <span className="text-[12px] font-data text-theme-secondary block">{cr.clicks.toLocaleString('pt-BR')}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-theme-muted block">CTR</span>
-                    <span className="text-[12px] font-data font-semibold" style={{ color: ctrColor(cr.ctr) }}>{fmtPct(cr.ctr)}</span>
+                    <Tooltip content={METRIC_TOOLTIPS.ctr}>
+                      <span className="text-[10px] text-theme-muted cursor-help">CTR</span>
+                    </Tooltip>
+                    <span className="text-[12px] font-data font-semibold block" style={{ color: ctrColor(cr.ctr) }}>{fmtPct(cr.ctr)}</span>
                   </div>
                 </div>
               </div>
@@ -110,21 +159,25 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-theme">
+                <th className="pb-3 pr-4 text-[10px] font-semibold text-theme-muted uppercase tracking-widest">Criativo</th>
                 {([
-                  { key: 'creativeName' as keyof CreativePerformance, label: 'Criativo', align: 'left' },
-                  { key: 'adSetName' as keyof CreativePerformance, label: 'Conjunto', align: 'left' },
-                  { key: 'spend' as keyof CreativePerformance, label: 'Gasto', align: 'right' },
-                  { key: 'clicks' as keyof CreativePerformance, label: 'Cliques', align: 'right' },
-                  { key: 'ctr' as keyof CreativePerformance, label: 'CTR', align: 'right' },
-                  { key: 'cpc' as keyof CreativePerformance, label: 'CPC', align: 'right' },
-                  { key: 'classification' as keyof CreativePerformance, label: 'Class.', align: 'center' },
+                  { key: 'adSetName' as keyof CreativePerformance, label: 'Conjunto', align: 'left', tip: '' },
+                  { key: 'spend' as keyof CreativePerformance, label: 'Gasto', align: 'right', tip: METRIC_TOOLTIPS.spend },
+                  { key: 'clicks' as keyof CreativePerformance, label: 'Cliques', align: 'right', tip: METRIC_TOOLTIPS.clicks },
+                  { key: 'ctr' as keyof CreativePerformance, label: 'CTR', align: 'right', tip: METRIC_TOOLTIPS.ctr },
+                  { key: 'cpc' as keyof CreativePerformance, label: 'CPC', align: 'right', tip: METRIC_TOOLTIPS.cpc },
+                  { key: 'classification' as keyof CreativePerformance, label: 'Class.', align: 'center', tip: 'Classificacao automatica baseada no desempenho do criativo.' },
                 ] as const).map(col => (
                   <th key={col.key}
                     className={`group pb-3 pr-4 last:pr-0 text-[10px] font-semibold text-theme-muted uppercase tracking-widest whitespace-nowrap cursor-pointer select-none ${
                       col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
                     }`}
                     onClick={() => handleSort(col.key)}>
-                    {col.label}
+                    {col.tip ? (
+                      <Tooltip content={col.tip} position="bottom">
+                        <span className="cursor-help">{col.label}</span>
+                      </Tooltip>
+                    ) : col.label}
                     <SortIcon active={sortKey === col.key} dir={sortDir} />
                   </th>
                 ))}
@@ -132,23 +185,24 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
             </thead>
             <tbody>
               {sorted.map(cr => {
-                const cfg = CLASSIFICATION_CONFIG[cr.classification] || CLASSIFICATION_CONFIG.neutral
                 return (
                   <tr key={cr.id} className="border-b border-theme last:border-b-0 transition-colors"
                     style={{ backgroundColor: 'transparent' }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)')}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                    <td className="py-3 pr-4 text-sm font-medium text-theme-primary max-w-[200px] truncate">{cr.creativeName}</td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2.5">
+                        <Thumb url={cr.thumbnailUrl} name={cr.creativeName} />
+                        <span className="text-sm font-medium text-theme-primary max-w-[180px] truncate">{cr.creativeName}</span>
+                      </div>
+                    </td>
                     <td className="py-3 pr-4 text-[12px] text-theme-muted max-w-[150px] truncate">{cr.adSetName || '-'}</td>
                     <td className="py-3 pr-4 text-right font-data text-[13px] text-theme-secondary">{fmt(cr.spend)}</td>
                     <td className="py-3 pr-4 text-right font-data text-[13px] text-theme-secondary">{cr.clicks.toLocaleString('pt-BR')}</td>
                     <td className="py-3 pr-4 text-right font-data text-[13px] font-semibold" style={{ color: ctrColor(cr.ctr) }}>{fmtPct(cr.ctr)}</td>
                     <td className="py-3 pr-4 text-right font-data text-[13px] text-theme-secondary">{fmt(cr.cpc)}</td>
                     <td className="py-3 text-center">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                        style={{ backgroundColor: `color-mix(in srgb, var(${cfg.colorVar}) 12%, transparent)`, color: `var(${cfg.colorVar})` }}>
-                        {cfg.emoji} {cfg.label}
-                      </span>
+                      <ClassBadge classification={cr.classification} />
                     </td>
                   </tr>
                 )
