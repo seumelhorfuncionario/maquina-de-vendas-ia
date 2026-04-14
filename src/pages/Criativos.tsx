@@ -60,6 +60,8 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'published', label: 'Publicados' },
 ]
 
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov)(\?|$)/i.test(url)
+
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 const MONTH_NAMES = [
@@ -211,16 +213,21 @@ function PostDetailModal({
 
         <div className="p-6">
           {/* Media preview */}
-          {(post.mediaUrl || post.thumbnailUrl) && (
-            <div className="mb-4 rounded-xl overflow-hidden">
-              <img
-                src={post.mediaUrl || post.thumbnailUrl || ''}
-                alt={post.title}
-                className="w-full max-h-[300px] object-cover cursor-pointer hover:brightness-110 transition-all"
-                onClick={() => onImagePreview(post.mediaUrl || post.thumbnailUrl)}
-              />
-            </div>
-          )}
+          {(post.mediaUrl || post.thumbnailUrl) && (() => {
+            const url = post.mediaUrl || post.thumbnailUrl || ''
+            return (
+              <div className="mb-4 rounded-xl overflow-hidden">
+                {isVideoUrl(url) ? (
+                  <video src={url} controls playsInline preload="metadata"
+                    className="w-full max-h-[300px] object-cover rounded-xl" />
+                ) : (
+                  <img src={url} alt={post.title}
+                    className="w-full max-h-[300px] object-cover cursor-pointer hover:brightness-110 transition-all"
+                    onClick={() => onImagePreview(url)} />
+                )}
+              </div>
+            )
+          })()}
 
           {/* Title */}
           <h2 className="text-lg font-extrabold text-theme-primary tracking-tight pr-10 mb-3">
@@ -628,22 +635,42 @@ export default function Criativos() {
                         style={{ '--glow-color': sCfg.color, backgroundColor: 'var(--bg-card-hover)' } as React.CSSProperties}
                       >
                         {/* Thumbnail */}
-                        {post.thumbnailUrl ? (
-                          <div className="relative group/thumb mb-2">
-                            <img src={post.thumbnailUrl} alt="" className="w-full h-32 object-cover rounded-lg" />
-                            <div
-                              className="absolute inset-0 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
-                              style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-                              onClick={e => { e.stopPropagation(); setImagePreview(post.thumbnailUrl) }}
-                            >
-                              <Eye size={20} className="text-white" />
+                        {(() => {
+                          const mediaUrl = post.mediaUrl || post.thumbnailUrl
+                          if (mediaUrl && isVideoUrl(mediaUrl)) {
+                            return (
+                              <div className="relative group/thumb mb-2">
+                                <video src={mediaUrl} muted loop playsInline preload="metadata"
+                                  className="w-full h-32 object-cover rounded-lg"
+                                  onMouseEnter={e => (e.target as HTMLVideoElement).play()}
+                                  onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+                                />
+                                <div className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                                  <Play size={12} className="text-white ml-0.5" />
+                                </div>
+                              </div>
+                            )
+                          }
+                          if (post.thumbnailUrl) {
+                            return (
+                              <div className="relative group/thumb mb-2">
+                                <img src={post.thumbnailUrl} alt="" className="w-full h-32 object-cover rounded-lg" />
+                                <div
+                                  className="absolute inset-0 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
+                                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                                  onClick={e => { e.stopPropagation(); setImagePreview(post.thumbnailUrl) }}
+                                >
+                                  <Eye size={20} className="text-white" />
+                                </div>
+                              </div>
+                            )
+                          }
+                          return (
+                            <div className="w-full h-32 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${sCfg.color} 5%, transparent)` }}>
+                              <TypeIcon size={24} style={{ color: sCfg.color, opacity: 0.4 }} />
                             </div>
-                          </div>
-                        ) : (
-                          <div className="w-full h-32 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${sCfg.color} 5%, transparent)` }}>
-                            <TypeIcon size={24} style={{ color: sCfg.color, opacity: 0.4 }} />
-                          </div>
-                        )}
+                          )
+                        })()}
 
                         <p className="text-sm font-semibold text-theme-primary leading-tight line-clamp-2 mb-1.5">
                           {post.title}
@@ -826,7 +853,11 @@ export default function Criativos() {
           onClick={() => setImagePreview(null)}
         >
           <div className="relative animate-modal-in max-w-[90vmin] max-h-[90vmin]">
-            <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+            {isVideoUrl(imagePreview) ? (
+              <video src={imagePreview} controls autoPlay playsInline className="w-full h-full object-contain rounded-xl" />
+            ) : (
+              <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+            )}
             <button
               onClick={() => setImagePreview(null)}
               className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-black/70 border border-white/20 flex items-center justify-center text-white hover:bg-black transition-colors cursor-pointer"

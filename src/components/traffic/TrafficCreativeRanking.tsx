@@ -116,24 +116,26 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
           {topCreatives.map(cr => {
             return (
               <div key={cr.id}
-                className="rounded-xl border overflow-hidden transition-colors"
+                className="rounded-xl border p-4 transition-colors"
                 style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: 'var(--border)' }}>
-                {/* Video/image preview */}
-                {cr.thumbnailUrl && isVideo(cr.thumbnailUrl) && (
-                  <video src={cr.thumbnailUrl} muted loop playsInline preload="metadata"
-                    className="w-full h-36 object-cover"
-                    onMouseEnter={e => (e.target as HTMLVideoElement).play()}
-                    onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
-                  />
-                )}
-                {cr.thumbnailUrl && !isVideo(cr.thumbnailUrl) && (
-                  <img src={cr.thumbnailUrl} alt={cr.creativeName} loading="lazy"
-                    className="w-full h-36 object-cover"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
-                )}
-                <div className="p-4">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3 mb-3">
+                  {/* Thumb 1:1 com expand on hover */}
+                  {cr.thumbnailUrl && (
+                    <div className="group/thumb relative flex-shrink-0">
+                      {isVideo(cr.thumbnailUrl) ? (
+                        <video src={cr.thumbnailUrl} muted loop playsInline preload="metadata"
+                          className="w-10 h-10 rounded-lg object-cover transition-all duration-300 group-hover/thumb:w-40 group-hover/thumb:h-40 group-hover/thumb:rounded-xl group-hover/thumb:z-20 group-hover/thumb:absolute group-hover/thumb:shadow-2xl"
+                          onMouseEnter={e => (e.target as HTMLVideoElement).play()}
+                          onMouseLeave={e => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0 }}
+                        />
+                      ) : (
+                        <img src={cr.thumbnailUrl} alt={cr.creativeName} loading="lazy"
+                          className="w-10 h-10 rounded-lg object-cover transition-all duration-300 group-hover/thumb:w-40 group-hover/thumb:h-40 group-hover/thumb:rounded-xl group-hover/thumb:z-20 group-hover/thumb:absolute group-hover/thumb:shadow-2xl"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-theme-primary leading-tight truncate">
                       {cr.creativeName}
@@ -164,7 +166,6 @@ export default function TrafficCreativeRanking({ creatives, accent = '--accent-g
                     </Tooltip>
                     <span className="text-[12px] font-data font-semibold block" style={{ color: ctrColor(cr.ctr) }}>{fmtPct(cr.ctr)}</span>
                   </div>
-                </div>
                 </div>
               </div>
             )
