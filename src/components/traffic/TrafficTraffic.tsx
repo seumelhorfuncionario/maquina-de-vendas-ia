@@ -2,7 +2,8 @@ import { MousePointerClick, Eye, DollarSign, BarChart3 } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import TrafficCampaignTable from './TrafficCampaignTable'
 import TrafficInsightCard from './TrafficInsightCard'
-import type { Campaign } from '@/types'
+import TrafficCreativeRanking from './TrafficCreativeRanking'
+import type { Campaign, CreativePerformance } from '@/types'
 import type { TrafficInsight } from '@/types/traffic'
 import { fmt, fmtNum } from '@/types/traffic'
 import type { ColumnDef } from './TrafficCampaignTable'
@@ -20,10 +21,11 @@ const COLUMNS: ColumnDef[] = [
 
 interface Props {
   campaigns: Campaign[]
+  creatives: CreativePerformance[]
   insights: TrafficInsight[]
 }
 
-export default function TrafficTraffic({ campaigns, insights }: Props) {
+export default function TrafficTraffic({ campaigns, creatives, insights }: Props) {
   const totalClicks = campaigns.reduce((s, c) => s + c.linkClicks, 0)
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalImpressions = campaigns.reduce((s, c) => s + c.impressions, 0)
@@ -46,6 +48,8 @@ export default function TrafficTraffic({ campaigns, insights }: Props) {
       </div>
 
       <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Trafego" accent="--accent-cyan" />
+
+      <TrafficCreativeRanking creatives={creatives} accent="--accent-cyan" />
     </div>
   )
 }

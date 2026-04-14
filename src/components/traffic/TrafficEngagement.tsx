@@ -2,7 +2,8 @@ import { Heart, Play, DollarSign, Eye } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import TrafficCampaignTable from './TrafficCampaignTable'
 import TrafficInsightCard from './TrafficInsightCard'
-import type { Campaign } from '@/types'
+import TrafficCreativeRanking from './TrafficCreativeRanking'
+import type { Campaign, CreativePerformance } from '@/types'
 import type { TrafficInsight } from '@/types/traffic'
 import { fmt, fmtNum } from '@/types/traffic'
 import type { ColumnDef } from './TrafficCampaignTable'
@@ -22,10 +23,11 @@ const COLUMNS: ColumnDef[] = [
 
 interface Props {
   campaigns: Campaign[]
+  creatives: CreativePerformance[]
   insights: TrafficInsight[]
 }
 
-export default function TrafficEngagement({ campaigns, insights }: Props) {
+export default function TrafficEngagement({ campaigns, creatives, insights }: Props) {
   const totalEng = campaigns.reduce((s, c) => s + c.engagement, 0)
   const totalViews = campaigns.reduce((s, c) => s + c.videoViews, 0)
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
@@ -48,6 +50,8 @@ export default function TrafficEngagement({ campaigns, insights }: Props) {
       </div>
 
       <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Engajamento" accent="--accent-purple" />
+
+      <TrafficCreativeRanking creatives={creatives} accent="--accent-purple" />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Loader2, Megaphone, LayoutGrid, Users, ShoppingCart, MousePointerClick, Heart } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import PageHeader from '@/components/PageHeader'
-import { mockCampaigns, mockCreatives, mockAlerts, mockTrafficSummary } from '@/data/mockTraffic'
+import { mockCampaigns, mockCreatives } from '@/data/mockTraffic'
 import { useTrafficData } from '@/hooks/useTrafficData'
 import { useTrafficIntelligence } from '@/hooks/useTrafficIntelligence'
 import TrafficOverview from '@/components/traffic/TrafficOverview'
@@ -10,8 +10,8 @@ import TrafficLeads from '@/components/traffic/TrafficLeads'
 import TrafficSales from '@/components/traffic/TrafficSales'
 import TrafficTraffic from '@/components/traffic/TrafficTraffic'
 import TrafficEngagement from '@/components/traffic/TrafficEngagement'
-import { type ObjectiveGroup, groupCampaigns, GROUP_CONFIG } from '@/types/traffic'
-import type { Campaign } from '@/types'
+import { type ObjectiveGroup, groupCampaigns, GROUP_CONFIG, OBJECTIVE_GROUP_MAP } from '@/types/traffic'
+import type { Campaign, CreativePerformance } from '@/types'
 
 type TabKey = 'overview' | ObjectiveGroup
 
@@ -29,12 +29,31 @@ export default function Trafego() {
 
   const hasRealData = !hook.loading && (hook.campaigns?.length ?? 0) > 0
   const campaigns: Campaign[] = isDemo || !hasRealData ? mockCampaigns : hook.campaigns
+  const creatives: CreativePerformance[] = isDemo || !hasRealData ? mockCreatives : hook.creatives
   const loading = !isDemo && hook.loading
 
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
 
   const groups = useMemo(() => groupCampaigns(campaigns), [campaigns])
   const insights = useTrafficIntelligence(campaigns)
+
+  // Map campaign_id → ObjectiveGroup for creative filtering
+  const campaignGroupMap = useMemo(() => {
+    const map = new Map<string, ObjectiveGroup>()
+    for (const c of campaigns) {
+      map.set(c.campaignId, OBJECTIVE_GROUP_MAP[c.objective])
+    }
+    return map
+  }, [campaigns])
+
+  const creativesByGroup = useMemo(() => {
+    const result: Record<ObjectiveGroup, CreativePerformance[]> = { leads: [], sales: [], traffic: [], engagement: [] }
+    for (const cr of creatives) {
+      const group = cr.campaignId ? campaignGroupMap.get(cr.campaignId) : undefined
+      if (group) result[group].push(cr)
+    }
+    return result
+  }, [creatives, campaignGroupMap])
 
   const availableTabs = useMemo<TabKey[]>(() => {
     const tabs: TabKey[] = ['overview']
@@ -112,16 +131,16 @@ export default function Trafego() {
         />
       )}
       {activeTab === 'leads' && (
-        <TrafficLeads campaigns={groups.leads} insights={insights.filter(i => i.group === 'leads')} />
+        <TrafficLeads campaigns={groups.leads} creatives={creativesByGroup.leads} insights={insights.filter(i => i.group === 'leads')} />
       )}
       {activeTab === 'sales' && (
-        <TrafficSales campaigns={groups.sales} insights={insights.filter(i => i.group === 'sales')} />
+        <TrafficSales campaigns={groups.sales} creatives={creativesByGroup.sales} insights={insights.filter(i => i.group === 'sales')} />
       )}
       {activeTab === 'traffic' && (
-        <TrafficTraffic campaigns={groups.traffic} insights={insights.filter(i => i.group === 'traffic')} />
+        <TrafficTraffic campaigns={groups.traffic} creatives={creativesByGroup.traffic} insights={insights.filter(i => i.group === 'traffic')} />
       )}
       {activeTab === 'engagement' && (
-        <TrafficEngagement campaigns={groups.engagement} insights={insights.filter(i => i.group === 'engagement')} />
+        <TrafficEngagement campaigns={groups.engagement} creatives={creativesByGroup.engagement} insights={insights.filter(i => i.group === 'engagement')} />
       )}
     </div>
   )

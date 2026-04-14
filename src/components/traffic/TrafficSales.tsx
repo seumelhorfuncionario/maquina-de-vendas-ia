@@ -2,7 +2,8 @@ import { ShoppingCart, DollarSign, TrendingUp, Target } from 'lucide-react'
 import StatCard from '@/components/StatCard'
 import TrafficCampaignTable from './TrafficCampaignTable'
 import TrafficInsightCard from './TrafficInsightCard'
-import type { Campaign } from '@/types'
+import TrafficCreativeRanking from './TrafficCreativeRanking'
+import type { Campaign, CreativePerformance } from '@/types'
 import type { TrafficInsight } from '@/types/traffic'
 import { fmt, fmtNum } from '@/types/traffic'
 import type { ColumnDef } from './TrafficCampaignTable'
@@ -22,10 +23,11 @@ const COLUMNS: ColumnDef[] = [
 
 interface Props {
   campaigns: Campaign[]
+  creatives: CreativePerformance[]
   insights: TrafficInsight[]
 }
 
-export default function TrafficSales({ campaigns, insights }: Props) {
+export default function TrafficSales({ campaigns, creatives, insights }: Props) {
   const totalRev = campaigns.reduce((s, c) => s + c.revenue, 0)
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalPurchases = campaigns.reduce((s, c) => s + c.purchases, 0)
@@ -48,6 +50,8 @@ export default function TrafficSales({ campaigns, insights }: Props) {
       </div>
 
       <TrafficCampaignTable campaigns={campaigns} columns={COLUMNS} title="Campanhas de Venda" accent="--accent-green" />
+
+      <TrafficCreativeRanking creatives={creatives} accent="--accent-green" />
     </div>
   )
 }
