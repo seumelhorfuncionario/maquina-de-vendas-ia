@@ -257,7 +257,16 @@ export default function SocialOnboarding() {
       >
         <MascotSMF
           size={180}
-          mood={step === TOTAL_STEPS ? 'happy' : step === 1 ? 'happy' : 'idle'}
+          mood={step === TOTAL_STEPS || step === 1 ? 'happy' : step === 4 ? 'thinking' : 'idle'}
+          action={
+            step === TOTAL_STEPS
+              ? 'celebrating'
+              : step === 2 || step === 3
+              ? 'working'
+              : step === 5
+              ? 'coffee'
+              : 'idle'
+          }
         />
         <p
           style={{
