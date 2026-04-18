@@ -16,6 +16,8 @@ import IAVision from './pages/IAVision'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
 import SocialOnboarding, { isSocialOnboardingComplete } from './pages/SocialOnboarding'
+import MeusTickets from './pages/MeusTickets'
+import EmbedView from './pages/EmbedView'
 import SuperAdminRoute from './components/SuperAdminRoute'
 import SuperAdminLayout from './components/SuperAdminLayout'
 import SuperAdminOverview from './pages/admin/SuperAdminOverview'
@@ -63,6 +65,7 @@ function ProtectedRoutes() {
             <Route path="ia" element={<IAVision />} />
             <Route path="trafego" element={<Trafego />} />
             <Route path="criativos" element={<CriativosGate />} />
+            <Route path="meus-tickets" element={<MeusTickets />} />
           </Route>
         </Routes>
       </DataProvider>
@@ -87,6 +90,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/embed/:clientId" element={<EmbedView />} />
             <Route
               path="/super-admin/*"
               element={

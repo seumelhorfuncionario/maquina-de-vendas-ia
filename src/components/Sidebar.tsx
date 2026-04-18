@@ -35,11 +35,14 @@ const allNavItems = [
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
 
+const supportNavItems = [
+  { to: '/meus-tickets', icon: LifeBuoy, label: 'Meus Tickets' },
+]
+
 const SMF_BASE_URL = (import.meta.env.VITE_SMF_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8080'
 
 const externalNavItems = [
   { href: `${SMF_BASE_URL}/agentes`, icon: Cpu, label: 'Gestão da IA' },
-  { href: `${SMF_BASE_URL}/meus-tickets`, icon: LifeBuoy, label: 'Meus Tickets' },
 ]
 
 interface SidebarProps {
@@ -101,9 +104,29 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <div className="pt-4 mt-4 border-t border-theme">
           {!collapsed && (
             <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-theme-muted">
-              SMF
+              Suporte
             </div>
           )}
+          {supportNavItems.map(item => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'text-[var(--accent-cyan)]'
+                    : 'text-theme-secondary hover:text-theme-primary'
+                }`
+              }
+              style={({ isActive }) => isActive ? {
+                backgroundColor: `color-mix(in srgb, var(--accent-cyan) 10%, transparent)`,
+                boxShadow: `inset 0 0 0 1px color-mix(in srgb, var(--accent-cyan) 20%, transparent)`,
+              } : undefined}
+            >
+              <item.icon size={20} className="shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </NavLink>
+          ))}
           {externalNavItems.map(item => (
             <a
               key={item.href}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Eye, Pencil, Loader2, Users, Copy, Check } from 'lucide-react'
+import { Search, Plus, Eye, Pencil, Loader2, Users, Copy, Check, ExternalLink, Link2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 
 interface ClientRow {
@@ -20,6 +20,7 @@ export default function SuperAdminClients() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [copiedEmbed, setCopiedEmbed] = useState<string | null>(null)
 
   useEffect(() => {
     loadClients()
@@ -57,6 +58,21 @@ export default function SuperAdminClients() {
   const handleViewDashboard = (clientId: string) => {
     localStorage.setItem('selectedClientId', clientId)
     navigate('/')
+  }
+
+  const buildEmbedUrl = (clientId: string) => {
+    const base = window.location.origin
+    return `${base}/embed/${clientId}`
+  }
+
+  const handleCopyEmbed = (clientId: string) => {
+    navigator.clipboard.writeText(buildEmbedUrl(clientId))
+    setCopiedEmbed(clientId)
+    setTimeout(() => setCopiedEmbed(null), 2000)
+  }
+
+  const handleOpenEmbed = (clientId: string) => {
+    window.open(buildEmbedUrl(clientId), '_blank', 'noopener,noreferrer')
   }
 
   const filtered = clients.filter(c => {
@@ -197,9 +213,27 @@ export default function SuperAdminClients() {
                     <button
                       onClick={() => handleViewDashboard(client.id)}
                       className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#00D4FF] transition-colors"
-                      title="Ver Dashboard"
+                      title="Ver painel como admin"
                     >
                       <Eye size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleOpenEmbed(client.id)}
+                      className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#A855F7] transition-colors"
+                      title="Abrir modo embed (nova aba)"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleCopyEmbed(client.id)}
+                      className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#00FF88] transition-colors relative"
+                      title="Copiar link de embed (para Chatwoot)"
+                    >
+                      {copiedEmbed === client.id ? (
+                        <Check size={16} className="text-[#00FF88]" />
+                      ) : (
+                        <Link2 size={16} />
+                      )}
                     </button>
                     <button
                       onClick={() => navigate(`/super-admin/clients/${client.id}/edit`)}
