@@ -34,13 +34,20 @@ export interface TicketComment {
 
 const FN_NAME = 'client-tickets'
 
+// When a super-admin is viewing a specific client, we pass client_id via query.
+function resolveClientIdParam(): string {
+  const selected = typeof window !== 'undefined' ? localStorage.getItem('selectedClientId') : null
+  return selected ? `&client_id=${encodeURIComponent(selected)}` : ''
+}
+
 async function callFn<T>(
   action: string,
   opts: { method?: 'GET' | 'POST'; body?: Record<string, unknown> } = {},
 ): Promise<T> {
   const { method = 'GET', body } = opts
+  const qs = `${action}${resolveClientIdParam()}`
   const { data, error } = await supabase.functions.invoke<T>(
-    `${FN_NAME}?action=${action}`,
+    `${FN_NAME}?action=${qs}`,
     {
       method,
       body,

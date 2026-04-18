@@ -17,6 +17,7 @@ import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
 import SocialOnboarding, { isSocialOnboardingComplete } from './pages/SocialOnboarding'
 import MeusTickets from './pages/MeusTickets'
+import GestaoIA from './pages/GestaoIA'
 import EmbedView from './pages/EmbedView'
 import SuperAdminRoute from './components/SuperAdminRoute'
 import SuperAdminLayout from './components/SuperAdminLayout'
@@ -66,6 +67,7 @@ function ProtectedRoutes() {
             <Route path="trafego" element={<Trafego />} />
             <Route path="criativos" element={<CriativosGate />} />
             <Route path="meus-tickets" element={<MeusTickets />} />
+            <Route path="gestao-ia" element={<GestaoIA />} />
           </Route>
         </Routes>
       </DataProvider>

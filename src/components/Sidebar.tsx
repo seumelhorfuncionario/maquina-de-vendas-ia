@@ -36,14 +36,11 @@ const allNavItems = [
 ]
 
 const supportNavItems = [
+  { to: '/gestao-ia', icon: Cpu, label: 'Gestão da IA' },
   { to: '/meus-tickets', icon: LifeBuoy, label: 'Meus Tickets' },
 ]
 
-const SMF_BASE_URL = (import.meta.env.VITE_SMF_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8080'
-
-const externalNavItems = [
-  { href: `${SMF_BASE_URL}/agentes`, icon: Cpu, label: 'Gestão da IA' },
-]
+const externalNavItems: { href: string; icon: typeof Cpu; label: string }[] = []
 
 interface SidebarProps {
   collapsed: boolean
