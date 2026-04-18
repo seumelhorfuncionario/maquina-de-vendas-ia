@@ -7,15 +7,19 @@ import {
   type ClientTicket,
 } from '../hooks/useClientTickets'
 
-type StatusKey = 'open' | 'pending' | 'in_progress' | 'resolved' | 'closed' | string
+type StatusKey = 'open' | 'in_analysis' | 'in_development' | 'waiting_team' | 'waiting_client' | 'resolved' | 'closed' | string
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   open: { label: 'Aberto', color: 'var(--accent-cyan)' },
-  pending: { label: 'Pendente', color: 'var(--accent-yellow)' },
-  in_progress: { label: 'Em andamento', color: 'var(--accent-purple)' },
+  in_analysis: { label: 'Em análise', color: 'var(--accent-yellow)' },
+  in_development: { label: 'Em desenvolvimento', color: 'var(--accent-purple)' },
+  waiting_team: { label: 'Aguardando time', color: 'var(--accent-purple)' },
+  waiting_client: { label: 'Aguardando você', color: 'var(--accent-yellow)' },
   resolved: { label: 'Resolvido', color: 'var(--accent-green)' },
   closed: { label: 'Fechado', color: 'var(--text-muted)' },
 }
+
+const IN_PROGRESS_STATUSES = new Set(['in_analysis', 'in_development', 'waiting_team', 'waiting_client'])
 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   low: { label: 'Baixa', color: 'var(--text-muted)' },
@@ -66,6 +70,9 @@ export default function MeusTickets() {
 
   const filtered = useMemo(() => {
     if (filter === 'all') return tickets
+    if (filter === 'in_progress') {
+      return tickets.filter((t) => t.status != null && IN_PROGRESS_STATUSES.has(t.status))
+    }
     return tickets.filter((t) => t.status === filter)
   }, [tickets, filter])
 
@@ -73,7 +80,11 @@ export default function MeusTickets() {
     const c: Record<string, number> = { all: tickets.length, open: 0, in_progress: 0, resolved: 0, closed: 0 }
     tickets.forEach((t) => {
       const k = t.status ?? ''
-      c[k] = (c[k] ?? 0) + 1
+      if (IN_PROGRESS_STATUSES.has(k)) {
+        c.in_progress = (c.in_progress ?? 0) + 1
+      } else {
+        c[k] = (c[k] ?? 0) + 1
+      }
     })
     return c
   }, [tickets])
@@ -257,7 +268,7 @@ function NewTicketDialog({
   const [subject, setSubject] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('medium')
-  const [category, setCategory] = useState('geral')
+  const [category, setCategory] = useState('general')
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -345,13 +356,18 @@ function NewTicketDialog({
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-lg surface-elevated border border-theme text-sm text-theme-primary outline-none focus:border-[var(--accent-cyan)]"
               >
-                <option value="geral">Geral</option>
-                <option value="bug">Bug / Erro</option>
-                <option value="ia">Ajuste da IA</option>
-                <option value="integracao">Integração</option>
-                <option value="criativos">Criativos</option>
-                <option value="trafego">Tráfego</option>
-                <option value="financeiro">Financeiro</option>
+                <option value="general">Geral</option>
+                <option value="bugs">Bug / Erro</option>
+                <option value="comportamento">Ajustar comportamento da IA</option>
+                <option value="base_conhecimento">Base de conhecimento</option>
+                <option value="integracoes">Integração</option>
+                <option value="automacoes">Automações</option>
+                <option value="funcoes">Funções / Novas features</option>
+                <option value="melhorias">Melhorias</option>
+                <option value="treinamento">Treinamento</option>
+                <option value="documentar">Documentar algo</option>
+                <option value="conexoes">Conexões</option>
+                <option value="billing">Financeiro / Billing</option>
               </select>
             </div>
           </div>

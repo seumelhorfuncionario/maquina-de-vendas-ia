@@ -64,12 +64,43 @@ async function callFn<T>(
 ): Promise<T> {
   const { method = 'GET', body } = opts
   const qs = `${action}${resolveClientParam()}`
-  const { data, error } = await supabase.functions.invoke<T>(
-    `${FN_NAME}?action=${qs}`,
-    { method, body },
-  )
-  if (error) throw error
-  return data as T
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+  const { data: { session } } = await supabase.auth.getSession()
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+
+  if (!supabaseUrl || !session || !anonKey) {
+    throw new Error('Sessão inválida — faça login novamente.')
+  }
+
+  const url = `${supabaseUrl}/functions/v1/${FN_NAME}?action=${qs}`
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: anonKey,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+
+  const text = await res.text()
+  let parsed: unknown
+  try {
+    parsed = text ? JSON.parse(text) : {}
+  } catch {
+    parsed = { raw: text }
+  }
+
+  if (!res.ok) {
+    const msg =
+      (parsed as { error?: string; message?: string }).error ||
+      (parsed as { message?: string }).message ||
+      `HTTP ${res.status}`
+    throw new Error(msg)
+  }
+
+  return parsed as T
 }
 
 export function useClientAgents() {
