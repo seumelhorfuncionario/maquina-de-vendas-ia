@@ -17,6 +17,9 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  Cpu,
+  LifeBuoy,
+  ExternalLink,
 } from 'lucide-react'
 import { useMemo } from 'react'
 
@@ -30,6 +33,13 @@ const allNavItems = [
   { to: '/ia', icon: Bot, label: 'Visão da IA', feature: 'ia_vision' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
+]
+
+const SMF_BASE_URL = (import.meta.env.VITE_SMF_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8080'
+
+const externalNavItems = [
+  { href: `${SMF_BASE_URL}/agentes`, icon: Cpu, label: 'Gestão da IA' },
+  { href: `${SMF_BASE_URL}/meus-tickets`, icon: LifeBuoy, label: 'Meus Tickets' },
 ]
 
 interface SidebarProps {
@@ -87,6 +97,31 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             {!collapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
+
+        <div className="pt-4 mt-4 border-t border-theme">
+          {!collapsed && (
+            <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-theme-muted">
+              SMF
+            </div>
+          )}
+          {externalNavItems.map(item => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-theme-secondary hover:text-theme-primary group"
+            >
+              <item.icon size={20} className="shrink-0" />
+              {!collapsed && (
+                <>
+                  <span className="flex-1">{item.label}</span>
+                  <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                </>
+              )}
+            </a>
+          ))}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-theme">
