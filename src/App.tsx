@@ -15,6 +15,7 @@ import Produtos from './pages/Produtos'
 import IAVision from './pages/IAVision'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
+import SocialOnboarding, { isSocialOnboardingComplete } from './pages/SocialOnboarding'
 import SuperAdminRoute from './components/SuperAdminRoute'
 import SuperAdminLayout from './components/SuperAdminLayout'
 import SuperAdminOverview from './pages/admin/SuperAdminOverview'
@@ -51,21 +52,31 @@ function ProtectedRoutes() {
     <TenantProvider>
       <DataProvider>
         <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="vendas" element={<Vendas />} />
-          <Route path="producao" element={<Producao />} />
-          <Route path="financeiro" element={<Financeiro />} />
-          <Route path="produtos" element={<Produtos />} />
-          <Route path="ia" element={<IAVision />} />
-          <Route path="trafego" element={<Trafego />} />
-          <Route path="criativos" element={<Criativos />} />
-        </Route>
+          <Route path="onboarding/social" element={<SocialOnboarding />} />
+          <Route element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="leads" element={<Leads />} />
+            <Route path="vendas" element={<Vendas />} />
+            <Route path="producao" element={<Producao />} />
+            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="produtos" element={<Produtos />} />
+            <Route path="ia" element={<IAVision />} />
+            <Route path="trafego" element={<Trafego />} />
+            <Route path="criativos" element={<CriativosGate />} />
+          </Route>
         </Routes>
       </DataProvider>
     </TenantProvider>
   )
+}
+
+function CriativosGate() {
+  const { clientProfile, user } = useAuth()
+  const clientId = clientProfile?.id || user?.id || null
+  if (!isSocialOnboardingComplete(clientId)) {
+    return <Navigate to="/onboarding/social" replace />
+  }
+  return <Criativos />
 }
 
 export default function App() {
