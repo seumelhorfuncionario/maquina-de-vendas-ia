@@ -15,7 +15,8 @@ import Produtos from './pages/Produtos'
 import IAVision from './pages/IAVision'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
-import SocialOnboarding, { isSocialOnboardingComplete } from './pages/SocialOnboarding'
+import SocialOnboarding from './pages/SocialOnboarding'
+import { useSocialOnboardingStatus } from './hooks/useSocialOnboardingStatus'
 import MeusTickets from './pages/MeusTickets'
 import GestaoIA from './pages/GestaoIA'
 import EmbedView from './pages/EmbedView'
@@ -76,11 +77,24 @@ function ProtectedRoutes() {
 }
 
 function CriativosGate() {
-  const { clientProfile, user } = useAuth()
-  const clientId = clientProfile?.id || user?.id || null
-  if (!isSocialOnboardingComplete(clientId)) {
-    return <Navigate to="/onboarding/social" replace />
+  const { isSuperAdmin } = useAuth()
+  const { data, isLoading, isError } = useSocialOnboardingStatus()
+
+  // Super-admins without a selected client bypass the gate
+  if (isSuperAdmin && !data?.clientId) return <Criativos />
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center surface-base">
+        <div className="w-8 h-8 border-2 border-[#00D4FF] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
+
+  // On DB error, don't trap the user — let them see Criativos
+  if (isError) return <Criativos />
+
+  if (!data?.completed) return <Navigate to="/onboarding/social" replace />
   return <Criativos />
 }
 

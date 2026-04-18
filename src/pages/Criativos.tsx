@@ -21,10 +21,12 @@ import {
   ArrowLeft,
   Columns3,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { mockContentPosts } from '../data/mockContent'
 import { useContentPosts } from '../hooks/useContentPosts'
+import { useSocialOnboardingStatus } from '../hooks/useSocialOnboardingStatus'
 import type { ContentPost, ContentStatus, ContentType, ContentPlatform } from '../types'
 
 /* ──────────────────────────── Config Maps ──────────────────────────── */
@@ -385,6 +387,25 @@ function PostDetailModal({
 
 /* ──────────────────────────── Main Component ──────────────────────────── */
 
+function OnboardingButton() {
+  const navigate = useNavigate()
+  const { data } = useSocialOnboardingStatus()
+  const label = data?.completed ? 'Atualizar perfil social' : 'Completar onboarding'
+  return (
+    <button
+      onClick={() => navigate('/onboarding/social')}
+      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-colors hover:opacity-80"
+      style={{
+        borderColor: 'color-mix(in srgb, var(--accent-cyan) 30%, transparent)',
+        color: 'var(--accent-cyan)',
+        backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, transparent)',
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
 export default function Criativos() {
   const { isDemo } = useAuth()
   const hook = useContentPosts()
@@ -520,6 +541,7 @@ export default function Criativos() {
         description="Calendário editorial e aprovação de conteúdo"
         action={
           <div className="flex items-center gap-2">
+            <OnboardingButton />
             <Palette size={16} style={{ color: 'var(--accent-purple)' }} />
             <span
               className="text-[11px] font-bold font-data px-2.5 py-1 rounded-lg"

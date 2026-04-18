@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Instagram, Facebook, Image as ImageIcon, Upload, X, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '../contexts/AuthContext'
+import { useInvalidateSocialOnboarding } from '../hooks/useSocialOnboardingStatus'
 import MascotSMF from '../components/MascotSMF'
 
 /* ──────────────────────── Types ──────────────────────── */
@@ -73,6 +74,7 @@ export function isSocialOnboardingComplete(clientId?: string | null): boolean {
 export default function SocialOnboarding() {
   const navigate = useNavigate()
   const { user, clientProfile } = useAuth()
+  const invalidateOnboarding = useInvalidateSocialOnboarding()
 
   const clientId = clientProfile?.id || user?.id || null
 
@@ -125,13 +127,35 @@ export default function SocialOnboarding() {
       }
     }
 
+    invalidateOnboarding()
     setSaving(false)
     navigate('/criativos', { replace: true })
   }
 
-  const handleSkipAll = () => {
+  const handleSkipAll = async () => {
     const marker: SocialOnboardingData = { ...data, completedAt: new Date().toISOString() }
     saveLocal(clientId, marker)
+
+    // Persist skip into the DB too so the gate doesn't trap the user on next login
+    if (clientProfile?.id) {
+      try {
+        const { data: current } = await supabase
+          .from('clients')
+          .select('dashboard_config')
+          .eq('id', clientProfile.id)
+          .maybeSingle()
+        const existingCfg = (current?.dashboard_config as Record<string, unknown> | null) || {}
+        const nextCfg = { ...existingCfg, social_onboarding: marker }
+        await supabase
+          .from('clients')
+          .update({ dashboard_config: nextCfg as never })
+          .eq('id', clientProfile.id)
+      } catch {
+        /* ignore */
+      }
+    }
+
+    invalidateOnboarding()
     navigate('/criativos', { replace: true })
   }
 
