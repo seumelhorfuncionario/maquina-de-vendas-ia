@@ -90,6 +90,45 @@ export default function EmbedView() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const toggleSidebar = useCallback(() => setSidebarCollapsed((c) => !c), [])
 
+  // Auto-login via ?token= (embed_token) — for clients opening the Máquina from Chatwoot iframe
+  const embedToken = searchParams.get('token')
+  const [tokenExchanging, setTokenExchanging] = useState(false)
+  const [tokenError, setTokenError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (authLoading || isAuthenticated || !embedToken || !clientId || tokenExchanging) return
+    setTokenExchanging(true)
+
+    const exchange = async () => {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+        if (!supabaseUrl || !anonKey) throw new Error('Supabase env missing')
+
+        const res = await fetch(`${supabaseUrl}/functions/v1/embed-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: anonKey },
+          body: JSON.stringify({ client_id: clientId, token: embedToken }),
+        })
+        const payload = await res.json()
+        if (!res.ok) throw new Error(payload?.error || `HTTP ${res.status}`)
+
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: payload.token_hash,
+          type: 'magiclink',
+        })
+        if (error) throw error
+        // onAuthStateChange in AuthContext will pick up the session
+      } catch (err) {
+        setTokenError(err instanceof Error ? err.message : 'Falha ao autenticar embed')
+      } finally {
+        setTokenExchanging(false)
+      }
+    }
+
+    exchange()
+  }, [authLoading, isAuthenticated, embedToken, clientId, tokenExchanging])
+
   const allowed =
     isAuthenticated && !!clientId && (isSuperAdmin || clientProfile?.id === clientId)
 
@@ -118,6 +157,8 @@ export default function EmbedView() {
   }, [clientId, allowed])
 
   if (authLoading) return <LoadingBlock label="Carregando sessão..." />
+  if (tokenExchanging) return <LoadingBlock label="Autenticando..." />
+  if (tokenError) return <DeniedBlock reason={`Token de embed inválido: ${tokenError}`} />
   if (!isAuthenticated) return <DeniedBlock reason="Faça login antes de abrir este painel." />
   if (!allowed) return <DeniedBlock reason="Você não tem permissão para visualizar esse cliente." />
   if (clientExists === false) return <DeniedBlock reason="Cliente não encontrado ou inativo." />

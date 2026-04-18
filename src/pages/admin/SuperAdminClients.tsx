@@ -11,6 +11,7 @@ interface ClientRow {
   client_type: string | null
   cw_enabled: boolean | null
   is_active: boolean | null
+  embed_token: string | null
 }
 
 export default function SuperAdminClients() {
@@ -30,7 +31,7 @@ export default function SuperAdminClients() {
     try {
       const { data } = await supabase
         .from('clients')
-        .select('id, business_name, email, business_niche, client_type, cw_enabled, is_active')
+        .select('id, business_name, email, business_niche, client_type, cw_enabled, is_active, embed_token')
         .order('business_name')
 
       setClients(data || [])
@@ -60,19 +61,21 @@ export default function SuperAdminClients() {
     navigate('/')
   }
 
-  const buildEmbedUrl = (clientId: string) => {
+  const buildEmbedUrl = (client: ClientRow, page = 'dashboard') => {
     const base = window.location.origin
-    return `${base}/embed/${clientId}`
+    const params = new URLSearchParams({ page, chrome: 'banner-only' })
+    if (client.embed_token) params.set('token', client.embed_token)
+    return `${base}/embed/${client.id}?${params.toString()}`
   }
 
-  const handleCopyEmbed = (clientId: string) => {
-    navigator.clipboard.writeText(buildEmbedUrl(clientId))
-    setCopiedEmbed(clientId)
+  const handleCopyEmbed = (client: ClientRow) => {
+    navigator.clipboard.writeText(buildEmbedUrl(client))
+    setCopiedEmbed(client.id)
     setTimeout(() => setCopiedEmbed(null), 2000)
   }
 
-  const handleOpenEmbed = (clientId: string) => {
-    window.open(buildEmbedUrl(clientId), '_blank', 'noopener,noreferrer')
+  const handleOpenEmbed = (client: ClientRow) => {
+    window.open(buildEmbedUrl(client), '_blank', 'noopener,noreferrer')
   }
 
   const filtered = clients.filter(c => {
@@ -218,14 +221,14 @@ export default function SuperAdminClients() {
                       <Eye size={16} />
                     </button>
                     <button
-                      onClick={() => handleOpenEmbed(client.id)}
+                      onClick={() => handleOpenEmbed(client)}
                       className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#A855F7] transition-colors"
                       title="Abrir modo embed (nova aba)"
                     >
                       <ExternalLink size={16} />
                     </button>
                     <button
-                      onClick={() => handleCopyEmbed(client.id)}
+                      onClick={() => handleCopyEmbed(client)}
                       className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#00FF88] transition-colors relative"
                       title="Copiar link de embed (para Chatwoot)"
                     >

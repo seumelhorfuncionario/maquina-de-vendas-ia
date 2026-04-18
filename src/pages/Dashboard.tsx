@@ -17,6 +17,7 @@ import {
   Calendar,
   Plus,
   Trash2,
+  Handshake,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -35,6 +36,7 @@ import { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
 import { mockDashboard, mockChartData } from '../data/mock'
 import { useSync } from '@/hooks/useSync'
 import { useAgentsData } from '@/hooks/useAgentsData'
+import { useClientTransfers } from '@/hooks/useClientTransfers'
 import { useManualAppointments } from '@/hooks/useManualAppointments'
 import { useClientId } from '@/hooks/useClientId'
 import { useTenant } from '@/contexts/TenantContext'
@@ -185,6 +187,7 @@ export default function Dashboard() {
   const { isDemo } = useAuth()
   const { leads, sales } = useData()
   const realMetrics = useDashboardMetrics()
+  const transfers = useClientTransfers(30)
 
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
@@ -373,6 +376,16 @@ export default function Dashboard() {
           <StatCard title={`Chats WhatsApp (${periodDays}d)`} value={agents.chatsWhatsapp.toLocaleString()} icon={<MessageCircle size={18} />} color="positive" stagger={3} subtitle={`Total: ${agents.chatsWhatsappTotal.toLocaleString()}`} />
           {(agents.chatsInstagram > 0 || agents.chatsInstagramTotal > 0) && (
             <StatCard title={`Chats Instagram (${periodDays}d)`} value={agents.chatsInstagram.toLocaleString()} icon={<Instagram size={18} />} color="purple" stagger={4} subtitle={`Total: ${agents.chatsInstagramTotal.toLocaleString()}`} />
+          )}
+          {transfers.data && transfers.data.total > 0 && (
+            <StatCard
+              title="Transferências à Equipe (30d)"
+              value={transfers.data.total.toLocaleString()}
+              icon={<Handshake size={18} />}
+              color="warning"
+              stagger={5}
+              subtitle={`${transfers.data.active} em aberto · ${transfers.data.finalized} finalizadas`}
+            />
           )}
         </div>
       )}
