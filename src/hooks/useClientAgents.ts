@@ -8,39 +8,18 @@ export interface ClientAgent {
   canal: string | null
   em_uso: boolean | null
   versao: string | null
-  prompt_agente: string | null
   modelo_llm: string | null
-  temperatura: number | null
-  top_p: number | null
-  debounce_segundos: number | null
   tags: string[] | null
   slug: string | null
   instagram_username: string | null
   telefone_instancia: string | null
-  tts_habilitado: boolean | null
   rag_habilitado: boolean | null
   horario_funcionamento_habilitado: boolean | null
-  horario_funcionamento_inicio: number | null
-  horario_funcionamento_fim: number | null
-  mensagem_fora_horario: string | null
-  handoff_mensagem_fixa: string | null
-  canais_ativos: unknown
+  refinar_token: string | null
   roles: {
     whatsapp: boolean
     instagram: boolean
   }
-}
-
-export interface AgentRefinement {
-  id: number
-  tipo_gatilho: string | null
-  palavras_chave: string[] | null
-  descricao_intencao: string | null
-  resposta_errada: string | null
-  resposta_correta: string | null
-  instrucao_adicional: string | null
-  ativo: boolean | null
-  created_at: string
 }
 
 interface ListResponse {
@@ -126,34 +105,4 @@ export function useClientAgents() {
   }, [load])
 
   return { data, loading, error, reload: load }
-}
-
-export function useAgentDetail(agentId: number | null) {
-  const [agent, setAgent] = useState<ClientAgent | null>(null)
-  const [refinements, setRefinements] = useState<AgentRefinement[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    if (!agentId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await callFn<{ agent: ClientAgent; refinements: AgentRefinement[] }>(
-        `detail&id=${agentId}`,
-      )
-      setAgent(res.agent)
-      setRefinements(res.refinements ?? [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
-    } finally {
-      setLoading(false)
-    }
-  }, [agentId])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  return { agent, refinements, loading, error, reload: load }
 }

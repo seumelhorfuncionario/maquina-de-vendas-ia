@@ -5,13 +5,10 @@ export interface ClientTicket {
   id: string
   ticket_number: string | null
   subject: string | null
-  title: string | null
   description: string | null
   status: string | null
   priority: string | null
   category: string | null
-  ticket_type: string | null
-  department: string | null
   created_at: string
   updated_at: string | null
   opened_at: string | null
@@ -19,8 +16,9 @@ export interface ClientTicket {
   resolved_at: string | null
   closed_at: string | null
   solution: string | null
-  conversation_link: string | null
   tags: string[] | null
+  deadline: string | null
+  agent_id: number | null
 }
 
 export interface TicketComment {
@@ -86,7 +84,8 @@ async function callFn<T>(
   return parsed as T
 }
 
-export function useClientTickets() {
+export function useClientTickets(options: { agentId?: number | null } = {}) {
+  const { agentId } = options
   const [tickets, setTickets] = useState<ClientTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -95,24 +94,31 @@ export function useClientTickets() {
     setLoading(true)
     setError(null)
     try {
-      const res = await callFn<{ tickets: ClientTicket[] }>('list')
+      const suffix = agentId != null ? `&agent_id=${agentId}` : ''
+      const res = await callFn<{ tickets: ClientTicket[] }>(`list${suffix}`)
       setTickets(res.tickets ?? [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [agentId])
 
   useEffect(() => {
     load()
   }, [load])
 
   const createTicket = useCallback(
-    async (input: { subject: string; description: string; priority?: string; category?: string }) => {
+    async (input: {
+      subject: string
+      description: string
+      priority?: string
+      category?: string
+      agent_id?: number | null
+    }) => {
       const res = await callFn<{ ticket: ClientTicket }>('create', {
         method: 'POST',
-        body: input,
+        body: input as Record<string, unknown>,
       })
       await load()
       return res.ticket

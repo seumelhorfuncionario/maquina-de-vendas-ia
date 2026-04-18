@@ -208,7 +208,7 @@ function TicketRow({ ticket, onClick }: { ticket: ClientTicket; onClick: () => v
             {priorityPill(ticket.priority)}
           </div>
           <h3 className="text-sm font-semibold text-theme-primary truncate group-hover:text-[var(--accent-cyan)] transition-colors">
-            {ticket.subject ?? ticket.title ?? '(sem assunto)'}
+            {ticket.subject ?? '(sem assunto)'}
           </h3>
           {ticket.description && (
             <p className="text-xs text-theme-tertiary line-clamp-2 mt-1">{ticket.description}</p>
@@ -447,7 +447,7 @@ function TicketDetail({ ticketId, onClose }: { ticketId: string; onClose: () => 
                   {priorityPill(ticket.priority)}
                 </div>
                 <h2 className="text-lg font-bold text-theme-primary">
-                  {ticket.subject ?? ticket.title ?? '(sem assunto)'}
+                  {ticket.subject ?? '(sem assunto)'}
                 </h2>
                 <p className="text-xs text-theme-muted mt-1">
                   Aberto em {formatDate(ticket.created_at)}
