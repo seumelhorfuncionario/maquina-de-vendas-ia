@@ -76,6 +76,7 @@ export const useDashboardMetrics = () => {
           .from('sales')
           .select('total, quantity, product_id')
           .eq('client_id', clientId)
+          .in('status', ['confirmed', 'delivered'])
           .gte('sale_date', monthStart),
         supabase
           .from('traffic_costs')

@@ -23,6 +23,7 @@ export const useSales = () => {
         .from('sales')
         .select('*')
         .eq('client_id', clientId)
+        .in('status', ['confirmed', 'delivered'])
         .order('sale_date', { ascending: false })
 
       if (fetchError) throw fetchError
