@@ -21,7 +21,7 @@ import { useClientTickets, type ClientTicket } from '../hooks/useClientTickets'
 
 const SMF_BASE_URL =
   (import.meta.env.VITE_SMF_URL as string | undefined)?.replace(/\/$/, '') ||
-  (import.meta.env.PROD ? 'https://gestor.seumelhorfuncionario.com' : 'http://localhost:8080')
+  (import.meta.env.PROD ? 'https://painel.seumelhorfuncionario.com' : 'http://localhost:8080')
 
 const ROLE_META: Record<'whatsapp' | 'instagram', { label: string; icon: typeof MessageCircle; color: string }> = {
   whatsapp: { label: 'WhatsApp', icon: MessageCircle, color: '#25D366' },
