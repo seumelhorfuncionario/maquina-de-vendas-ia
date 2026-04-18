@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { motion } from 'framer-motion'
 
 interface MascotSMFProps {
   size?: number
@@ -25,8 +26,97 @@ export default function MascotSMF({
     ? <ellipse cx="0" cy="0" rx="10" ry="14" fill="#FFFFFF" />
     : <ellipse cx="0" cy="0" rx="12" ry="16" fill="#FFFFFF" />
 
+  // Float animation (body-wide)
+  const floatAnim = animated
+    ? {
+        animate: { y: [0, -8, 0] },
+        transition: {
+          duration: 4,
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        },
+      }
+    : {}
+
+  // Glow pulse
+  const glowAnim = animated
+    ? {
+        animate: { opacity: [0.6, 1, 0.6], scale: [1, 1.08, 1] },
+        transition: {
+          duration: 3,
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        },
+      }
+    : {}
+
+  // Antenna ball pulse (scale + glow via filter)
+  const antennaAnim = animated
+    ? {
+        animate: {
+          scale: [1, 1.15, 1],
+          filter: [
+            'drop-shadow(0 0 4px rgba(61, 184, 255, 0.6))',
+            'drop-shadow(0 0 12px rgba(61, 184, 255, 1))',
+            'drop-shadow(0 0 4px rgba(61, 184, 255, 0.6))',
+          ],
+        },
+        transition: {
+          duration: 2.2,
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        },
+      }
+    : {}
+
+  // Blink (mood === 'idle') — scaleY closed just 8% of the cycle
+  const blinkAnim = animated && mood === 'idle'
+    ? {
+        animate: { scaleY: [1, 1, 0.05, 1, 1] },
+        transition: {
+          duration: 5,
+          repeat: Infinity,
+          times: [0, 0.92, 0.95, 0.98, 1],
+          ease: 'easeInOut' as const,
+        },
+      }
+    : {}
+
+  // Chest LED pulse
+  const chestAnim = animated
+    ? {
+        animate: {
+          opacity: [0.6, 1, 0.6],
+          scale: [1, 1.15, 1],
+          filter: [
+            'drop-shadow(0 0 3px rgba(61, 184, 255, 0.5))',
+            'drop-shadow(0 0 10px rgba(61, 184, 255, 1))',
+            'drop-shadow(0 0 3px rgba(61, 184, 255, 0.5))',
+          ],
+        },
+        transition: {
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        },
+      }
+    : {}
+
+  // Hover: whole mascot grows slightly
+  const hoverAnim = animated
+    ? {
+        whileHover: { scale: 1.05 },
+        transition: { type: 'spring' as const, stiffness: 260, damping: 18 },
+      }
+    : {}
+
+  const centerOrigin: CSSProperties = {
+    transformBox: 'fill-box',
+    transformOrigin: 'center',
+  }
+
   return (
-    <div
+    <motion.div
       className={className}
       style={{
         width: size,
@@ -37,28 +127,27 @@ export default function MascotSMF({
         justifyContent: 'center',
         ...style,
       }}
+      {...hoverAnim}
     >
       {glow && (
-        <div
+        <motion.div
           style={{
             position: 'absolute',
             inset: '-10%',
             borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(0, 180, 255, 0.25) 0%, rgba(0, 180, 255, 0) 70%)',
-            animation: animated ? 'mascotGlow 3s ease-in-out infinite' : 'none',
             pointerEvents: 'none',
           }}
+          {...glowAnim}
         />
       )}
 
-      <svg
+      <motion.svg
         viewBox="0 0 240 280"
         width={size}
         height={size}
-        style={{
-          animation: animated ? 'mascotFloat 4s ease-in-out infinite' : 'none',
-          overflow: 'visible',
-        }}
+        style={{ overflow: 'visible' }}
+        {...floatAnim}
       >
         <defs>
           <linearGradient id="mascotBodyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -87,15 +176,13 @@ export default function MascotSMF({
         {/* Antenna */}
         <g>
           <rect x="117" y="20" width="6" height="24" fill="#0A78E0" rx="1.5" />
-          <circle
+          <motion.circle
             cx="120"
             cy="16"
             r="10"
             fill="url(#mascotAntennaBall)"
-            style={{
-              animation: animated ? 'mascotAntennaPulse 2.2s ease-in-out infinite' : 'none',
-              transformOrigin: '120px 16px',
-            }}
+            style={centerOrigin}
+            {...antennaAnim}
           />
           <circle cx="116" cy="12" r="3" fill="rgba(255,255,255,0.6)" />
         </g>
@@ -121,12 +208,17 @@ export default function MascotSMF({
           {/* Visor reflection */}
           <ellipse cx="85" cy="92" rx="22" ry="6" fill="rgba(255,255,255,0.08)" />
 
-          {/* Eyes */}
-          <g transform="translate(96,115)" style={{ animation: animated && mood === 'idle' ? 'mascotBlink 5s infinite' : 'none', transformOrigin: 'center' }}>
-            {eyeShape}
+          {/* Eyes — outer <g> handles position (translate), inner motion.g handles blink (scaleY).
+              Splitting the transforms avoids the translate+scaleY conflict that deformed the eyes. */}
+          <g transform="translate(96,115)">
+            <motion.g style={centerOrigin} {...blinkAnim}>
+              {eyeShape}
+            </motion.g>
           </g>
-          <g transform="translate(144,115)" style={{ animation: animated && mood === 'idle' ? 'mascotBlink 5s infinite' : 'none', transformOrigin: 'center' }}>
-            {eyeShape}
+          <g transform="translate(144,115)">
+            <motion.g style={centerOrigin} {...blinkAnim}>
+              {eyeShape}
+            </motion.g>
           </g>
         </g>
 
@@ -151,7 +243,14 @@ export default function MascotSMF({
           />
           {/* Chest plate */}
           <rect x="98" y="190" width="44" height="30" rx="8" fill="#053C7E" opacity="0.55" />
-          <circle cx="120" cy="205" r="5" fill="#3DB8FF" style={{ animation: animated ? 'mascotChestPulse 2s ease-in-out infinite' : 'none' }} />
+          <motion.circle
+            cx="120"
+            cy="205"
+            r="5"
+            fill="#3DB8FF"
+            style={centerOrigin}
+            {...chestAnim}
+          />
         </g>
 
         {/* Pixel dissolve at base */}
@@ -168,7 +267,7 @@ export default function MascotSMF({
           <rect x="162" y="266" width="10" height="10" opacity="0.35" />
           <rect x="64" y="266" width="10" height="10" opacity="0.3" />
         </g>
-      </svg>
-    </div>
+      </motion.svg>
+    </motion.div>
   )
 }
