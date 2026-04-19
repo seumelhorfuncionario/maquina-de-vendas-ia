@@ -41,6 +41,8 @@ const DEFAULT_DATA: SocialOnboardingData = {
 const TOTAL_STEPS = 6
 const STEP_LABELS = ['Boas-vindas', 'Instagram', 'Conteúdo', 'Negócio', 'Identidade', 'Pronto']
 
+const FINISH_VIDEO_URL = 'https://seumelhorfuncionario.com/wp-content/uploads/2026/04/SMF.mp4'
+
 const LS_KEY_PREFIX = 'smf-social-onboarding-'
 
 /* ──────────────────────── Storage helpers ──────────────────────── */
@@ -1208,8 +1210,75 @@ function StepFinish({
     return () => clearTimeout(t)
   }, [])
 
+  const [showVideo, setShowVideo] = useState(false)
+  const [finishing, setFinishing] = useState(false)
+
+  const handleEnterPanel = () => {
+    setShowVideo(true)
+  }
+
+  const handleVideoDone = () => {
+    if (finishing) return
+    setFinishing(true)
+    onFinish()
+  }
+
   return (
     <Card>
+      {showVideo && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            background: 'rgba(0, 0, 0, 0.92)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <video
+            src={FINISH_VIDEO_URL}
+            autoPlay
+            controls
+            playsInline
+            onEnded={handleVideoDone}
+            style={{
+              width: '100%',
+              maxWidth: 900,
+              maxHeight: '75vh',
+              borderRadius: 12,
+              background: '#000',
+              boxShadow: '0 0 40px rgba(0, 212, 255, 0.25)',
+            }}
+          />
+          <button
+            onClick={handleVideoDone}
+            disabled={finishing || saving}
+            style={{
+              marginTop: 20,
+              padding: '12px 28px',
+              borderRadius: 10,
+              border: 'none',
+              background:
+                finishing || saving
+                  ? 'var(--bg-elevated)'
+                  : 'linear-gradient(135deg, #00D4FF 0%, #00FF88 100%)',
+              color: finishing || saving ? 'var(--text-muted)' : '#02131f',
+              fontWeight: 700,
+              fontSize: 14,
+              letterSpacing: 0.4,
+              cursor: finishing || saving ? 'wait' : 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {finishing || saving ? 'Abrindo o painel...' : 'Continuar para o painel →'}
+          </button>
+        </div>
+      )}
+
       <CardTitle title="Tudo pronto! 🎉" subtitle="Revisei tudo e estou pronto para trabalhar" />
 
       {/* Confetti */}
@@ -1258,8 +1327,8 @@ function StepFinish({
       </div>
 
       <button
-        onClick={onFinish}
-        disabled={saving}
+        onClick={handleEnterPanel}
+        disabled={saving || finishing || showVideo}
         style={{
           width: '100%',
           padding: '14px 0',

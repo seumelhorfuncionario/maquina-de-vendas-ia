@@ -16,7 +16,6 @@ import IAVision from './pages/IAVision'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
 import SocialOnboarding from './pages/SocialOnboarding'
-import { useSocialOnboardingStatus } from './hooks/useSocialOnboardingStatus'
 import MeusTickets from './pages/MeusTickets'
 import GestaoIA from './pages/GestaoIA'
 import EmbedView from './pages/EmbedView'
@@ -66,7 +65,7 @@ function ProtectedRoutes() {
             <Route path="produtos" element={<Produtos />} />
             <Route path="ia" element={<IAVision />} />
             <Route path="trafego" element={<Trafego />} />
-            <Route path="criativos" element={<CriativosGate />} />
+            <Route path="criativos" element={<Criativos />} />
             <Route path="meus-tickets" element={<MeusTickets />} />
             <Route path="gestao-ia" element={<GestaoIA />} />
           </Route>
@@ -74,28 +73,6 @@ function ProtectedRoutes() {
       </DataProvider>
     </TenantProvider>
   )
-}
-
-function CriativosGate() {
-  const { isSuperAdmin } = useAuth()
-  const { data, isLoading, isError } = useSocialOnboardingStatus()
-
-  // Super-admins without a selected client bypass the gate
-  if (isSuperAdmin && !data?.clientId) return <Criativos />
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center surface-base">
-        <div className="w-8 h-8 border-2 border-[#00D4FF] border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  // On DB error, don't trap the user — let them see Criativos
-  if (isError) return <Criativos />
-
-  if (!data?.completed) return <Navigate to="/onboarding/social" replace />
-  return <Criativos />
 }
 
 export default function App() {
