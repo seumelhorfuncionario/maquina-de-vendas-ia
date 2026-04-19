@@ -108,7 +108,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }
 
   const hasFeature = (key: string): boolean => {
-    if (isDemo || isSuperAdmin) return true
+    if (isDemo) return true
+    // Super admin NAO recebe escape automatico aqui. hasFeature representa
+    // o que o cliente visualizado (clientProfile ou selectedClientId) tem
+    // habilitado. Para UI admin-only, usar isSuperAdmin diretamente.
     const feature = features.find(f => f.feature_key === key)
     return feature?.is_enabled ?? false
   }

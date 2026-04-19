@@ -187,7 +187,6 @@ export default function Dashboard() {
   const { isDemo } = useAuth()
   const { leads, sales } = useData()
   const realMetrics = useDashboardMetrics()
-  const transfers = useClientTransfers(30)
 
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['receita', 'vendas'])
   const { sync, syncing } = useSync()
@@ -201,6 +200,7 @@ export default function Dashboard() {
   const agents = useAgentsData(dateFrom)
   const manualAppts = useManualAppointments(dateFromStr)
   const hasManualScheduling = hasFeature('manual_scheduling')
+  const transfers = useClientTransfers(periodDays)
 
   // Dashboard config + client_type
   const [dc, setDc] = useState<Record<string, boolean>>({
@@ -367,7 +367,7 @@ export default function Dashboard() {
       </div>
 
       {/* Agents Cards — só mostra se tiver dados do banco de agentes */}
-      {!agents.loading && (agents.agendamentosCount > 0 || agents.chatsWhatsapp > 0 || agents.chatsInstagram > 0) && (
+      {!agents.loading && (agents.agendamentosCount > 0 || agents.chatsWhatsapp > 0 || agents.chatsInstagram > 0 || (transfers.data?.total ?? 0) > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard title={`Agendamentos (${periodDays}d)`} value={agents.agendamentosCount} icon={<CalendarCheck size={18} />} color="neutral" stagger={1} />
           {agents.appointmentValue > 0 && (
@@ -379,7 +379,7 @@ export default function Dashboard() {
           )}
           {transfers.data && transfers.data.total > 0 && (
             <StatCard
-              title="Transferências à Equipe (30d)"
+              title={`Transferências à Equipe (${periodDays}d)`}
               value={transfers.data.total.toLocaleString()}
               icon={<Handshake size={18} />}
               color="warning"
