@@ -62,22 +62,24 @@ Campos importantes no `clients`: `meta_ads_account_id`, `kanban_board_ids`, `cw_
 - Thumbnails de criativos via pipeline: Meta API → download → B2 upload → URL permanente
 - RPC `update_creative_thumbnails(p_client_id, p_data)` para bulk update de thumbs (SECURITY DEFINER)
 
-## Antes de entregar feature — TESTAR EM RUNTIME
+## Antes de entregar feature — TESTAR EM RUNTIME (via Vercel)
 
 `tsc --noEmit` e `vite build` NAO sao suficientes. Passaram mas a feature pode nao funcionar no browser.
 
-Antes de dizer "pronto" / "ta na Vercel" / "vai ver" para qualquer feature que:
-- Chama Edge Function → validar com `curl` usando JWT real antes OU verificar log da funcao em producao apos primeiro uso
-- Le/escreve banco com RLS → testar com login de cliente (nao com anon key)
-- Navega/gatea por feature flag → confirmar que a flag esta habilitada para o cliente de teste
-- Renderiza UI nova → rodar `npm run dev`, abrir a pagina, abrir console do browser, confirmar zero erros e que a acao principal completa
+**Nao rodar `npm run dev` nem servidor local.** O usuario valida direto na Vercel.
 
-Quando nao for possivel testar end-to-end (sem acesso a conta do cliente, por exemplo), falar EXPLICITAMENTE o que nao foi validado e o que o usuario precisa checar, em vez de dizer "pronto".
+Fluxo obrigatorio:
+1. Commit + `git push` para `master` (ou merge da feature branch em `master`) — Vercel builda automatico em ~1-2min
+2. Avisar o usuario com o hash do commit e pedir pra testar na Vercel
+3. Verificar via MCP:
+   - Edge Functions → `mcp__supabase-smf__get_logs` pra confirmar que foi chamada sem erro
+   - Banco → `mcp__supabase-smf__execute_sql` pra conferir que INSERT/UPDATE funcionou
+4. Se nao foi possivel testar 100% (ex: requer login de cliente especifico), falar EXPLICITAMENTE o que nao foi validado
 
-Protocolos uteis:
-- Playwright MCP para smoke test visual
-- `mcp__supabase-smf__get_logs` para ver erros de Edge Function
-- `mcp__supabase-smf__execute_sql` com `select * from ai_insights order by created_at desc limit 5` para confirmar que INSERT funcionou
+Features que exigem atencao extra:
+- Chama Edge Function → conferir log em producao apos primeira chamada real
+- Le/escreve com RLS → so cliente logado valida
+- Gatea por feature flag → confirmar flag ativa no `client_features_view`
 
 ## Env vars relevantes
 
