@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 
+export type LostReasonCategory = 'preco' | 'horario' | 'sem_resposta' | 'duvida_nao_sanada' | 'ja_tem_outro' | 'nao_qualificado' | 'pesquisando' | 'outro'
+
 export interface ReportStats {
   period_days: number
   atendimentos: { total: number; whatsapp: number; instagram: number }
@@ -12,6 +14,8 @@ export interface ReportStats {
   top_status: { status: string; count: number }[]
   tempo_ate_agendar: { amostra: number; mediana_h: number | null; media_h: number | null; p90_h: number | null }
   nao_agendaram: { total: number; pct: number }
+  top_lost_reasons: { category: LostReasonCategory; count: number; pct: number }[]
+  total_analisados: number
 }
 
 function resolveClientId(clientProfileId: string | null | undefined, isSuperAdmin: boolean): string | null {

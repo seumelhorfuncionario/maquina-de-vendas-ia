@@ -5,6 +5,7 @@ import StatCard from '../components/StatCard'
 import AppointmentHeatmap from '../components/relatorios/AppointmentHeatmap'
 import TopSlotsCard from '../components/relatorios/TopSlotsCard'
 import TimeToScheduleCard from '../components/relatorios/TimeToScheduleCard'
+import LostReasonsCard from '../components/relatorios/LostReasonsCard'
 import { useReportMetrics } from '../hooks/useReportMetrics'
 
 const PERIODS: { value: number; label: string }[] = [
@@ -108,13 +109,12 @@ export default function Relatorios() {
             <TimeToScheduleCard tempo={data.tempo_ate_agendar} />
           </div>
 
-          <div className="rounded-2xl border border-theme surface-card p-5">
-            <h3 className="text-sm font-semibold text-theme-primary mb-2">Sobre motivos de não-agendamento</h3>
-            <p className="text-sm text-theme-secondary leading-relaxed">
-              {data.nao_agendaram.total} pessoas ({data.nao_agendaram.pct}%) falaram com a IA nos últimos {period} dias e não agendaram. Para entender
-              os motivos reais, use etiquetas no Chatwoot (ex: <em className="text-theme-tertiary">objeção_preço</em>, <em className="text-theme-tertiary">horário_incompatível</em>, <em className="text-theme-tertiary">dúvida</em>) ou peça à IA pra perguntar no fim do atendimento não-convertido. Os <strong className="text-theme-primary">Insights da IA</strong> na página <em>/ia</em> já trazem hipóteses baseadas no seu nicho.
-            </p>
-          </div>
+          <LostReasonsCard
+            reasons={data.top_lost_reasons}
+            totalAnalisados={data.total_analisados}
+            totalNaoAgendaram={data.nao_agendaram.total}
+            periodDays={period}
+          />
         </>
       )}
     </div>
