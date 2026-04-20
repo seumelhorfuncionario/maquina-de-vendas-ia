@@ -13,6 +13,7 @@ import Producao from './pages/Producao'
 import Financeiro from './pages/Financeiro'
 import Produtos from './pages/Produtos'
 import IAVision from './pages/IAVision'
+import Relatorios from './pages/Relatorios'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
 import SocialOnboarding from './pages/SocialOnboarding'
@@ -64,6 +65,7 @@ function ProtectedRoutes() {
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="produtos" element={<Produtos />} />
             <Route path="ia" element={<IAVision />} />
+            <Route path="relatorios" element={<Relatorios />} />
             <Route path="trafego" element={<Trafego />} />
             <Route path="criativos" element={<Criativos />} />
             <Route path="meus-tickets" element={<MeusTickets />} />

@@ -12,6 +12,7 @@ import {
   Bot,
   Megaphone,
   Palette,
+  BarChart3,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -31,6 +32,7 @@ const allNavItems = [
   { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
   { to: '/ia', icon: Bot, label: 'Converse com sua IA', feature: 'ia_vision' },
+  { to: '/relatorios', icon: BarChart3, label: 'Relatórios', feature: 'dashboard' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
