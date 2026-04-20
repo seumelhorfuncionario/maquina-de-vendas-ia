@@ -93,15 +93,3 @@ export const mockDashboard: DashboardMetrics = {
   machineActive: true,
 }
 
-export const mockAIConversation = [
-  { role: 'client' as const, message: 'Oi, vi o anúncio de vocês no Instagram. Quanto custa o quadro canvas 60x40?', time: '14:32' },
-  { role: 'ai' as const, message: 'Olá! Que bom que se interessou! 😊 O Quadro Canvas Premium 60x40cm está por R$ 189,90. Temos diversas artes disponíveis e também fazemos personalizado. Gostaria de ver nosso catálogo?', time: '14:32' },
-  { role: 'client' as const, message: 'Sim! Quero ver. Vocês fazem com foto personalizada?', time: '14:33' },
-  { role: 'ai' as const, message: 'Fazemos sim! Ficam lindos! 🎨 Basta nos enviar a foto em alta resolução. O valor do personalizado 60x40 é R$ 189,90 também. Quer que eu monte um orçamento pra você?', time: '14:33' },
-  { role: 'client' as const, message: 'Quero sim. Na verdade quero 2, um pra sala e outro pro quarto.', time: '14:34' },
-  { role: 'ai' as const, message: 'Perfeito! 🛒 Montei seu orçamento:\n\n2x Quadro Canvas Premium 60x40cm\nValor: 2x R$ 189,90 = R$ 379,80\n\n🚚 Frete grátis para sua região!\n⏰ Prazo de produção: 3-5 dias úteis\n\nPosso confirmar o pedido?', time: '14:34' },
-  { role: 'client' as const, message: 'Fecha! Como faço pra pagar?', time: '14:35' },
-  { role: 'ai' as const, message: '✅ Pedido confirmado! Vou gerar o link de pagamento para você agora. Aceitamos PIX (5% de desconto), cartão de crédito (até 3x sem juros) ou boleto. Qual prefere?', time: '14:35' },
-  { role: 'client' as const, message: 'PIX!', time: '14:35' },
-  { role: 'ai' as const, message: '💰 Com PIX você ganha 5% de desconto!\n\nValor final: R$ 360,81\n\n🔗 Link do pagamento enviado!\n\nAssim que confirmarmos, já iniciamos a produção. Obrigado pela compra! 🙏', time: '14:36' },
-]

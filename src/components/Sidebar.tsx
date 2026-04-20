@@ -30,7 +30,7 @@ const allNavItems = [
   { to: '/producao', icon: Factory, label: 'Produção', feature: 'production' },
   { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
-  { to: '/ia', icon: Bot, label: 'Visão da IA', feature: 'ia_vision' },
+  { to: '/ia', icon: Bot, label: 'Converse com sua IA', feature: 'ia_vision' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
