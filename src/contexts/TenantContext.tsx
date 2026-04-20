@@ -63,6 +63,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       { feature_key: 'financial', feature_name: 'Financeiro', category: 'analytics', is_enabled: true },
       { feature_key: 'products', feature_name: 'Produtos', category: 'management', is_enabled: true },
       { feature_key: 'ia_vision', feature_name: 'Visão IA', category: 'ai', is_enabled: true },
+      { feature_key: 'ai_assistant', feature_name: 'Chat IA', category: 'ai', is_enabled: true },
+      { feature_key: 'ai_insights', feature_name: 'Insights da IA', category: 'ai', is_enabled: true },
       { feature_key: 'traffic_dashboard', feature_name: 'Dashboard de Tráfego', category: 'analytics', is_enabled: true },
       { feature_key: 'creatives_calendar', feature_name: 'Calendário de Criativos', category: 'content', is_enabled: true },
     ])

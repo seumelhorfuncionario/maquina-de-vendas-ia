@@ -1,7 +1,9 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye } from 'lucide-react'
 import Sidebar from './Sidebar'
+import AIChatWidget from './ai/AIChatWidget'
 import { useAuth } from '@/contexts/AuthContext'
+import { useTenant } from '@/contexts/TenantContext'
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
@@ -53,6 +55,7 @@ function ViewingBanner() {
 export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [])
+  const { hasFeature } = useTenant()
 
   return (
     <div className="min-h-screen surface-base">
@@ -63,6 +66,7 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+      {hasFeature('ai_assistant') && <AIChatWidget />}
     </div>
   )
 }
