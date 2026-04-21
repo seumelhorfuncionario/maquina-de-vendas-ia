@@ -2,11 +2,11 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye } from 'lucide-react'
 import Sidebar from './Sidebar'
 import AIChatWidget from './ai/AIChatWidget'
-import NotificationSetupBanner from './NotificationSetupBanner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 function ViewingBanner() {
   const navigate = useNavigate()
@@ -57,13 +57,13 @@ export default function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [])
   const { hasFeature } = useTenant()
+  usePushNotifications() // auto-solicita permissão em PWA na primeira abertura
 
   return (
     <div className="min-h-screen surface-base">
       <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
         <ViewingBanner />
-        <NotificationSetupBanner />
         <main className="p-8">
           <Outlet />
         </main>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -26,6 +26,7 @@ export function usePushNotifications(): PushNotificationState {
   const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const autoTriggered = useRef(false)
 
   useEffect(() => {
     const supported = 'PushManager' in window && 'serviceWorker' in navigator && 'Notification' in window
@@ -42,6 +43,24 @@ export function usePushNotifications(): PushNotificationState {
       setIsLoading(false)
     }
   }, [])
+
+  // Auto-solicita permissão quando está no PWA e ainda não foi solicitado
+  useEffect(() => {
+    if (
+      !autoTriggered.current
+      && isPWA
+      && isSupported
+      && !isLoading
+      && !isSubscribed
+      && permission === 'default'
+      && user
+    ) {
+      autoTriggered.current = true
+      // Pequeno delay para o app terminar de renderizar
+      const timer = setTimeout(() => subscribe(), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isPWA, isSupported, isLoading, isSubscribed, permission, user])
 
   const checkSubscription = async () => {
     try {
@@ -60,10 +79,10 @@ export function usePushNotifications(): PushNotificationState {
 
     setIsLoading(true)
     try {
-      const permission = await Notification.requestPermission()
-      setPermission(permission)
+      const result = await Notification.requestPermission()
+      setPermission(result)
 
-      if (permission !== 'granted') return false
+      if (result !== 'granted') return false
 
       const registration = await navigator.serviceWorker.ready
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
@@ -76,11 +95,13 @@ export function usePushNotifications(): PushNotificationState {
 
       const subJson = subscription.toJSON()
       const tenantId = clientProfile?.id ?? user.id
+      const authUser = (await supabase.auth.getUser()).data.user
+      if (!authUser) throw new Error('Não autenticado')
 
       const { error } = await supabase
         .from('push_subscriptions' as any)
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: authUser.id,
           tenant_id: tenantId,
           endpoint: subJson.endpoint,
           p256dh: subJson.keys?.p256dh ?? '',
