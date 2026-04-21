@@ -9,7 +9,27 @@ import type { KanbanNote } from '../types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
-function NotesModal({ order, onClose }: { order: ProductionOrder; onClose: () => void }) {
+async function fetchKanbanNotes(clientId: string, kanbanItemId: string): Promise<KanbanNote[]> {
+  if (!SUPABASE_URL) return []
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/kanban-notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, kanbanItemId, action: 'get_notes' }),
+    })
+    const data = await res.json()
+    if (data.notes) {
+      return Array.isArray(data.notes) ? data.notes : (data.notes.notes ?? [])
+    }
+  } catch { /* ignore */ }
+  return []
+}
+
+function NotesModal({ order, onClose, onNotesChange }: {
+  order: ProductionOrder
+  onClose: () => void
+  onNotesChange: (notes: KanbanNote[]) => void
+}) {
   const { clientId } = useClientId()
   const [notes, setNotes] = useState<KanbanNote[]>([])
   const [newNote, setNewNote] = useState('')
@@ -17,23 +37,13 @@ function NotesModal({ order, onClose }: { order: ProductionOrder; onClose: () =>
   const [loading, setLoading] = useState(false)
 
   const fetchNotes = useCallback(async () => {
-    if (!order.kanbanItemId || !clientId || !SUPABASE_URL) return
+    if (!order.kanbanItemId || !clientId) return
     setLoading(true)
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/kanban-notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId, kanbanItemId: order.kanbanItemId, action: 'get_notes' }),
-      })
-      const data = await res.json()
-      if (data.notes) {
-        const parsed = Array.isArray(data.notes) ? data.notes :
-          (data.notes.notes ? data.notes.notes : [])
-        setNotes(parsed)
-      }
-    } catch { /* ignore */ }
+    const fetched = await fetchKanbanNotes(clientId, order.kanbanItemId)
+    setNotes(fetched)
+    onNotesChange(fetched)
     setLoading(false)
-  }, [order.kanbanItemId, clientId])
+  }, [order.kanbanItemId, clientId, onNotesChange])
 
   useEffect(() => { fetchNotes() }, [fetchNotes])
   useEffect(() => {
@@ -147,7 +157,25 @@ const STATUS_METRICS: { status: ProductionStatus; label: string; icon: typeof Cl
 
 export default function Producao() {
   const { production, moveProductionStatus, loading } = useData()
+  const { clientId } = useClientId()
   const [notesOrder, setNotesOrder] = useState<ProductionOrder | null>(null)
+  const [notesCache, setNotesCache] = useState<Record<string, KanbanNote[]>>({})
+
+  useEffect(() => {
+    if (!clientId || production.length === 0) return
+    const withKanban = production.filter(p => p.kanbanItemId)
+    Promise.all(
+      withKanban.map(p =>
+        fetchKanbanNotes(clientId, p.kanbanItemId!).then(notes => ({ id: p.id, notes }))
+      )
+    ).then(results => {
+      setNotesCache(prev => {
+        const next = { ...prev }
+        for (const r of results) next[r.id] = r.notes
+        return next
+      })
+    })
+  }, [clientId, production])
 
   const metrics = useMemo(() => {
     const counts: Record<ProductionStatus, number> = { pending: 0, producing: 0, done: 0, delivered: 0 }
@@ -266,6 +294,17 @@ export default function Producao() {
                       <span className="text-xs text-[#aaa]">{formatDate(order.createdAt)}</span>
                     </div>
 
+                    {(() => {
+                      const orderNotes = notesCache[order.id]
+                      if (!orderNotes || orderNotes.length === 0) return null
+                      const last = orderNotes[orderNotes.length - 1]
+                      return (
+                        <div className="mb-3 px-2 py-1.5 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]">
+                          <p className="text-[11px] text-[#888] line-clamp-2">{last.text}</p>
+                        </div>
+                      )
+                    })()}
+
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => handleMove(order.id, order.status, 'left')}
@@ -278,9 +317,14 @@ export default function Producao() {
                       <button
                         onClick={() => setNotesOrder(order)}
                         aria-label={`Notas de ${order.clientName}`}
-                        className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-[#FFD600] transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-[#151515] hover:bg-[#1e1e1e] text-[#555] hover:text-[#FFD600] transition-colors cursor-pointer relative"
                       >
                         <StickyNote size={13} />
+                        {notesCache[order.id]?.length > 0 && (
+                          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#FFD600] text-black text-[8px] font-bold flex items-center justify-center">
+                            {notesCache[order.id].length}
+                          </span>
+                        )}
                       </button>
                       <button
                         onClick={() => handleMove(order.id, order.status, 'right')}
@@ -303,7 +347,13 @@ export default function Producao() {
         })}
       </div>
 
-      {notesOrder && <NotesModal order={notesOrder} onClose={() => setNotesOrder(null)} />}
+      {notesOrder && (
+        <NotesModal
+          order={notesOrder}
+          onClose={() => setNotesOrder(null)}
+          onNotesChange={notes => setNotesCache(prev => ({ ...prev, [notesOrder.id]: notes }))}
+        />
+      )}
     </div>
   )
 }
