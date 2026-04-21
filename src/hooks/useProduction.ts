@@ -60,6 +60,7 @@ export const useProduction = () => {
           status: (p.status as ProductionStatus) || 'pending',
           createdAt: p.created_at || new Date().toISOString(),
           phone,
+          kanbanItemId: kanbanId,
         }
       })
 

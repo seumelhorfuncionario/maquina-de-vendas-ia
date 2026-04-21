@@ -86,6 +86,7 @@ export interface ProductionOrder {
   status: ProductionStatus
   createdAt: string
   phone?: string
+  kanbanItemId?: string
 }
 
 export interface FinancialSummary {
