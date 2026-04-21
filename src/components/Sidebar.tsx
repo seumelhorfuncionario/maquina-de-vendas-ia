@@ -21,8 +21,11 @@ import {
   Cpu,
   LifeBuoy,
   ExternalLink,
+  Bell,
+  X,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import NotificationPreferences from './NotificationPreferences'
 
 const allNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
@@ -53,6 +56,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { user, logout } = useAuth()
   const { hasFeature } = useTenant()
   const { theme, toggleTheme } = useTheme()
+  const [showNotifModal, setShowNotifModal] = useState(false)
 
   const navItems = useMemo(
     () => allNavItems.filter(item => hasFeature(item.feature)),
@@ -146,6 +150,31 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
       </nav>
 
+      {/* Modal de Notificações */}
+      {showNotifModal && (
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4" onClick={() => setShowNotifModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-sm rounded-2xl border border-theme shadow-2xl z-10"
+            style={{ backgroundColor: 'var(--bg-base)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
+              <h2 className="text-sm font-semibold text-theme-primary">Notificações Push</h2>
+              <button
+                onClick={() => setShowNotifModal(false)}
+                className="text-theme-secondary hover:text-theme-primary transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-4">
+              <NotificationPreferences />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 border-t border-theme">
         {/* Theme toggle */}
         <button
@@ -155,6 +184,16 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         >
           {theme === 'dark' ? <Sun size={18} className="shrink-0" /> : <Moon size={18} className="shrink-0" />}
           {!collapsed && <span>{theme === 'dark' ? 'Tema Claro' : 'Tema Escuro'}</span>}
+        </button>
+
+        {/* Notification settings */}
+        <button
+          onClick={() => setShowNotifModal(true)}
+          aria-label="Configurar notificações"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-theme-secondary hover:text-theme-primary hover:surface-elevated transition-all w-full cursor-pointer mb-2"
+        >
+          <Bell size={18} className="shrink-0" />
+          {!collapsed && <span>Notificações</span>}
         </button>
 
         {!collapsed && user && (

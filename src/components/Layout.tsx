@@ -2,6 +2,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye } from 'lucide-react'
 import Sidebar from './Sidebar'
 import AIChatWidget from './ai/AIChatWidget'
+import NotificationSetupBanner from './NotificationSetupBanner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { useEffect, useState, useCallback } from 'react'
@@ -62,6 +63,7 @@ export default function Layout() {
       <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
         <ViewingBanner />
+        <NotificationSetupBanner />
         <main className="p-8">
           <Outlet />
         </main>
