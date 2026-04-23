@@ -43,9 +43,17 @@ const EMPTY: AgentsData = {
   loading: false,
 }
 
-export const useAgentsData = (dateFrom?: string) => {
+export interface AgentsRange {
+  from: string
+  to?: string
+}
+
+export const useAgentsData = (range?: AgentsRange | string) => {
   const { clientId, loading: clientLoading } = useClientId()
   const [state, setState] = useState<AgentsData>({ ...EMPTY, loading: true })
+
+  const dateFrom = typeof range === 'string' ? range : range?.from
+  const dateTo = typeof range === 'string' ? undefined : range?.to
 
   const fetchData = useCallback(async () => {
     if (!clientId || !SUPABASE_URL) {
@@ -57,7 +65,7 @@ export const useAgentsData = (dateFrom?: string) => {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/agents-proxy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId, dateFrom }),
+        body: JSON.stringify({ clientId, dateFrom, dateTo }),
       })
 
       if (!res.ok) {
@@ -84,7 +92,7 @@ export const useAgentsData = (dateFrom?: string) => {
       console.error('Error fetching agents data:', err)
       setState(EMPTY)
     }
-  }, [clientId, dateFrom])
+  }, [clientId, dateFrom, dateTo])
 
   useEffect(() => {
     if (!clientLoading) fetchData()

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import type { DateRange } from '@/components/DateRangePicker'
 
 export type LostReasonCategory = 'preco' | 'horario' | 'sem_resposta' | 'duvida_nao_sanada' | 'ja_tem_outro' | 'nao_qualificado' | 'pesquisando' | 'outro'
 
@@ -26,12 +27,14 @@ function resolveClientId(clientProfileId: string | null | undefined, isSuperAdmi
   return null
 }
 
-export function useReportMetrics(periodDays: number = 7) {
+export function useReportMetrics(range: DateRange) {
   const { clientProfile, isSuperAdmin } = useAuth()
   const clientId = resolveClientId(clientProfile?.id, isSuperAdmin)
+  const dateFromISO = range.from.toISOString()
+  const dateToISO = range.to.toISOString()
 
   return useQuery<ReportStats>({
-    queryKey: ['report_metrics', clientId, periodDays],
+    queryKey: ['report_metrics', clientId, dateFromISO, dateToISO],
     enabled: !!clientId,
     staleTime: 5 * 60_000,
     queryFn: async () => {
@@ -50,7 +53,7 @@ export function useReportMetrics(periodDays: number = 7) {
           Authorization: `Bearer ${session.access_token}`,
           apikey: anonKey,
         },
-        body: JSON.stringify({ client_id: clientId, period_days: periodDays }),
+        body: JSON.stringify({ client_id: clientId, date_from: dateFromISO, date_to: dateToISO }),
       })
 
       const text = await res.text()

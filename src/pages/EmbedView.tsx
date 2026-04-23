@@ -9,6 +9,9 @@ import Sidebar from '../components/Sidebar'
 
 const PAGES = {
   dashboard: lazy(() => import('./Dashboard')),
+  agendamentos: lazy(() => import('./Agendamentos')),
+  // alias legado: URLs antigas com ?page=relatorios continuam funcionando apontando pro Dashboard novo
+  relatorios: lazy(() => import('./Dashboard')),
   leads: lazy(() => import('./Leads')),
   vendas: lazy(() => import('./Vendas')),
   producao: lazy(() => import('./Producao')),
@@ -18,6 +21,7 @@ const PAGES = {
   trafego: lazy(() => import('./Trafego')),
   criativos: lazy(() => import('./Criativos')),
   'meus-tickets': lazy(() => import('./MeusTickets')),
+  'gestao-ia': lazy(() => import('./GestaoIA')),
 } as const
 
 type EmbedPage = keyof typeof PAGES

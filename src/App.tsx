@@ -7,13 +7,13 @@ import { DataProvider } from './contexts/DataContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Agendamentos from './pages/Agendamentos'
 import Leads from './pages/Leads'
 import Vendas from './pages/Vendas'
 import Producao from './pages/Producao'
 import Financeiro from './pages/Financeiro'
 import Produtos from './pages/Produtos'
 import IAVision from './pages/IAVision'
-import Relatorios from './pages/Relatorios'
 import Trafego from './pages/Trafego'
 import Criativos from './pages/Criativos'
 import SocialOnboarding from './pages/SocialOnboarding'
@@ -58,14 +58,16 @@ function ProtectedRoutes() {
         <Routes>
           <Route path="onboarding/social" element={<SocialOnboarding />} />
           <Route element={<Layout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Agendamentos />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="agendamentos" element={<Agendamentos />} />
             <Route path="leads" element={<Leads />} />
             <Route path="vendas" element={<Vendas />} />
             <Route path="producao" element={<Producao />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="produtos" element={<Produtos />} />
             <Route path="ia" element={<IAVision />} />
-            <Route path="relatorios" element={<Relatorios />} />
+            <Route path="relatorios" element={<Dashboard />} />
             <Route path="trafego" element={<Trafego />} />
             <Route path="criativos" element={<Criativos />} />
             <Route path="meus-tickets" element={<MeusTickets />} />

@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { clientId, dateFrom } = await req.json();
+    const { clientId, dateFrom, dateTo } = await req.json();
 
     if (!clientId) {
       return new Response(JSON.stringify({ error: 'Missing clientId' }), {
@@ -86,6 +86,14 @@ Deno.serve(async (req: Request) => {
     const now = new Date();
     const fallbackDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const sinceDate = dateFrom || fallbackDate;
+    const untilDate = typeof dateTo === 'string' ? dateTo : null;
+
+    // Helpers pra aplicar gte/lte sem poluir os chains
+    const gteLte = (q: any, col: string) => {
+      let r = q.gte(col, sinceDate);
+      if (untilDate) r = r.lte(col, untilDate);
+      return r;
+    };
 
     const sameAgent = wppId && igId && wppId === igId;
 
@@ -93,25 +101,22 @@ Deno.serve(async (req: Request) => {
       const agentId = wppId;
 
       const [agendRes, chatMap, wppPeriod, wppTotal, igPeriod, igTotal] = await Promise.all([
-        agentsDb.from('agendamentos')
+        gteLte(agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', agentId)
-          .gte('data_inicio', sinceDate)
+          .eq('agente_id', agentId), 'data_inicio')
           .order('data_inicio', { ascending: true }),
         getChatMap(agentsDb, agentId),
-        agentsDb.from('chats')
+        gteLte(agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
-          .eq('agente_id', agentId)
-          .gte('criado_em', sinceDate)
+          .eq('agente_id', agentId), 'criado_em')
           .like('remotejid', '%@s.whatsapp.net'),
         agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
           .eq('agente_id', agentId)
           .like('remotejid', '%@s.whatsapp.net'),
-        agentsDb.from('chats')
+        gteLte(agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
-          .eq('agente_id', agentId)
-          .gte('criado_em', sinceDate)
+          .eq('agente_id', agentId), 'criado_em')
           .not('remotejid', 'like', '%@s.whatsapp.net'),
         agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
@@ -143,18 +148,16 @@ Deno.serve(async (req: Request) => {
 
     if (wppId) {
       promises.push(
-        agentsDb.from('agendamentos')
+        gteLte(agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', wppId)
-          .gte('data_inicio', sinceDate)
+          .eq('agente_id', wppId), 'data_inicio')
           .order('data_inicio', { ascending: true })
       );
       promises.push(getChatMap(agentsDb, wppId));
       promises.push(
-        agentsDb.from('chats')
+        gteLte(agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
-          .eq('agente_id', wppId)
-          .gte('criado_em', sinceDate)
+          .eq('agente_id', wppId), 'criado_em')
       );
       promises.push(
         agentsDb.from('chats')
@@ -170,10 +173,9 @@ Deno.serve(async (req: Request) => {
 
     if (igId) {
       promises.push(
-        agentsDb.from('chats')
+        gteLte(agentsDb.from('chats')
           .select('id', { count: 'exact', head: true })
-          .eq('agente_id', igId)
-          .gte('criado_em', sinceDate)
+          .eq('agente_id', igId), 'criado_em')
       );
       promises.push(
         agentsDb.from('chats')
@@ -181,10 +183,9 @@ Deno.serve(async (req: Request) => {
           .eq('agente_id', igId)
       );
       promises.push(
-        agentsDb.from('agendamentos')
+        gteLte(agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', igId)
-          .gte('data_inicio', sinceDate)
+          .eq('agente_id', igId), 'data_inicio')
           .order('data_inicio', { ascending: true })
       );
       promises.push(getChatMap(agentsDb, igId));

@@ -4,15 +4,11 @@ import { useTenant } from '@/contexts/TenantContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
   LayoutDashboard,
-  Users,
-  ShoppingCart,
+  CalendarCheck,
   Factory,
-  DollarSign,
   Package,
-  Bot,
   Megaphone,
   Palette,
-  BarChart3,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -27,15 +23,13 @@ import {
 import { useMemo, useState } from 'react'
 import NotificationPreferences from './NotificationPreferences'
 
+// Ordem pro cliente: Agendamentos → Dashboard → Produção → Produtos → Tráfego → Criativos
+// Leads, Vendas, Financeiro e "Converse com sua IA" foram removidos do menu (código morto — rotas seguem ativas).
 const allNavItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
-  { to: '/leads', icon: Users, label: 'Leads (CRM)', feature: 'leads_crm' },
-  { to: '/vendas', icon: ShoppingCart, label: 'Vendas', feature: 'sales' },
+  { to: '/', icon: CalendarCheck, label: 'Agendamentos', feature: 'dashboard' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
   { to: '/producao', icon: Factory, label: 'Produção', feature: 'production' },
-  { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
-  { to: '/ia', icon: Bot, label: 'Converse com sua IA', feature: 'ia_vision' },
-  { to: '/relatorios', icon: BarChart3, label: 'Relatórios', feature: 'dashboard' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
