@@ -10,8 +10,9 @@ const AGENTS_URL = 'https://wacotfqoarsbazrreeco.supabase.co';
 const AGENTS_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhY290ZnFvYXJzYmF6cnJlZWNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2NDU3NSwiZXhwIjoyMDg4OTQwNTc1fQ.F6zZ7f4XAP4jrhuKUHDajW4cnYGHncSoDuGDLavRZ2g';
 
 const DOW_NAMES = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+const MAX_CHATS_PER_CATEGORY = 20;
 
-// Resolve período: aceita date_from/date_to (ISO strings) OU period_days (fallback)
+// Resolve periodo: aceita date_from/date_to (ISO strings) OU period_days (fallback)
 function resolvePeriod(body: any): { dateFromISO: string; dateToISO: string; periodDays: number } {
   const now = new Date();
   const toISO = typeof body.date_to === 'string' ? body.date_to : now.toISOString();
@@ -54,7 +55,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     const { data: client } = await admin.from('clients')
-      .select('id, business_name, agent_whatsapp_id, agent_instagram_id, appointment_value')
+      .select('id, business_name, agent_whatsapp_id, agent_instagram_id, appointment_value, cw_base_url, cw_account_id')
       .eq('id', clientId).single();
     if (!client) return new Response(JSON.stringify({ error: 'Cliente nao encontrado' }),
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -62,18 +63,59 @@ serve(async (req) => {
     const agents = createClient(AGENTS_URL, AGENTS_SERVICE_KEY);
     const stats = await computeReportStats(agents, client, dateFromISO, dateToISO, periodDays);
 
-    // Top lost reasons (analyzed_at dentro do período)
+    // Top lost reasons (analyzed_at dentro do periodo) com sample de chats por categoria
     const { data: lostReasons } = await admin
       .from('lead_lost_reasons')
-      .select('category')
+      .select('category, chat_external_id, excerpt, analyzed_at')
       .eq('client_id', clientId)
       .gte('analyzed_at', dateFromISO)
-      .lte('analyzed_at', dateToISO);
-    const reasonMap = new Map<string, number>();
-    for (const r of lostReasons || []) reasonMap.set(r.category, (reasonMap.get(r.category) || 0) + 1);
+      .lte('analyzed_at', dateToISO)
+      .order('analyzed_at', { ascending: false });
+
+    const reasonMap = new Map<string, { count: number; chats: { chat_external_id: string; excerpt: string | null }[] }>();
+    for (const r of lostReasons || []) {
+      const entry = reasonMap.get(r.category) || { count: 0, chats: [] };
+      entry.count++;
+      if (entry.chats.length < MAX_CHATS_PER_CATEGORY) {
+        entry.chats.push({ chat_external_id: r.chat_external_id, excerpt: r.excerpt });
+      }
+      reasonMap.set(r.category, entry);
+    }
     const totalAnalisados = (lostReasons || []).length;
+
+    // Enriquece chats com conversation_id (pra montar URL Chatwoot)
+    const allRemotejids = new Set<string>();
+    for (const { chats } of reasonMap.values()) {
+      for (const c of chats) if (c.chat_external_id) allRemotejids.add(c.chat_external_id);
+    }
+    const conversationIdMap = new Map<string, string>();
+    if (allRemotejids.size > 0) {
+      const agentIds: number[] = [];
+      if (client.agent_whatsapp_id) agentIds.push(client.agent_whatsapp_id);
+      if (client.agent_instagram_id && client.agent_instagram_id !== client.agent_whatsapp_id) agentIds.push(client.agent_instagram_id);
+      if (agentIds.length > 0) {
+        const { data: chatRows } = await agents.from('chats')
+          .select('remotejid, conversation_id')
+          .in('agente_id', agentIds)
+          .in('remotejid', [...allRemotejids])
+          .not('conversation_id', 'is', null);
+        for (const c of chatRows || []) {
+          if (c.remotejid && c.conversation_id) conversationIdMap.set(c.remotejid, c.conversation_id);
+        }
+      }
+    }
+
     const top_lost_reasons = [...reasonMap.entries()]
-      .map(([category, count]) => ({ category, count, pct: totalAnalisados > 0 ? Math.round((count / totalAnalisados) * 1000) / 10 : 0 }))
+      .map(([category, { count, chats }]) => ({
+        category,
+        count,
+        pct: totalAnalisados > 0 ? Math.round((count / totalAnalisados) * 1000) / 10 : 0,
+        chats: chats.map(c => ({
+          chat_external_id: c.chat_external_id,
+          excerpt: c.excerpt,
+          conversation_id: conversationIdMap.get(c.chat_external_id) ?? null,
+        })),
+      }))
       .sort((a, b) => b.count - a.count);
 
     return new Response(JSON.stringify({
@@ -82,6 +124,8 @@ serve(async (req) => {
       period_days: periodDays,
       date_from: dateFromISO,
       date_to: dateToISO,
+      cw_base_url: client.cw_base_url || null,
+      cw_account_id: client.cw_account_id ? String(client.cw_account_id) : null,
       stats: { ...stats, top_lost_reasons, total_analisados: totalAnalisados }
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
@@ -156,7 +200,6 @@ async function computeReportStats(agents: any, client: any, dateFromISO: string,
   const phones = [...phoneAgMap.keys()];
   const delays: number[] = [];
   if (phones.length > 0 && phones.length <= 500) {
-    // Busca chats com janela expandida pra cobrir leads antigos que agendaram no período
     const chatWindowFrom = new Date(new Date(dateFromISO).getTime() - 60 * 86400000).toISOString();
     const { data: chatsMatched } = await agents.from('chats')
       .select('remotejid, criado_em')

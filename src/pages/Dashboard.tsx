@@ -35,7 +35,8 @@ export default function Dashboard() {
   })
 
   // Fonte secundária: heatmap, top slots, tempo ate agendar, motivos — via client-reports
-  const { data, isFetching, error, refetch } = useReportMetrics(range)
+  const { data: report, isFetching, error, refetch } = useReportMetrics(range)
+  const data = report?.stats
 
   const transfers = useClientTransfers(periodDays)
 
@@ -199,6 +200,8 @@ export default function Dashboard() {
                 totalAnalisados={data.total_analisados}
                 totalNaoAgendaram={data.nao_agendaram.total}
                 periodDays={periodDays}
+                cwBaseUrl={report?.cw_base_url ?? null}
+                cwAccountId={report?.cw_account_id ?? null}
               />
             </>
           )}

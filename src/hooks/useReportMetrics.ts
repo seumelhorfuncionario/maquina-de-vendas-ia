@@ -5,6 +5,12 @@ import type { DateRange } from '@/components/DateRangePicker'
 
 export type LostReasonCategory = 'preco' | 'horario' | 'sem_resposta' | 'duvida_nao_sanada' | 'ja_tem_outro' | 'nao_qualificado' | 'pesquisando' | 'outro'
 
+export interface LostReasonChat {
+  chat_external_id: string
+  excerpt: string | null
+  conversation_id: string | null
+}
+
 export interface ReportStats {
   period_days: number
   atendimentos: { total: number; whatsapp: number; instagram: number }
@@ -15,8 +21,14 @@ export interface ReportStats {
   top_status: { status: string; count: number }[]
   tempo_ate_agendar: { amostra: number; mediana_h: number | null; media_h: number | null; p90_h: number | null }
   nao_agendaram: { total: number; pct: number }
-  top_lost_reasons: { category: LostReasonCategory; count: number; pct: number }[]
+  top_lost_reasons: { category: LostReasonCategory; count: number; pct: number; chats: LostReasonChat[] }[]
   total_analisados: number
+}
+
+export interface ReportResponse {
+  stats: ReportStats
+  cw_base_url: string | null
+  cw_account_id: string | null
 }
 
 function resolveClientId(clientProfileId: string | null | undefined, isSuperAdmin: boolean): string | null {
@@ -33,7 +45,7 @@ export function useReportMetrics(range: DateRange) {
   const dateFromISO = range.from.toISOString()
   const dateToISO = range.to.toISOString()
 
-  return useQuery<ReportStats>({
+  return useQuery<ReportResponse>({
     queryKey: ['report_metrics', clientId, dateFromISO, dateToISO],
     enabled: !!clientId,
     staleTime: 5 * 60_000,
@@ -57,7 +69,7 @@ export function useReportMetrics(range: DateRange) {
       })
 
       const text = await res.text()
-      let parsed: unknown
+      let parsed: any
       try {
         parsed = text ? JSON.parse(text) : {}
       } catch {
@@ -65,14 +77,15 @@ export function useReportMetrics(range: DateRange) {
       }
 
       if (!res.ok) {
-        const msg =
-          (parsed as { error?: string; details?: string }).error ||
-          (parsed as { details?: string }).details ||
-          `HTTP ${res.status}`
+        const msg = parsed?.error || parsed?.details || `HTTP ${res.status}`
         throw new Error(msg)
       }
 
-      return (parsed as { stats: ReportStats }).stats
+      return {
+        stats: parsed.stats as ReportStats,
+        cw_base_url: parsed.cw_base_url ?? null,
+        cw_account_id: parsed.cw_account_id ?? null,
+      }
     },
   })
 }
