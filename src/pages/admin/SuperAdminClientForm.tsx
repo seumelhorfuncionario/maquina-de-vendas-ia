@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Save, ArrowLeft, Loader2, Trash2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import ClientCredentials from '@/components/admin/ClientCredentials'
 
 interface FeatureRow {
   id: string
@@ -738,6 +739,9 @@ export default function SuperAdminClientForm() {
             <p className="text-sm text-[#888]">Nenhuma feature cadastrada</p>
           )}
         </div>
+
+        {/* Credenciais (apenas em edicao, precisa do id) */}
+        {isEditing && id && <ClientCredentials clientId={id} />}
 
         {/* Actions */}
         <div className="flex gap-3">
