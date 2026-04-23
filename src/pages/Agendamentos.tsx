@@ -1,9 +1,35 @@
 import { useState } from 'react'
-import { CalendarCheck, ExternalLink, Receipt, Loader2, RefreshCw } from 'lucide-react'
+import { CalendarCheck, ExternalLink, Receipt, Loader2, RefreshCw, Clock } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 import DateRangePicker, { defaultRange } from '../components/DateRangePicker'
 import { useAgentsData } from '@/hooks/useAgentsData'
 import { useSync } from '@/hooks/useSync'
+
+// Diferenca em dias entre duas datas (pode ser negativo pra passado)
+function daysFromNow(date: Date): number {
+  const now = new Date()
+  const a = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const b = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((a.getTime() - b.getTime()) / 86400000)
+}
+
+function relativeTimeLabel(date: Date): string {
+  const d = daysFromNow(date)
+  if (d === 0) return 'hoje'
+  if (d === 1) return 'amanhã'
+  if (d === -1) return 'ontem'
+  if (d > 0 && d <= 14) return `em ${d} dias`
+  if (d < 0 && d >= -14) return `há ${-d} dias`
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
+function createdAtLabel(isoString: string): string {
+  const d = daysFromNow(new Date(isoString))
+  if (d === 0) return 'agendou hoje'
+  if (d === -1) return 'agendou ontem'
+  if (d < 0 && d >= -14) return `agendou há ${-d} dias`
+  return `agendou ${new Date(isoString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
+}
 
 export default function Agendamentos() {
   const [range, setRange] = useState(() => defaultRange(7))
@@ -69,51 +95,70 @@ export default function Agendamentos() {
               {agents.agendamentosCount}
             </span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {agents.agendamentos.map(ag => {
               const date = new Date(ag.data_inicio)
               const isPast = date < new Date()
               const chatUrl = ag.conversation_id && agents.cwBaseUrl && agents.cwAccountId
                 ? `${agents.cwBaseUrl}/app/accounts/${agents.cwAccountId}/conversations/${ag.conversation_id}`
                 : null
+              const dayStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+              const weekStr = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+              const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+              const relStr = relativeTimeLabel(date)
               return (
                 <div
                   key={ag.id}
-                  className={`flex items-center justify-between rounded-xl surface-card-hover border border-theme px-4 py-3 ${isPast ? 'opacity-50' : ''}`}
+                  className={`grid grid-cols-[140px_1fr_auto] gap-4 rounded-xl border border-theme px-4 py-3.5 transition-colors ${isPast ? 'opacity-55' : ''}`}
                   style={{ backgroundColor: 'var(--bg-card-hover)' }}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex flex-col flex-shrink-0 w-[100px]">
-                      <span className="text-[11px] font-data font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-                        {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {/* Data do atendimento */}
+                  <div className="flex flex-col justify-center">
+                    <span className="text-base font-bold tracking-tight" style={{ color: 'var(--accent-cyan)' }}>
+                      {dayStr} · {timeStr}
+                    </span>
+                    <span className="text-[11px] font-medium capitalize mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                      {weekStr} · {relStr}
+                    </span>
+                    {ag.criado_em && (
+                      <span className="flex items-center gap-1 text-[11px] mt-1.5" style={{ color: 'var(--text-tertiary)' }} title={`Criado em ${new Date(ag.criado_em).toLocaleString('pt-BR')}`}>
+                        <Clock size={11} className="flex-shrink-0" />
+                        <span className="truncate">{createdAtLabel(ag.criado_em)}</span>
                       </span>
-                      {ag.criado_em && (
-                        <span className="text-[10px] font-data truncate" style={{ color: 'var(--text-muted)' }} title="Quando o lead confirmou o agendamento">
-                          agendou {new Date(ag.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
-                      {ag.telefone_cliente && (
-                        <span className="text-[11px] font-data truncate" style={{ color: 'var(--text-tertiary)' }}>
-                          {ag.telefone_cliente}
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                    <span className="text-[11px] text-[#666] truncate max-w-[200px] hidden lg:block">{ag.procedimento}</span>
+
+                  {/* Nome + telefone + procedimento */}
+                  <div className="flex flex-col justify-center min-w-0 gap-0.5">
+                    <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
+                    {ag.telefone_cliente && (
+                      <span className="text-xs font-data truncate" style={{ color: 'var(--text-tertiary)' }}>
+                        {ag.telefone_cliente}
+                      </span>
+                    )}
+                    {ag.procedimento && (
+                      <span className="text-xs truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        {ag.procedimento}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Ações */}
+                  <div className="flex items-center gap-1 self-center flex-shrink-0">
                     {chatUrl && (
                       <a
                         href={chatUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Abrir chat no Chatwoot"
-                        className="p-1 rounded-md transition-colors hover:opacity-80"
-                        style={{ color: 'var(--accent-cyan)' }}
+                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+                        style={{
+                          color: 'var(--accent-cyan)',
+                          backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 10%, transparent)',
+                        }}
                       >
-                        <ExternalLink size={13} />
+                        <ExternalLink size={12} />
+                        <span className="hidden sm:inline">Chat</span>
                       </a>
                     )}
                     {ag.comprovante_url && (
@@ -122,10 +167,14 @@ export default function Agendamentos() {
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Ver comprovante"
-                        className="p-1 rounded-md transition-colors hover:opacity-80"
-                        style={{ color: 'var(--accent-green)' }}
+                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+                        style={{
+                          color: 'var(--accent-green)',
+                          backgroundColor: 'color-mix(in srgb, var(--accent-green) 10%, transparent)',
+                        }}
                       >
-                        <Receipt size={13} />
+                        <Receipt size={12} />
+                        <span className="hidden sm:inline">Comprovante</span>
                       </a>
                     )}
                   </div>
