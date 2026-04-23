@@ -48,9 +48,10 @@ export function useReportMetrics(range: DateRange) {
   return useQuery<ReportResponse>({
     queryKey: ['report_metrics', clientId, dateFromISO, dateToISO],
     enabled: !!clientId,
-    // staleTime curto pra evitar que um deploy novo da edge function
-    // fique mascarado por cache ate 5min no browser.
+    // staleTime curto + refetch agressivo: evita que um deploy novo da
+    // edge function fique mascarado pelo cache no browser.
     staleTime: 30_000,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
     queryFn: async () => {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
