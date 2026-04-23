@@ -18,6 +18,8 @@ import {
   Plus,
   Trash2,
   Handshake,
+  ExternalLink,
+  Receipt,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -405,6 +407,9 @@ export default function Dashboard() {
             {agents.agendamentos.slice(0, 8).map(ag => {
               const date = new Date(ag.data_inicio)
               const isPast = date < new Date()
+              const chatUrl = ag.conversation_id && agents.cwBaseUrl && agents.cwAccountId
+                ? `${agents.cwBaseUrl}/app/accounts/${agents.cwAccountId}/conversations/${ag.conversation_id}`
+                : null
               return (
                 <div key={ag.id} className={`flex items-center justify-between rounded-xl surface-card-hover border border-theme px-4 py-3 ${isPast ? 'opacity-50' : ''}`} style={{ backgroundColor: 'var(--bg-card-hover)' }}>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -418,7 +423,19 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <span className="text-[11px] text-[#666] truncate max-w-[250px] ml-3 hidden lg:block">{ag.procedimento}</span>
+                  <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                    <span className="text-[11px] text-[#666] truncate max-w-[200px] hidden lg:block">{ag.procedimento}</span>
+                    {chatUrl && (
+                      <a href={chatUrl} target="_blank" rel="noopener noreferrer" title="Abrir chat no Chatwoot" className="p-1 rounded-md transition-colors hover:opacity-80" style={{ color: 'var(--accent-cyan)' }}>
+                        <ExternalLink size={13} />
+                      </a>
+                    )}
+                    {ag.comprovante_url && (
+                      <a href={ag.comprovante_url} target="_blank" rel="noopener noreferrer" title="Ver comprovante" className="p-1 rounded-md transition-colors hover:opacity-80" style={{ color: 'var(--accent-green)' }}>
+                        <Receipt size={13} />
+                      </a>
+                    )}
+                  </div>
                 </div>
               )
             })}

@@ -11,6 +11,8 @@ interface Agendamento {
   data_fim: string
   status: string
   telefone_cliente: string
+  conversation_id?: string | null
+  comprovante_url?: string | null
 }
 
 interface AgentsData {
@@ -22,6 +24,8 @@ interface AgentsData {
   chatsInstagramTotal: number
   appointmentValue: number
   estimatedRevenue: number
+  cwBaseUrl: string | null
+  cwAccountId: string | null
   loading: boolean
 }
 
@@ -34,6 +38,8 @@ const EMPTY: AgentsData = {
   chatsInstagramTotal: 0,
   appointmentValue: 0,
   estimatedRevenue: 0,
+  cwBaseUrl: null,
+  cwAccountId: null,
   loading: false,
 }
 
@@ -70,6 +76,8 @@ export const useAgentsData = (dateFrom?: string) => {
         chatsInstagramTotal: data.chatsInstagramTotal || 0,
         appointmentValue: data.appointmentValue || 0,
         estimatedRevenue: data.estimatedRevenue || 0,
+        cwBaseUrl: data.cwBaseUrl || null,
+        cwAccountId: data.cwAccountId || null,
         loading: false,
       })
     } catch (err) {
