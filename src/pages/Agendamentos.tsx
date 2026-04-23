@@ -83,9 +83,16 @@ export default function Agendamentos() {
                   style={{ backgroundColor: 'var(--bg-card-hover)' }}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-[11px] font-data w-[90px] flex-shrink-0" style={{ color: 'var(--accent-cyan)' }}>
-                      {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <div className="flex flex-col flex-shrink-0 w-[100px]">
+                      <span className="text-[11px] font-data font-semibold" style={{ color: 'var(--accent-cyan)' }}>
+                        {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {ag.criado_em && (
+                        <span className="text-[10px] font-data truncate" style={{ color: 'var(--text-muted)' }} title="Quando o lead confirmou o agendamento">
+                          agendou {new Date(ag.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
                       {ag.telefone_cliente && (

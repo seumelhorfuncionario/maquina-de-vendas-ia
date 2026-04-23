@@ -9,7 +9,7 @@ const corsHeaders = {
 const AGENTS_URL = 'https://wacotfqoarsbazrreeco.supabase.co';
 const AGENTS_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhY290ZnFvYXJzYmF6cnJlZWNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2NDU3NSwiZXhwIjoyMDg4OTQwNTc1fQ.F6zZ7f4XAP4jrhuKUHDajW4cnYGHncSoDuGDLavRZ2g';
 
-const AGEND_SELECT = 'id, nome_cliente, procedimento, data_inicio, data_fim, status, telefone_cliente, comprovante_url';
+const AGEND_SELECT = 'id, nome_cliente, procedimento, data_inicio, data_fim, status, telefone_cliente, comprovante_url, criado_em';
 
 function buildChatwootUrl(cwBaseUrl: string | null, cwAccountId: string | null, conversationId: string | null): string | null {
   if (!cwBaseUrl || !cwAccountId || !conversationId) return null;

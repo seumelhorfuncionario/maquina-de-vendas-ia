@@ -11,6 +11,7 @@ interface Agendamento {
   data_fim: string
   status: string
   telefone_cliente: string
+  criado_em?: string | null
   conversation_id?: string | null
   comprovante_url?: string | null
 }
