@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
-  LayoutDashboard,
+  BarChart3,
   CalendarCheck,
   Factory,
   Package,
@@ -23,11 +23,11 @@ import {
 import { useMemo, useState } from 'react'
 import NotificationPreferences from './NotificationPreferences'
 
-// Ordem pro cliente: Agendamentos → Dashboard → Produção → Produtos → Tráfego → Criativos
+// Ordem pro cliente: Agendamentos → Relatórios → Produção → Produtos → Tráfego → Criativos
 // Leads, Vendas, Financeiro e "Converse com sua IA" foram removidos do menu (código morto — rotas seguem ativas).
 const allNavItems = [
   { to: '/', icon: CalendarCheck, label: 'Agendamentos', feature: 'dashboard' },
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', feature: 'dashboard' },
+  { to: '/relatorios', icon: BarChart3, label: 'Relatórios', feature: 'dashboard' },
   { to: '/producao', icon: Factory, label: 'Produção', feature: 'production' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
