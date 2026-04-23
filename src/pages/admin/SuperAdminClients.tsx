@@ -58,7 +58,10 @@ export default function SuperAdminClients() {
 
   const handleViewDashboard = (clientId: string) => {
     localStorage.setItem('selectedClientId', clientId)
-    navigate('/')
+    // Full reload ao inves de navigate() pra garantir que o TenantContext
+    // refetcha features do cliente novo e o bundle JS mais recente e baixado
+    // (super admin pode estar com state stale da sessao anterior).
+    window.location.href = '/'
   }
 
   const buildEmbedUrl = (client: ClientRow, page = 'dashboard') => {
