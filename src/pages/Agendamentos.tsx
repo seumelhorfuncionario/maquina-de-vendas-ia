@@ -9,9 +9,11 @@ export default function Agendamentos() {
   const [range, setRange] = useState(() => defaultRange(7))
   const { sync, syncing } = useSync()
 
+  // Na pagina de Agendamentos, queremos ver passados + futuros desde o inicio
+  // do periodo escolhido — sem teto em data_inicio. O Dashboard/Relatorios
+  // continua com teto pra manter KPIs historicos.
   const agents = useAgentsData({
     from: range.from.toISOString(),
-    to: range.to.toISOString(),
   })
 
   const loading = agents.loading
