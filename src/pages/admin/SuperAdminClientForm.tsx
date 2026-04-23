@@ -42,6 +42,41 @@ const DASHBOARD_CONFIG_DEFAULTS: Record<string, Record<string, boolean>> = {
   },
 }
 
+type StagePreset = { name: string; is_qualified: boolean; is_conversion: boolean }
+
+const FUNNEL_STAGES_BY_TYPE: Record<string, StagePreset[]> = {
+  product_sales: [
+    { name: 'Primeiro contato',      is_qualified: false, is_conversion: false },
+    { name: 'Interesse identificado', is_qualified: false, is_conversion: false },
+    { name: 'Qualificado',           is_qualified: true,  is_conversion: false },
+    { name: 'Proposta enviada',      is_qualified: true,  is_conversion: false },
+    { name: 'Negociação',            is_qualified: true,  is_conversion: false },
+    { name: 'Fechado',               is_qualified: true,  is_conversion: true  },
+    { name: 'Perdido',               is_qualified: false, is_conversion: false },
+  ],
+  scheduling: [
+    { name: 'Primeiro contato',       is_qualified: false, is_conversion: false },
+    { name: 'Interesse identificado', is_qualified: false, is_conversion: false },
+    { name: 'Avaliação agendada',     is_qualified: true,  is_conversion: false },
+    { name: 'Avaliação realizada',    is_qualified: true,  is_conversion: false },
+    { name: 'Proposta apresentada',   is_qualified: true,  is_conversion: false },
+    { name: 'Procedimento agendado',  is_qualified: true,  is_conversion: false },
+    { name: 'Procedimento realizado', is_qualified: true,  is_conversion: true  },
+    { name: 'Não compareceu',         is_qualified: false, is_conversion: false },
+    { name: 'Pós-tratamento / NPS',   is_qualified: true,  is_conversion: true  },
+  ],
+  services: [
+    { name: 'Primeiro contato',       is_qualified: false, is_conversion: false },
+    { name: 'Interesse identificado', is_qualified: false, is_conversion: false },
+    { name: 'Reunião agendada',       is_qualified: true,  is_conversion: false },
+    { name: 'Proposta enviada',       is_qualified: true,  is_conversion: false },
+    { name: 'Negociação',             is_qualified: true,  is_conversion: false },
+    { name: 'Contrato fechado',       is_qualified: true,  is_conversion: true  },
+    { name: 'Em andamento',           is_qualified: true,  is_conversion: true  },
+    { name: 'Perdido',                is_qualified: false, is_conversion: false },
+  ],
+}
+
 export default function SuperAdminClientForm() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -275,6 +310,20 @@ export default function SuperAdminClientForm() {
             .insert(rows)
 
           if (cfError) throw cfError
+        }
+
+        // Criar stages de funil padrão para novos clientes
+        if (!isEditing) {
+          const stages = FUNNEL_STAGES_BY_TYPE[form.client_type] ?? FUNNEL_STAGES_BY_TYPE.product_sales
+          await supabase.from('funnel_stages').insert(
+            stages.map((s, i) => ({
+              client_id: clientId!,
+              stage_name: s.name,
+              stage_order: i + 1,
+              is_qualified: s.is_qualified,
+              is_conversion: s.is_conversion,
+            }))
+          )
         }
       }
 
