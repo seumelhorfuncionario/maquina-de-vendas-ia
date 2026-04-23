@@ -5,8 +5,12 @@ import { useTheme } from '@/contexts/ThemeContext'
 import {
   BarChart3,
   CalendarCheck,
+  Users,
+  ShoppingCart,
   Factory,
+  DollarSign,
   Package,
+  Bot,
   Megaphone,
   Palette,
   LogOut,
@@ -23,13 +27,19 @@ import {
 import { useMemo, useState } from 'react'
 import NotificationPreferences from './NotificationPreferences'
 
-// Ordem pro cliente: Agendamentos → Relatórios → Produção → Produtos → Tráfego → Criativos
-// Leads, Vendas, Financeiro e "Converse com sua IA" foram removidos do menu (código morto — rotas seguem ativas).
+// Ordem canonica. Cada item e filtrado por hasFeature() — pra clientes que nao
+// usam, basta desativar a feature em client_features (ex: Levani/Bumbum tem
+// agendamento, so precisam de Agendamentos/Relatorios; Arte Nossa e
+// product_sales, precisa de Leads/Vendas/Financeiro).
 const allNavItems = [
   { to: '/', icon: CalendarCheck, label: 'Agendamentos', feature: 'dashboard' },
   { to: '/relatorios', icon: BarChart3, label: 'Relatórios', feature: 'dashboard' },
+  { to: '/leads', icon: Users, label: 'Leads (CRM)', feature: 'leads_crm' },
+  { to: '/vendas', icon: ShoppingCart, label: 'Vendas', feature: 'sales' },
   { to: '/producao', icon: Factory, label: 'Produção', feature: 'production' },
+  { to: '/financeiro', icon: DollarSign, label: 'Financeiro', feature: 'financial' },
   { to: '/produtos', icon: Package, label: 'Produtos', feature: 'products' },
+  { to: '/ia', icon: Bot, label: 'Converse com sua IA', feature: 'ia_vision' },
   { to: '/trafego', icon: Megaphone, label: 'Tráfego', feature: 'traffic_dashboard' },
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
