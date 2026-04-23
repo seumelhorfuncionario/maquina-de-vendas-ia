@@ -14,8 +14,33 @@ interface FeatureRow {
 const CLIENT_TYPES = [
   { value: 'product_sales', label: 'Venda de Produtos' },
   { value: 'scheduling', label: 'Agendamento' },
-  { value: 'services', label: 'Servicos' },
+  { value: 'services', label: 'Serviços' },
 ]
+
+const SCHEDULING_DISABLED_KEYS = new Set([
+  'traffic_dashboard',
+  'creatives_calendar',
+  'products_chart',
+  'products',
+  'production',
+  'ad_suggestions',
+  'sales',
+])
+
+const DASHBOARD_CONFIG_DEFAULTS: Record<string, Record<string, boolean>> = {
+  product_sales: {
+    leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
+    revenue: true, traffic_cost: true, material_cost: true, profit: true,
+  },
+  scheduling: {
+    leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
+    revenue: true, traffic_cost: false, material_cost: false, profit: true,
+  },
+  services: {
+    leads_today: true, leads_month: true, conversions: true, conversion_rate: true,
+    revenue: true, traffic_cost: false, material_cost: false, profit: true,
+  },
+}
 
 export default function SuperAdminClientForm() {
   const { id } = useParams<{ id: string }>()
@@ -72,7 +97,12 @@ export default function SuperAdminClientForm() {
       .order('category')
       .order('feature_name')
 
-    setAllFeatures(data || [])
+    const features = data || []
+    setAllFeatures(features)
+
+    if (!isEditing) {
+      setEnabledFeatureIds(new Set(features.map(f => f.id)))
+    }
   }
 
   const loadClient = async () => {
@@ -133,6 +163,16 @@ export default function SuperAdminClientForm() {
       }
       return next
     })
+  }
+
+  const handleClientTypeChange = (type: string) => {
+    const dashConfig = DASHBOARD_CONFIG_DEFAULTS[type] ?? DASHBOARD_CONFIG_DEFAULTS.product_sales
+    setForm(prev => ({ ...prev, client_type: type, dashboard_config: dashConfig }))
+
+    if (!isEditing) {
+      const disabledKeys = type === 'scheduling' ? SCHEDULING_DISABLED_KEYS : new Set<string>()
+      setEnabledFeatureIds(new Set(allFeatures.filter(f => !disabledKeys.has(f.feature_key)).map(f => f.id)))
+    }
   }
 
   const handleSave = async () => {
@@ -380,7 +420,7 @@ export default function SuperAdminClientForm() {
               <label className="text-sm text-[#888] mb-1 block">Tipo de Cliente</label>
               <select
                 value={form.client_type}
-                onChange={e => setForm({ ...form, client_type: e.target.value })}
+                onChange={e => handleClientTypeChange(e.target.value)}
                 className={inputClass}
               >
                 {CLIENT_TYPES.map(t => (

@@ -411,7 +411,12 @@ export default function Dashboard() {
                     <span className="text-[11px] font-data w-[70px] flex-shrink-0" style={{ color: 'var(--accent-cyan)' }}>
                       {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold text-theme-primary truncate">{ag.nome_cliente}</span>
+                      {ag.telefone_cliente && (
+                        <span className="text-[11px] font-data truncate" style={{ color: 'var(--text-tertiary)' }}>{ag.telefone_cliente}</span>
+                      )}
+                    </div>
                   </div>
                   <span className="text-[11px] text-[#666] truncate max-w-[250px] ml-3 hidden lg:block">{ag.procedimento}</span>
                 </div>
