@@ -166,9 +166,12 @@ async function computeReportStats(agents: any, client: any, dateFromISO: string,
   }
   const atendimentosPeriodo = chatsWppPeriodo + chatsIgPeriodo;
 
+  // Consistencia com /agendamentos: contamos tudo que vai acontecer a partir do inicio
+  // do periodo (sem teto), pra incluir futuros ja marcados. Assim KPI "Agendamentos"
+  // bate com a lista da pagina operacional.
   const { data: agendamentosPeriodo } = await agents.from('agendamentos')
     .select('id, data_inicio, status, telefone_cliente, criado_em')
-    .in('agente_id', agentIds).gte('data_inicio', dateFromISO).lte('data_inicio', dateToISO).order('data_inicio', { ascending: true }).limit(5000);
+    .in('agente_id', agentIds).gte('data_inicio', dateFromISO).order('data_inicio', { ascending: true }).limit(5000);
   const agList = agendamentosPeriodo || [];
 
   const heatmap: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
