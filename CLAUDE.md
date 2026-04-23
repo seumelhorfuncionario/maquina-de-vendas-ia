@@ -53,6 +53,23 @@ Tabela `content_posts`. Suporta imagem e video (.mp4).
 Form de cliente com secoes: Dados Basicos, CRM, Meta Ads, Agentes IA, Dashboard Cards, Features.
 Campos importantes no `clients`: `meta_ads_account_id`, `kanban_board_ids`, `cw_*`, `agent_*_id`, `dashboard_config`.
 
+## Fonte da verdade do funil — NUNCA INVENTAR ESTAGIOS 🚨
+
+A tabela `funnel_stages` (SMF Hub) e **espelho** do funil configurado no **Chatwoot** (`cw_base_url/api/v1/accounts/{cw_account_id}/funnels`). Os `etapa_fu` dos `chats` sao populados pelo edge function `kanban-sync` a partir dessa mesma API.
+
+**Regra de ouro ao provisionar/corrigir funil de um cliente:**
+1. NUNCA inventar `stage_name` nem usar um dicionario hardcoded baseado no `client_type`. O `SuperAdminClientForm.tsx` tem `FUNNEL_STAGES_BY_TYPE` — esses valores sao **apenas fallback** pra quando Chatwoot nao esta configurado ainda.
+2. Se o cliente ja tem `cw_base_url` + `cw_api_token` + `cw_account_id`, **buscar os estagios reais**:
+   ```
+   GET {cw_base_url}/api/v1/accounts/{cw_account_id}/funnels
+   Header: api_access_token: {cw_api_token}
+   ```
+   O campo `funnel.stages` retorna `{ stage_key: { name, ... } }`. O `stage_key` (ex: `"agendamento_realizado"`) e o valor que vai parar no `chats.etapa_fu` — entao `funnel_stages.stage_name` **deve casar com esse `stage_key`**, nao com o nome bonito.
+3. Se o kanban aparecer vazio apesar de ter chats, o sintoma tipico e: `funnel_stages.stage_name` != `chats.etapa_fu`. Use `SELECT DISTINCT etapa_fu FROM chats WHERE client_id=...` pra ver a realidade e compare com `funnel_stages`.
+4. Nomes humanizados visuais sao feitos por `useFunnelLabelConfig` (labels independentes do `stage_name`) — nao mexer no `stage_name` so pra ficar bonito.
+
+**Contexto:** Isso foi aprendido provisionando Bumbum Clinic (2026-04-23) — provisionei 9 estagios de "clinica estetica" bonitos mas os 267 chats ja tinham `etapa_fu` = `Novo Lead | Qualificando | Orcamento Enviado | agendamento_realizado | comprovante_de_pagamento_recebido` vindos do Chatwoot. Nada casava e o kanban ficou vazio.
+
 ## Convencoes
 
 - Linguagem: pt-BR na UI, ingles no codigo
