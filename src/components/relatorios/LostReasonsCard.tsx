@@ -39,6 +39,51 @@ export default function LostReasonsCard({
   const maxCount = reasons[0]?.count ?? 0
   const [openCategory, setOpenCategory] = useState<LostReasonCategory | null>(null)
 
+  // Posicao calculada do popup quando aberto. Usa position:fixed pra escapar
+  // overflow:hidden de ancestrais (o popup nunca mais e clipado pelo card pai
+  // nem pela borda do viewport). Flip acima quando nao tiver espaco abaixo.
+  const [popup, setPopup] = useState<{
+    top: number
+    right: number
+    maxHeight: number
+  } | null>(null)
+
+  const openPopup = (category: LostReasonCategory, buttonEl: HTMLElement) => {
+    const rect = buttonEl.getBoundingClientRect()
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const gap = 8
+    const preferredHeight = 360
+    const spaceBelow = vh - rect.bottom - gap
+    const spaceAbove = rect.top - gap
+    // Escolhe o lado com mais espaco; maxHeight clampa ao disponivel.
+    const flipAbove = spaceBelow < Math.min(200, preferredHeight) && spaceAbove > spaceBelow
+    const maxHeight = Math.min(preferredHeight, flipAbove ? spaceAbove : spaceBelow)
+    const top = flipAbove ? Math.max(gap, rect.top - gap - maxHeight) : rect.bottom + gap
+    // Right-align com o botao, mas clampa 8px min do edge direito.
+    const right = Math.max(8, vw - rect.right)
+    setPopup({ top, right, maxHeight })
+    setOpenCategory(category)
+  }
+
+  const closePopup = () => {
+    setOpenCategory(null)
+    setPopup(null)
+  }
+
+  // Fechar em scroll / resize -- fixed position nao acompanha o botao quando
+  // o usuario rola, entao melhor fechar do que mostrar detachado.
+  useEffect(() => {
+    if (!openCategory) return
+    const handler = () => closePopup()
+    window.addEventListener('scroll', handler, true)
+    window.addEventListener('resize', handler)
+    return () => {
+      window.removeEventListener('scroll', handler, true)
+      window.removeEventListener('resize', handler)
+    }
+  }, [openCategory])
+
   // Auto-analise em loop: enquanto tiver pendentes e não tiver rodando, dispara o próximo batch
   const loopCountRef = useRef(0)
   useEffect(() => {
@@ -116,12 +161,12 @@ export default function LostReasonsCard({
               <li
                 key={r.category}
                 className="relative"
-                onMouseLeave={() => setOpenCategory(null)}
+                onMouseLeave={closePopup}
               >
                 <button
                   type="button"
-                  onClick={() => setOpenCategory(isOpen ? null : r.category)}
-                  onMouseEnter={() => setOpenCategory(r.category)}
+                  onClick={(e) => (isOpen ? closePopup() : openPopup(r.category, e.currentTarget))}
+                  onMouseEnter={(e) => openPopup(r.category, e.currentTarget)}
                   className="w-full grid grid-cols-[140px_1fr_auto] gap-3 items-center text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-cyan)] rounded-lg"
                   aria-expanded={isOpen}
                   aria-label={`${meta.label} — ${r.count} chats`}
@@ -147,14 +192,19 @@ export default function LostReasonsCard({
                   </span>
                 </button>
 
-                {isOpen && r.chats.length > 0 && (
+                {isOpen && r.chats.length > 0 && popup && (
                   <div
-                    className="absolute right-0 top-full z-50 w-[min(380px,calc(100vw-2rem))] max-h-[360px] overflow-y-auto rounded-xl shadow-2xl p-3 ring-1 ring-[var(--accent-cyan)]/20"
+                    className="fixed z-[100] w-[min(380px,calc(100vw-1rem))] overflow-y-auto rounded-xl shadow-2xl p-3 ring-1 ring-[var(--accent-cyan)]/20"
                     style={{
+                      top: popup.top,
+                      right: popup.right,
+                      maxHeight: popup.maxHeight,
                       backgroundColor: 'var(--bg-elevated, #1a1a1a)',
                       backdropFilter: 'blur(16px)',
                       WebkitBackdropFilter: 'blur(16px)',
                     }}
+                    onMouseEnter={() => setOpenCategory(r.category)}
+                    onMouseLeave={closePopup}
                   >
                     <div className="text-[11px] font-semibold uppercase tracking-widest mb-2.5 pb-2 border-b border-theme" style={{ color: `var(${meta.color})` }}>
                       {meta.label} · {r.chats.length} de {r.count}
