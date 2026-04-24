@@ -133,15 +133,15 @@ export default function SuperAdminClients() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Painel Super Admin</h1>
-          <p className="text-sm text-[#888] mt-1">Visão geral e gerenciamento de clientes</p>
+      {/* Header -- stack em mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Painel Super Admin</h1>
+          <p className="text-xs sm:text-sm text-[#888] mt-1">Visão geral e gerenciamento de clientes</p>
         </div>
         <button
           onClick={() => navigate('/super-admin/clients/new')}
-          className="flex items-center gap-2 bg-[#00FF88] hover:bg-[#00cc6e] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          className="flex items-center justify-center gap-2 bg-[#00FF88] hover:bg-[#00cc6e] text-black font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0"
         >
           <Plus size={18} />
           Novo Cliente
@@ -176,9 +176,9 @@ export default function SuperAdminClients() {
         />
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+      {/* Filters -- stack em mobile pra nao apertar busca com 3 botoes ao lado */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div className="relative flex-1 sm:max-w-md">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888]" />
           <input
             type="text"
@@ -193,7 +193,7 @@ export default function SuperAdminClients() {
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === status
                   ? 'bg-[#00D4FF15] text-[#00D4FF] border border-[#00D4FF30]'
                   : 'bg-[#111] text-[#888] hover:text-white'
@@ -205,9 +205,99 @@ export default function SuperAdminClients() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] overflow-hidden">
-        <table className="w-full text-sm">
+      {/* Lista mobile (< md): cards stacked. Desktop: tabela 8-col. */}
+      <div className="md:hidden space-y-2">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a]">
+            <Users size={32} className="mx-auto mb-3 text-[#555]" />
+            <p className="text-sm text-[#888]">Nenhum cliente encontrado</p>
+          </div>
+        ) : (
+          filtered.map(client => (
+            <div key={client.id} className="rounded-xl border border-[#1a1a1a] bg-[#0a0a0a] p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-base font-semibold text-white truncate">{client.business_name}</span>
+                    <span
+                      className={`inline-flex shrink-0 w-1.5 h-1.5 rounded-full ${client.cw_enabled ? 'bg-[#00FF88]' : 'bg-[#555]'}`}
+                      title={client.cw_enabled ? 'CRM conectado' : 'CRM desconectado'}
+                    />
+                  </div>
+                  <div className="text-xs text-[#888] truncate">{client.email}</div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className="text-[10px] text-[#666]">{client.business_niche}</span>
+                    {client.client_type && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#111] text-[#888] border border-[#1a1a1a]">
+                        {client.client_type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => toggleActive(client)}
+                  className={`relative w-10 h-5 shrink-0 rounded-full transition-colors ${client.is_active !== false ? 'bg-[#00FF88]' : 'bg-[#333]'}`}
+                  title={client.is_active !== false ? 'Ativo — toque pra desativar' : 'Inativo — toque pra ativar'}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${client.is_active !== false ? 'translate-x-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-[#1a1a1a]">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(client.id)
+                    setCopiedId(client.id)
+                    setTimeout(() => setCopiedId(null), 2000)
+                  }}
+                  className="inline-flex items-center gap-1 text-[10px] font-mono text-[#666] hover:text-[#00D4FF] transition-colors"
+                >
+                  {client.id.slice(0, 8)}
+                  {copiedId === client.id ? <Check size={10} className="text-[#00FF88]" /> : <Copy size={10} />}
+                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleViewDashboard(client.id)}
+                    className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#00D4FF] transition-colors"
+                    aria-label="Ver painel"
+                    title="Ver painel"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleOpenEmbed(client)}
+                    className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#A855F7] transition-colors"
+                    aria-label="Abrir embed"
+                    title="Abrir embed"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleCopyEmbed(client)}
+                    className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-[#00FF88] transition-colors"
+                    aria-label="Copiar link embed"
+                    title="Copiar link embed"
+                  >
+                    {copiedEmbed === client.id ? <Check size={16} className="text-[#00FF88]" /> : <Link2 size={16} />}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/super-admin/clients/${client.id}/edit`)}
+                    className="p-2 rounded-lg hover:bg-[#1a1a1a] text-[#888] hover:text-white transition-colors"
+                    aria-label="Editar"
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Table desktop (md+): rolagem interna se viewport apertar mas sem vazar pro body */}
+      <div className="hidden md:block rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] overflow-x-auto">
+        <table className="w-full text-sm min-w-[820px]">
           <thead>
             <tr className="bg-[#111] text-[#888]">
               <th className="text-left px-5 py-3 font-medium">ID</th>
