@@ -46,16 +46,18 @@ export default function Dashboard() {
     ? Math.round((totalAgendamentos / totalAtendimentos) * 1000) / 10
     : 0
 
-  // Gráfico: agendamentos por dia DENTRO do periodo selecionado.
-  // Futuros ja marcados contam no KPI (consistente com /agendamentos) mas
-  // o grafico "ultimos N dias" deve mostrar somente ate o fim do range,
-  // senao aparece barra em data posterior ao hoje.
+  // Gráfico: agendamentos CRIADOS pela IA por dia no periodo selecionado.
+  // Usa criado_em (quando a IA fechou o agendamento), nao data_inicio
+  // (quando o atendimento vai acontecer). Barra de "hoje" = agendamentos
+  // que a IA fechou hoje, mesmo que o atendimento seja semana que vem.
   const chartData = useMemo(() => {
     const rangeToISO = range.to.toISOString().slice(0, 10)
     const rangeFromISO = range.from.toISOString().slice(0, 10)
     const byDay = new Map<string, number>()
     for (const ag of agents.agendamentos) {
-      const day = ag.data_inicio.slice(0, 10)
+      const src = ag.criado_em || ag.data_inicio
+      if (!src) continue
+      const day = src.slice(0, 10)
       if (day < rangeFromISO || day > rangeToISO) continue
       byDay.set(day, (byDay.get(day) || 0) + 1)
     }
@@ -139,7 +141,7 @@ export default function Dashboard() {
             <div className="rounded-2xl border border-theme surface-card p-6 mb-6 animate-card-in relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent-cyan) 15%, transparent), transparent)' }} />
               <div className="mb-4">
-                <h2 className="text-base font-bold text-theme-primary tracking-tight">Agendamentos no Período</h2>
+                <h2 className="text-base font-bold text-theme-primary tracking-tight">Agendamentos fechados pela IA</h2>
                 <p className="text-[11px] text-theme-muted mt-0.5 font-medium">Distribuição por dia</p>
               </div>
               <ResponsiveContainer width="100%" height={280}>

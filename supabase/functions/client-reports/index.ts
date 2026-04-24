@@ -170,7 +170,7 @@ async function computeReportStats(agents: any, client: any, dateFromISO: string,
   // do periodo (sem teto), pra incluir futuros ja marcados. Assim KPI "Agendamentos"
   // bate com a lista da pagina operacional.
   const { data: agendamentosPeriodo } = await agents.from('agendamentos')
-    .select('id, data_inicio, status, telefone_cliente, criado_em')
+    .select('id, data_inicio, status, telefone_cliente, criado_em, remotejid')
     .in('agente_id', agentIds).gte('data_inicio', dateFromISO).order('data_inicio', { ascending: true }).limit(5000);
   const agList = agendamentosPeriodo || [];
 
@@ -194,36 +194,33 @@ async function computeReportStats(agents: any, client: any, dateFromISO: string,
   }
   const topStatus = [...statusMap.entries()].map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count);
 
-  const phoneAgMap = new Map<string, string>();
+  // Mapeia remotejid -> criado_em do agendamento mais antigo (caso mesmo lead agende varias vezes).
+  // Usa o remotejid direto do agendamento em vez de prefix-match do telefone,
+  // evitando o cap de 1000 rows do PostgREST em .from('chats').limit().
+  const ridAgMap = new Map<string, string>();
   for (const a of agList) {
-    if (!a.telefone_cliente || !a.criado_em) continue;
-    const existing = phoneAgMap.get(a.telefone_cliente);
-    if (!existing || new Date(a.criado_em) < new Date(existing)) phoneAgMap.set(a.telefone_cliente, a.criado_em);
+    if (!a.remotejid || !a.criado_em) continue;
+    const existing = ridAgMap.get(a.remotejid);
+    if (!existing || new Date(a.criado_em) < new Date(existing)) ridAgMap.set(a.remotejid, a.criado_em);
   }
-  const phones = [...phoneAgMap.keys()];
+  const remotejids = [...ridAgMap.keys()];
   const delays: number[] = [];
-  if (phones.length > 0 && phones.length <= 500) {
-    // Sem janela inferior: um lead pode ter agendado agora apos conversar meses atras.
-    // Busca o chat mais antigo do telefone na historia toda do agente, limitado ao
-    // dateToISO (nao faz sentido chat depois do agendamento).
+  if (remotejids.length > 0 && remotejids.length <= 500) {
+    // Busca o chat mais antigo para CADA remotejid exato. Sem janela inferior —
+    // um lead pode ter agendado agora apos conversar meses atras.
     const { data: chatsMatched } = await agents.from('chats')
       .select('remotejid, criado_em')
       .in('agente_id', agentIds)
+      .in('remotejid', remotejids)
       .lte('criado_em', dateToISO)
-      .limit(20000);
-    const phoneChatMap = new Map<string, string>();
+      .order('criado_em', { ascending: true });
+    const ridChatMap = new Map<string, string>();
     for (const c of chatsMatched || []) {
       if (!c.remotejid || !c.criado_em) continue;
-      for (const p of phones) {
-        if (c.remotejid.startsWith(p)) {
-          const existing = phoneChatMap.get(p);
-          if (!existing || new Date(c.criado_em) < new Date(existing)) phoneChatMap.set(p, c.criado_em);
-          break;
-        }
-      }
+      if (!ridChatMap.has(c.remotejid)) ridChatMap.set(c.remotejid, c.criado_em);
     }
-    for (const [p, chatCriado] of phoneChatMap.entries()) {
-      const agCriado = phoneAgMap.get(p);
+    for (const [rid, chatCriado] of ridChatMap.entries()) {
+      const agCriado = ridAgMap.get(rid);
       if (!agCriado) continue;
       const diff = (new Date(agCriado).getTime() - new Date(chatCriado).getTime()) / 3600000;
       if (diff >= 0) delays.push(diff);
