@@ -100,6 +100,7 @@ export default function SuperAdminClientForm() {
     cw_api_token: '',
     meta_ads_account_id: '',
     meta_instagram_account_id: '',
+    meta_campaign_focuses: [] as string[],
     agent_whatsapp_id: '',
     agent_instagram_id: '',
     kanban_board_ids: [] as string[],
@@ -163,6 +164,7 @@ export default function SuperAdminClientForm() {
           cw_api_token: client.cw_api_token || '',
           meta_ads_account_id: client.meta_ads_account_id || '',
           meta_instagram_account_id: (client as any).meta_instagram_account_id || '',
+          meta_campaign_focuses: ((client as any).meta_campaign_focuses as string[]) || [],
           kanban_board_ids: (client as any).kanban_board_ids || [],
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
@@ -235,6 +237,7 @@ export default function SuperAdminClientForm() {
             cw_api_token: form.cw_api_token || null,
             meta_ads_account_id: form.meta_ads_account_id || null,
             meta_instagram_account_id: form.meta_instagram_account_id || null,
+            meta_campaign_focuses: form.meta_campaign_focuses,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -278,6 +281,7 @@ export default function SuperAdminClientForm() {
             cw_api_token: form.cw_api_token || null,
             meta_ads_account_id: form.meta_ads_account_id || null,
             meta_instagram_account_id: form.meta_instagram_account_id || null,
+            meta_campaign_focuses: form.meta_campaign_focuses,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -623,6 +627,48 @@ export default function SuperAdminClientForm() {
                 placeholder="17841415952686173"
               />
               <p className="text-[10px] text-[#555] mt-1">IG Business Account ID (17+ dígitos). Usado pra insights e publicação automatizada. Não é o <span className="font-mono">@handle</span>.</p>
+            </div>
+          </div>
+
+          <div className="mt-5 pt-5 border-t border-[#1a1a1a]">
+            <label className="text-sm text-[#888] mb-1 block">Foco das campanhas</label>
+            <p className="text-[11px] text-[#555] mb-3">
+              Dashboard de Tráfego enfatiza as métricas e cruzamentos corretos pra cada foco. Marque quantos se aplicarem.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {[
+                { key: 'whatsapp_leads', label: 'Leads via WhatsApp', hint: 'Msgs iniciadas × Agendamentos (campanhas de engajamento com CTA de conversa)' },
+                { key: 'web_leads', label: 'Leads via Formulário/LP', hint: 'Leads × Agendamentos (OUTCOME_LEADS)' },
+                { key: 'sales', label: 'Vendas (infoproduto/e-commerce)', hint: 'Compras × Receita × ROAS (OUTCOME_SALES)' },
+                { key: 'traffic', label: 'Tráfego (site / perfil)', hint: 'Cliques em link × CPC (OUTCOME_TRAFFIC)' },
+                { key: 'engagement', label: 'Engajamento / Awareness', hint: 'Interações × Video views (OUTCOME_ENGAGEMENT sem CTA de conversa)' },
+              ].map(opt => {
+                const checked = form.meta_campaign_focuses.includes(opt.key)
+                return (
+                  <label
+                    key={opt.key}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      checked ? 'border-[var(--accent-cyan)] bg-[rgba(6,182,212,0.06)]' : 'border-[#1a1a1a] bg-[#0a0a0a] hover:border-[#2a2a2a]'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={e => {
+                        const next = e.target.checked
+                          ? [...form.meta_campaign_focuses, opt.key]
+                          : form.meta_campaign_focuses.filter(k => k !== opt.key)
+                        setForm({ ...form, meta_campaign_focuses: next })
+                      }}
+                      className="mt-0.5 accent-cyan-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white">{opt.label}</div>
+                      <div className="text-[11px] text-[#666] mt-0.5">{opt.hint}</div>
+                    </div>
+                  </label>
+                )
+              })}
             </div>
           </div>
         </div>

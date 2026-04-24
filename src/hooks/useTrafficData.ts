@@ -14,6 +14,7 @@ interface TrafficSummary {
   videoViews: number
   revenue: number
   leads: number
+  messagingReplies: number
 }
 
 interface TrafficData {
@@ -28,7 +29,7 @@ interface TrafficData {
 
 const emptySummary: TrafficSummary = {
   spend: 0, clicks: 0, impressions: 0, linkClicks: 0, cpc: 0, ctr: 0,
-  engagement: 0, videoViews: 0, revenue: 0, leads: 0,
+  engagement: 0, videoViews: 0, revenue: 0, leads: 0, messagingReplies: 0,
 }
 
 export const useTrafficData = (dateFrom?: string, dateTo?: string) => {
@@ -126,6 +127,7 @@ export const useTrafficData = (dateFrom?: string, dateTo?: string) => {
         videoViews: campaigns.reduce((s, c) => s + c.videoViews, 0),
         revenue: campaigns.reduce((s, c) => s + c.revenue, 0),
         leads: campaigns.reduce((s, c) => s + c.leads, 0),
+        messagingReplies: campaigns.reduce((s, c) => s + (c.messagingReplies || 0), 0),
       }
 
       // Generate alerts
