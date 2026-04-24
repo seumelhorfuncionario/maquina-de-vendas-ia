@@ -73,8 +73,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <img src="/brand/logo-smf.webp" alt="SMF Logo" className="w-9 h-9 rounded-lg shrink-0" />
         {!collapsed && (
           <div className="overflow-hidden">
-            <h1 className="text-sm font-bold text-theme-primary leading-tight">Motor de Vendas</h1>
-            <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: 'var(--accent-cyan)' }}>IA</span>
+            <h1 className="text-sm font-bold text-theme-primary leading-tight">Sala do Chefe</h1>
+            <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: 'var(--accent-cyan)' }}>by SMF</span>
           </div>
         )}
         <button

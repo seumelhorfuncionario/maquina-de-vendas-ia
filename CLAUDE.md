@@ -1,6 +1,23 @@
-# Motor de Vendas IA
+# Sala do Chefe
 
-SaaS multi-tenant de gestao comercial com IA. Frontend React + Vite + Tailwind, banco Supabase.
+SaaS multi-tenant de gestao comercial com IA (ex "Motor/Maquina de Vendas IA"). Frontend React + Vite + Tailwind, banco Supabase.
+
+## Skills obrigatorias para qualquer mudanca de frontend
+
+Antes de criar/alterar qualquer componente, pagina ou estilo, SEMPRE consultar as duas skills de design:
+
+1. **`ui-ux-pro-max`** — sistema de design com 161 paletas, 57 pares tipograficos, 161 product types, 99 regras UX, 25 chart types. Use `python3 /root/.claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system` para recomendacoes completas, ou `--domain ux|style|color|typography|chart` pra busca direcionada. E obrigatorio pra decisoes de estilo, contraste, hierarquia, spacing, animacao e acessibilidade.
+
+2. **`frontend-design`** — produz interfaces distintivas e production-grade. Use quando for construir componentes/paginas novas ou refatorar experiencia.
+
+**Gatilhos obrigatorios (nao pular skill):**
+- Criar pagina nova, dashboard, landing, form
+- Refatorar card/modal/tabela/grafico
+- Ajustar hover, tooltip, popover, empty state, loading
+- Revisao pre-deploy de UI
+- Qualquer reclamacao de "feio", "confuso", "dificil de ver"
+
+**Antes de entregar UI rodar checklist do ui-ux-pro-max (§1-§3 CRITICAL: acessibilidade, touch, performance).**
 
 ## Stack
 

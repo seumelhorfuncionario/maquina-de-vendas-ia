@@ -8,7 +8,7 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {}
-  const title: string = data.title ?? 'Máquina de Vendas IA'
+  const title: string = data.title ?? 'Sala do Chefe'
   const options: NotificationOptions = {
     body: data.body ?? '',
     icon: '/favicon.webp',
