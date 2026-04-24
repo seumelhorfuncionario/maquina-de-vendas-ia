@@ -41,8 +41,10 @@ const allNavItems = [
   { to: '/criativos', icon: Palette, label: 'Criativos', feature: 'creatives_calendar' },
 ]
 
-const supportNavItems = [
-  { to: '/gestao-ia', icon: Cpu, label: 'Gestão da IA' },
+// alwaysShowLabel=true: nunca vira so icone, mesmo em zoom alto. Usado em Gestao da IA
+// porque e o atalho primario pro operador de IA e o icone (Cpu) e generico demais.
+const supportNavItems: { to: string; icon: any; label: string; alwaysShowLabel?: boolean }[] = [
+  { to: '/gestao-ia', icon: Cpu, label: 'Gestão da IA', alwaysShowLabel: true },
   { to: '/meus-tickets', icon: LifeBuoy, label: 'Meus Tickets' },
 ]
 
@@ -137,7 +139,7 @@ export default function TopNav() {
                   aria-label={item.label}
                 >
                   <item.icon size={16} className="shrink-0" />
-                  <span className="hidden 2xl:inline">{item.label}</span>
+                  <span className={item.alwaysShowLabel ? 'inline' : 'hidden xl:inline'}>{item.label}</span>
                 </NavLink>
               </Tooltip>
             ))}
