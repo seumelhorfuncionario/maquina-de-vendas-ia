@@ -99,6 +99,7 @@ export default function SuperAdminClientForm() {
     cw_base_url: '',
     cw_api_token: '',
     meta_ads_account_id: '',
+    meta_instagram_account_id: '',
     agent_whatsapp_id: '',
     agent_instagram_id: '',
     kanban_board_ids: [] as string[],
@@ -161,6 +162,7 @@ export default function SuperAdminClientForm() {
           cw_base_url: client.cw_base_url || '',
           cw_api_token: client.cw_api_token || '',
           meta_ads_account_id: client.meta_ads_account_id || '',
+          meta_instagram_account_id: (client as any).meta_instagram_account_id || '',
           kanban_board_ids: (client as any).kanban_board_ids || [],
           agent_whatsapp_id: client.agent_whatsapp_id ? String(client.agent_whatsapp_id) : '',
           agent_instagram_id: client.agent_instagram_id ? String(client.agent_instagram_id) : '',
@@ -232,6 +234,7 @@ export default function SuperAdminClientForm() {
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
             meta_ads_account_id: form.meta_ads_account_id || null,
+            meta_instagram_account_id: form.meta_instagram_account_id || null,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -274,6 +277,7 @@ export default function SuperAdminClientForm() {
             cw_base_url: form.cw_base_url || null,
             cw_api_token: form.cw_api_token || null,
             meta_ads_account_id: form.meta_ads_account_id || null,
+            meta_instagram_account_id: form.meta_instagram_account_id || null,
             kanban_board_ids: form.kanban_board_ids.filter(Boolean),
             agent_whatsapp_id: form.agent_whatsapp_id ? Number(form.agent_whatsapp_id) : null,
             agent_instagram_id: form.agent_instagram_id ? Number(form.agent_instagram_id) : null,
@@ -593,7 +597,10 @@ export default function SuperAdminClientForm() {
 
         {/* Meta Ads */}
         <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] p-6">
-          <h2 className="text-base font-semibold text-white mb-4">Meta Ads</h2>
+          <h2 className="text-base font-semibold text-white mb-1">Meta Ads & Instagram</h2>
+          <p className="text-[11px] text-[#666] mb-4">
+            Ativos devem estar compartilhados com a BM SMF (<span className="font-mono">1365988285074481</span>). Token global no env <span className="font-mono">META_ACCESS_TOKEN</span>.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-[#888] mb-1 block">ID da Conta de Anuncios</label>
@@ -604,7 +611,18 @@ export default function SuperAdminClientForm() {
                 className={inputClass}
                 placeholder="act_1234567890"
               />
-              <p className="text-[10px] text-[#555] mt-1">Formato: act_XXXXXXXXXX (encontre no Gerenciador de Anúncios)</p>
+              <p className="text-[10px] text-[#555] mt-1">Formato: <span className="font-mono">act_XXXXXXXXXX</span> (Gerenciador de Anúncios → Configurações)</p>
+            </div>
+            <div>
+              <label className="text-sm text-[#888] mb-1 block">ID da Conta Instagram (Graph API)</label>
+              <input
+                type="text"
+                value={form.meta_instagram_account_id}
+                onChange={e => setForm({ ...form, meta_instagram_account_id: e.target.value })}
+                className={inputClass}
+                placeholder="17841415952686173"
+              />
+              <p className="text-[10px] text-[#555] mt-1">IG Business Account ID (17+ dígitos). Usado pra insights e publicação automatizada. Não é o <span className="font-mono">@handle</span>.</p>
             </div>
           </div>
         </div>
