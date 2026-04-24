@@ -9,6 +9,8 @@ interface Agendamento {
 
 interface Props {
   agendamentos: Agendamento[]
+  dateFrom?: Date
+  dateTo?: Date
   minHour?: number
   maxHour?: number
 }
@@ -28,28 +30,37 @@ function toBrt(iso: string) {
   }
 }
 
-export default function AppointmentHeatmap({ agendamentos, minHour = 7, maxHour = 21 }: Props) {
-  const { rows, max, total } = useMemo(() => {
+export default function AppointmentHeatmap({ agendamentos, dateFrom, dateTo, minHour = 7, maxHour = 21 }: Props) {
+  const { rows, max, inRange, futuros } = useMemo(() => {
     const byDate = new Map<string, { label: string; dow: number; hours: number[] }>()
     let maxVal = 0
-    let totalVal = 0
+    let inRangeCount = 0
+    let futurosCount = 0
+    const fromKey = dateFrom ? dateFrom.toISOString().slice(0, 10) : null
+    const toKey = dateTo ? dateTo.toISOString().slice(0, 10) : null
     for (const a of agendamentos) {
       if (!a.data_inicio) continue
       const { dateKey, hour, dow, label } = toBrt(a.data_inicio)
+      // Filtra pro range selecionado. Futuros ficam fora do grid mas contabilizados.
+      if (fromKey && dateKey < fromKey) continue
+      if (toKey && dateKey > toKey) {
+        futurosCount++
+        continue
+      }
       let row = byDate.get(dateKey)
       if (!row) {
         row = { label, dow, hours: Array(24).fill(0) }
         byDate.set(dateKey, row)
       }
       row.hours[hour]++
-      totalVal++
+      inRangeCount++
       if (row.hours[hour] > maxVal) maxVal = row.hours[hour]
     }
     const sortedRows = Array.from(byDate.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([dateKey, row]) => ({ dateKey, ...row }))
-    return { rows: sortedRows, max: maxVal, total: totalVal }
-  }, [agendamentos])
+    return { rows: sortedRows, max: maxVal, inRange: inRangeCount, futuros: futurosCount }
+  }, [agendamentos, dateFrom, dateTo])
 
   const visibleHours = HOURS.slice(minHour, maxHour + 1)
 
@@ -64,7 +75,12 @@ export default function AppointmentHeatmap({ agendamentos, minHour = 7, maxHour 
         <div>
           <h3 className="text-sm font-semibold text-theme-primary">Heatmap de Agendamentos</h3>
           <p className="text-[11px] text-theme-tertiary mt-1 leading-snug">
-            <span className="font-semibold text-theme-secondary">{total}</span> agendamentos distribuídos por data e horário (BRT).
+            <span className="font-semibold text-theme-secondary">{inRange}</span> agendamentos no período, por data e horário (BRT).
+            {futuros > 0 && (
+              <>
+                {' '}<span className="text-[var(--accent-cyan)]">+{futuros} futuro{futuros !== 1 ? 's' : ''}</span> além da data final.
+              </>
+            )}
           </p>
         </div>
         {max > 0 && (
