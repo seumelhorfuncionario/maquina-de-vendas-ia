@@ -67,30 +67,64 @@ export const useTrafficData = (dateFrom?: string, dateTo?: string) => {
       if (campErr) throw campErr
       if (crErr) throw crErr
 
-      // Map DB rows → Campaign type
-      const campaigns: Campaign[] = (campRows || []).map((r: any) => ({
-        id: r.id,
-        campaignId: r.campaign_id,
-        campaignName: r.campaign_name,
-        objective: r.objective,
-        status: r.status,
-        spend: Number(r.spend) || 0,
-        revenue: Number(r.revenue) || 0,
-        purchases: r.purchases || 0,
-        impressions: Number(r.impressions) || 0,
-        clicks: Number(r.clicks) || 0,
-        leads: r.leads || 0,
-        cpm: Number(r.cpm) || 0,
-        cpc: Number(r.cpc) || 0,
-        ctr: Number(r.ctr) || 0,
-        roas: Number(r.roas) || 0,
-        linkClicks: r.link_clicks || 0,
-        videoViews: r.video_views || 0,
-        engagement: r.engagement || 0,
-        messagingReplies: r.messaging_replies || 0,
-        costPerResult: Number(r.cost_per_result) || 0,
-        date: r.date,
-      }))
+      // Rows vem com granularidade diaria (uma linha por campaign_id × date). Agregamos
+      // por campaign_id pra que `campaigns.length` e groupCampaigns reflitam campanhas reais
+      // nao snapshots diarios. Totais sao somados; taxas (cpm/cpc/ctr/roas) recomputadas do
+      // agregado pra evitar media de media.
+      type Agg = {
+        id: string; campaignId: string; campaignName: string; objective: string; status: string
+        spend: number; revenue: number; purchases: number; impressions: number; clicks: number
+        leads: number; linkClicks: number; videoViews: number; engagement: number
+        messagingReplies: number; lastDate: string
+      }
+      const aggMap = new Map<string, Agg>()
+      for (const r of (campRows || []) as any[]) {
+        const key = String(r.campaign_id)
+        const prev = aggMap.get(key)
+        if (!prev) {
+          aggMap.set(key, {
+            id: r.id, campaignId: key, campaignName: r.campaign_name,
+            objective: r.objective, status: r.status,
+            spend: Number(r.spend) || 0, revenue: Number(r.revenue) || 0,
+            purchases: r.purchases || 0,
+            impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0,
+            leads: r.leads || 0, linkClicks: r.link_clicks || 0,
+            videoViews: r.video_views || 0, engagement: r.engagement || 0,
+            messagingReplies: r.messaging_replies || 0, lastDate: String(r.date),
+          })
+        } else {
+          prev.spend += Number(r.spend) || 0
+          prev.revenue += Number(r.revenue) || 0
+          prev.purchases += r.purchases || 0
+          prev.impressions += Number(r.impressions) || 0
+          prev.clicks += Number(r.clicks) || 0
+          prev.leads += r.leads || 0
+          prev.linkClicks += r.link_clicks || 0
+          prev.videoViews += r.video_views || 0
+          prev.engagement += r.engagement || 0
+          prev.messagingReplies += r.messaging_replies || 0
+          if (r.date > prev.lastDate) { prev.lastDate = String(r.date); prev.status = r.status }
+        }
+      }
+      const campaigns: Campaign[] = Array.from(aggMap.values()).map(a => {
+        const cpm = a.impressions > 0 ? (a.spend / a.impressions) * 1000 : 0
+        const cpc = a.clicks > 0 ? a.spend / a.clicks : 0
+        const ctr = a.impressions > 0 ? (a.clicks / a.impressions) * 100 : 0
+        const roas = a.spend > 0 ? a.revenue / a.spend : 0
+        const results = a.leads > 0 ? a.leads : (a.purchases > 0 ? a.purchases : a.messagingReplies)
+        const costPerResult = results > 0 ? a.spend / results : 0
+        return {
+          id: a.id, campaignId: a.campaignId, campaignName: a.campaignName,
+          objective: a.objective as any, status: a.status as any,
+          spend: a.spend, revenue: a.revenue, purchases: a.purchases,
+          impressions: a.impressions, clicks: a.clicks, leads: a.leads,
+          cpm: +cpm.toFixed(2), cpc: +cpc.toFixed(2), ctr: +ctr.toFixed(2), roas: +roas.toFixed(2),
+          linkClicks: a.linkClicks, videoViews: a.videoViews, engagement: a.engagement,
+          messagingReplies: a.messagingReplies,
+          costPerResult: +costPerResult.toFixed(2),
+          date: a.lastDate,
+        }
+      }).sort((a, b) => b.spend - a.spend)
 
       const creatives: CreativePerformance[] = (crRows || []).map((r: any) => ({
         id: r.id,
