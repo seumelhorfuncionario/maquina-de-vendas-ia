@@ -4,6 +4,7 @@ import TrafficInsightCard from './TrafficInsightCard'
 import SalesFunnel from './SalesFunnel'
 import type { Campaign, DashboardMetrics } from '@/types'
 import type { TrafficInsight, ObjectiveGroup } from '@/types/traffic'
+import type { FunnelAgendamentos } from '@/hooks/useSalesFunnelData'
 import { fmt, fmtNum, groupCampaigns, GROUP_CONFIG } from '@/types/traffic'
 
 const GROUP_ICONS: Record<ObjectiveGroup, typeof Users> = {
@@ -19,9 +20,11 @@ interface Props {
   onTabChange: (tab: ObjectiveGroup) => void
   dashboardMetrics?: DashboardMetrics | null
   isDemo?: boolean
+  focuses?: string[]
+  agendamentos?: FunnelAgendamentos | null
 }
 
-export default function TrafficOverview({ campaigns, insights, onTabChange, dashboardMetrics, isDemo }: Props) {
+export default function TrafficOverview({ campaigns, insights, onTabChange, dashboardMetrics, isDemo, focuses, agendamentos }: Props) {
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalClicks = campaigns.reduce((s, c) => s + c.clicks, 0)
   const totalImpressions = campaigns.reduce((s, c) => s + c.impressions, 0)
@@ -65,7 +68,7 @@ export default function TrafficOverview({ campaigns, insights, onTabChange, dash
       </div>
 
       {/* Sales Funnel */}
-      <SalesFunnel campaigns={campaigns} dashboardMetrics={dashboardMetrics} isDemo={isDemo} />
+      <SalesFunnel campaigns={campaigns} dashboardMetrics={dashboardMetrics} isDemo={isDemo} focuses={focuses} agendamentos={agendamentos} />
 
       {/* Top insights */}
       {(generalInsights.length > 0 || topInsights.length > 0) && (

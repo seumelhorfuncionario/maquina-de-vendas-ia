@@ -30,25 +30,60 @@ export interface FunnelData {
   hasData: boolean
 }
 
+export interface FunnelAgendamentos {
+  total: number
+  receita_estimada: number
+}
+
 export function useSalesFunnelData(
   campaigns: Campaign[],
   metrics?: DashboardMetrics | null,
   isDemo?: boolean,
+  focuses?: string[],
+  agendamentos?: FunnelAgendamentos | null,
 ): FunnelData {
   return useMemo(() => {
     // Aggregate campaign totals
     const campSpend = campaigns.reduce((s, c) => s + c.spend, 0)
     const campLeads = campaigns.reduce((s, c) => s + c.leads + c.messagingReplies, 0)
+    const campMessagingReplies = campaigns.reduce((s, c) => s + c.messagingReplies, 0)
     const campPurchases = campaigns.reduce((s, c) => s + c.purchases, 0)
     const campRevenue = campaigns.reduce((s, c) => s + c.revenue, 0)
 
-    // Prefer dashboard metrics when available (full business picture)
-    const hasMetrics = !!metrics && (metrics.leadsMonth > 0 || metrics.conversions > 0 || metrics.revenue > 0)
-    const spend = hasMetrics ? metrics!.trafficCost || campSpend : campSpend
-    const leads = hasMetrics ? metrics!.leadsMonth : campLeads
-    const sales = hasMetrics ? metrics!.conversions : campPurchases
-    const revenue = hasMetrics ? metrics!.revenue : campRevenue
-    const profit = hasMetrics ? metrics!.profit : campRevenue - campSpend
+    const isWhatsAppLeadsMode = (focuses ?? []).includes('whatsapp_leads')
+
+    // Modo whatsapp_leads: fonte primaria SEMPRE = campanhas Meta (ignora chats totais e sales table).
+    // Contatos = conversas iniciadas pelas ads. Vendas = agendamentos do periodo. Receita = estimada.
+    // Modo default (business): usa dashboard metrics quando tem vida (full funnel e-commerce/SaaS).
+    const hasMetrics = !isWhatsAppLeadsMode
+      && !!metrics
+      && (metrics.leadsMonth > 0 || metrics.conversions > 0 || metrics.revenue > 0)
+
+    let spend: number, leads: number, sales: number, revenue: number, profit: number
+    let contatosLabel = 'Contatos'
+    let vendasLabel = 'Vendas'
+
+    if (isWhatsAppLeadsMode) {
+      spend = campSpend
+      leads = campMessagingReplies
+      sales = agendamentos?.total ?? 0
+      revenue = agendamentos?.receita_estimada ?? 0
+      profit = revenue - spend
+      contatosLabel = 'Conversas iniciadas'
+      vendasLabel = 'Agendamentos'
+    } else if (hasMetrics) {
+      spend = metrics!.trafficCost || campSpend
+      leads = metrics!.leadsMonth
+      sales = metrics!.conversions
+      revenue = metrics!.revenue
+      profit = metrics!.profit
+    } else {
+      spend = campSpend
+      leads = campLeads
+      sales = campPurchases
+      revenue = campRevenue
+      profit = campRevenue - campSpend
+    }
 
     const hasData = spend > 0 || leads > 0 || sales > 0
 
@@ -61,22 +96,25 @@ export function useSalesFunnelData(
     // Stages
     const stages: FunnelStage[] = [
       { key: 'investimento', label: 'Investimento', value: spend, formatted: fmt(spend), colorVar: '--accent-yellow' },
-      { key: 'contatos', label: 'Contatos', value: leads, formatted: leads.toLocaleString('pt-BR'), colorVar: '--accent-cyan' },
-      { key: 'vendas', label: 'Vendas', value: sales, formatted: sales.toLocaleString('pt-BR'), colorVar: '--accent-green' },
+      { key: 'contatos', label: contatosLabel, value: leads, formatted: leads.toLocaleString('pt-BR'), colorVar: '--accent-cyan' },
+      { key: 'vendas', label: vendasLabel, value: sales, formatted: sales.toLocaleString('pt-BR'), colorVar: '--accent-green' },
     ]
+
+    const contatoWord = contatosLabel.toLowerCase()
+    const vendaWord = vendasLabel.toLowerCase().replace(/s$/, '')
 
     // Summary text
     let summaryText = ''
     if (!hasData) {
       summaryText = 'Sem dados de investimento no período.'
     } else if (leads === 0) {
-      summaryText = `${fmt(spend)} investidos, mas nenhum contato gerado no período.`
+      summaryText = `${fmt(spend)} investidos, mas nenhum${contatoWord === 'conversas iniciadas' ? 'a conversa iniciada' : ' contato'} no período.`
     } else if (sales === 0) {
-      summaryText = `${fmt(spend)} investidos geraram ${leads} contato${leads !== 1 ? 's' : ''}, mas nenhuma venda no período.`
+      summaryText = `${fmt(spend)} investidos geraram ${leads} ${contatoWord}, mas nenhum${vendaWord === 'agendamento' ? ' agendamento' : 'a venda'} no período.`
     } else {
       const investPerSale = spend / sales
       const leadsPerSale = leads / sales
-      summaryText = `Hoje, a cada ${fmt(investPerSale)} investidos, geramos ${leadsPerSale.toFixed(1).replace('.0', '')} contatos para realizar 1 venda de ticket médio de ${fmt(ticketMedio)}. Seu saldo final após o marketing é de ${fmt(profit)}.`
+      summaryText = `A cada ${fmt(investPerSale)} investidos, geramos ${leadsPerSale.toFixed(1).replace('.0', '')} ${contatoWord} para realizar 1 ${vendaWord} de ticket médio de ${fmt(ticketMedio)}. Saldo estimado após marketing: ${fmt(profit)}.`
     }
 
     return {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Filter } from 'lucide-react'
-import { useSalesFunnelData, type FunnelData } from '@/hooks/useSalesFunnelData'
+import { useSalesFunnelData, type FunnelData, type FunnelAgendamentos } from '@/hooks/useSalesFunnelData'
 import { fmt, fmtPct } from '@/types/traffic'
 import type { Campaign, DashboardMetrics } from '@/types'
 
@@ -8,6 +8,8 @@ interface Props {
   campaigns: Campaign[]
   dashboardMetrics?: DashboardMetrics | null
   isDemo?: boolean
+  focuses?: string[]
+  agendamentos?: FunnelAgendamentos | null
 }
 
 /* SVG trapezoid path: centered at cx, topWidth → bottomWidth, starting at y with height h */
@@ -27,8 +29,8 @@ const CX = 200 // SVG center x
 
 type HoveredStage = 'investimento' | 'contatos' | 'vendas' | null
 
-export default function SalesFunnel({ campaigns, dashboardMetrics, isDemo }: Props) {
-  const data = useSalesFunnelData(campaigns, dashboardMetrics, isDemo)
+export default function SalesFunnel({ campaigns, dashboardMetrics, isDemo, focuses, agendamentos }: Props) {
+  const data = useSalesFunnelData(campaigns, dashboardMetrics, isDemo, focuses, agendamentos)
   const [hovered, setHovered] = useState<HoveredStage>(null)
 
   if (!data.hasData) {

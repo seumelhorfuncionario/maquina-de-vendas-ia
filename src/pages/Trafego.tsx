@@ -299,6 +299,10 @@ export default function Trafego() {
           onTabChange={tab => setActiveTab(tab)}
           dashboardMetrics={isDemo ? mockDashboard : dashboardData.metrics}
           isDemo={isDemo}
+          focuses={focuses}
+          agendamentos={report.data?.stats?.agendamentos
+            ? { total: report.data.stats.agendamentos.total, receita_estimada: report.data.stats.agendamentos.receita_estimada }
+            : null}
         />
       )}
       {activeTab === 'leads' && (
