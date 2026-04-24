@@ -101,9 +101,12 @@ Deno.serve(async (req: Request) => {
       const agentId = wppId;
 
       const [agendRes, chatMap, wppPeriod, wppTotal, igPeriod, igTotal] = await Promise.all([
-        gteLte(agentsDb.from('agendamentos')
+        // agendamentos sem teto: futuros ja marcados contam no KPI
+        // (consistente com /agendamentos e client-reports)
+        agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', agentId), 'data_inicio')
+          .eq('agente_id', agentId)
+          .gte('data_inicio', sinceDate)
           .order('data_inicio', { ascending: true }),
         getChatMap(agentsDb, agentId),
         gteLte(agentsDb.from('chats')
@@ -148,9 +151,11 @@ Deno.serve(async (req: Request) => {
 
     if (wppId) {
       promises.push(
-        gteLte(agentsDb.from('agendamentos')
+        // agendamentos sem teto: futuros ja marcados contam no KPI
+        agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', wppId), 'data_inicio')
+          .eq('agente_id', wppId)
+          .gte('data_inicio', sinceDate)
           .order('data_inicio', { ascending: true })
       );
       promises.push(getChatMap(agentsDb, wppId));
@@ -183,9 +188,11 @@ Deno.serve(async (req: Request) => {
           .eq('agente_id', igId)
       );
       promises.push(
-        gteLte(agentsDb.from('agendamentos')
+        // agendamentos sem teto: futuros ja marcados contam no KPI
+        agentsDb.from('agendamentos')
           .select(AGEND_SELECT)
-          .eq('agente_id', igId), 'data_inicio')
+          .eq('agente_id', igId)
+          .gte('data_inicio', sinceDate)
           .order('data_inicio', { ascending: true })
       );
       promises.push(getChatMap(agentsDb, igId));
