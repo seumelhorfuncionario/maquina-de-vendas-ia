@@ -1,11 +1,10 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, Puzzle, LogOut } from 'lucide-react'
+import { Users, Puzzle, LogOut } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 
 const navItems = [
-  { to: '/super-admin', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/super-admin/clients', label: 'Clientes', icon: Users, end: false },
+  { to: '/super-admin', label: 'Clientes', icon: Users, end: true },
   { to: '/super-admin/features', label: 'Features', icon: Puzzle, end: false },
 ]
 

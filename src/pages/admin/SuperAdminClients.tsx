@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Eye, Pencil, Loader2, Users, Copy, Check, ExternalLink, Link2 } from 'lucide-react'
+import { Search, Plus, Eye, Pencil, Loader2, Users, Copy, Check, ExternalLink, Link2, Puzzle, BarChart3, AlertTriangle } from 'lucide-react'
+import StatCard from '@/components/StatCard'
 import { supabase } from '@/integrations/supabase/client'
 
 interface ClientRow {
@@ -22,25 +23,51 @@ export default function SuperAdminClients() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copiedEmbed, setCopiedEmbed] = useState<string | null>(null)
+  const [totalFeatures, setTotalFeatures] = useState(0)
+  const [avgCoverage, setAvgCoverage] = useState(0)
+  const [clientsWithZero, setClientsWithZero] = useState(0)
 
   useEffect(() => {
-    loadClients()
+    loadAll()
   }, [])
 
-  const loadClients = async () => {
+  const loadAll = async () => {
     try {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, business_name, email, business_niche, client_type, cw_enabled, is_active, embed_token')
-        .order('business_name')
+      // Fetch em paralelo: clientes + features ativas + client_features pra calcular cobertura
+      const [{ data: clientsData }, { count: featuresCount }, { data: cfData }] = await Promise.all([
+        supabase
+          .from('clients')
+          .select('id, business_name, email, business_niche, client_type, cw_enabled, is_active, embed_token')
+          .order('business_name'),
+        supabase.from('features').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('client_features').select('client_id, is_enabled'),
+      ])
 
-      setClients(data || [])
+      const allClients = clientsData || []
+      const activeClients = allClients.filter(c => c.is_active !== false)
+      const totalFeat = featuresCount || 0
+
+      let totalCoverage = 0
+      let zeroCount = 0
+      for (const client of activeClients) {
+        const enabledCount = (cfData || []).filter(cf => cf.client_id === client.id && cf.is_enabled).length
+        if (enabledCount === 0) zeroCount++
+        if (totalFeat > 0) totalCoverage += (enabledCount / totalFeat) * 100
+      }
+      const avg = activeClients.length > 0 ? totalCoverage / activeClients.length : 0
+
+      setClients(allClients)
+      setTotalFeatures(totalFeat)
+      setAvgCoverage(Math.round(avg))
+      setClientsWithZero(zeroCount)
     } catch (error) {
       console.error('Error loading clients:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const activeCount = useMemo(() => clients.filter(c => c.is_active !== false).length, [clients])
 
   const toggleActive = async (client: ClientRow) => {
     const newStatus = client.is_active === false ? true : false
@@ -107,10 +134,10 @@ export default function SuperAdminClients() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Clientes</h1>
-          <p className="text-sm text-[#888] mt-1">Gerenciamento de clientes da plataforma</p>
+          <h1 className="text-2xl font-bold text-white">Painel Super Admin</h1>
+          <p className="text-sm text-[#888] mt-1">Visão geral e gerenciamento de clientes</p>
         </div>
         <button
           onClick={() => navigate('/super-admin/clients/new')}
@@ -119,6 +146,34 @@ export default function SuperAdminClients() {
           <Plus size={18} />
           Novo Cliente
         </button>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Clientes Ativos"
+          value={activeCount}
+          icon={<Users size={18} />}
+          color="positive"
+        />
+        <StatCard
+          title="Total de Features"
+          value={totalFeatures}
+          icon={<Puzzle size={18} />}
+          color="neutral"
+        />
+        <StatCard
+          title="Cobertura Média"
+          value={`${avgCoverage}%`}
+          icon={<BarChart3 size={18} />}
+          color="positive"
+        />
+        <StatCard
+          title="Clientes sem Features"
+          value={clientsWithZero}
+          icon={<AlertTriangle size={18} />}
+          color={clientsWithZero > 0 ? 'warning' : 'positive'}
+        />
       </div>
 
       {/* Filters */}

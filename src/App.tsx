@@ -22,7 +22,6 @@ import GestaoIA from './pages/GestaoIA'
 import EmbedView from './pages/EmbedView'
 import SuperAdminRoute from './components/SuperAdminRoute'
 import SuperAdminLayout from './components/SuperAdminLayout'
-import SuperAdminOverview from './pages/admin/SuperAdminOverview'
 import SuperAdminClients from './pages/admin/SuperAdminClients'
 import SuperAdminClientForm from './pages/admin/SuperAdminClientForm'
 import SuperAdminFeatures from './pages/admin/SuperAdminFeatures'
@@ -96,7 +95,7 @@ export default function App() {
                 </SuperAdminRoute>
               }
             >
-              <Route index element={<SuperAdminOverview />} />
+              <Route index element={<SuperAdminClients />} />
               <Route path="clients" element={<SuperAdminClients />} />
               <Route path="clients/new" element={<SuperAdminClientForm />} />
               <Route path="clients/:id/edit" element={<SuperAdminClientForm />} />
