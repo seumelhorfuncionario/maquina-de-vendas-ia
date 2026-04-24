@@ -73,9 +73,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // INITIAL_SESSION (startup), SIGNED_IN (login/verifyOtp), TOKEN_REFRESHED, USER_UPDATED
         if (session?.user) {
           try {
-            await loadFullProfile(session.user.id, session.user.email || '')
+            // Timeout defensivo: se as queries RLS/rede penduram, nao deixa o loading preso.
+            // Desktop com session em cache hitava isso -- refresh de JWT expirado podia
+            // esperar o auth lock indefinidamente enquanto o handler tava dentro dele.
+            await Promise.race([
+              loadFullProfile(session.user.id, session.user.email || ''),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('loadFullProfile timeout (6s)')), 6000)
+              ),
+            ])
           } catch (err) {
             console.error('Error loading profile:', err)
+            // Mesmo em timeout/erro, deixa user minimo com email pro app decidir rota
+            // (senao isAuthenticated fica false e manda pro login com session valida).
+            setUser(prev => prev ?? {
+              id: session.user.id,
+              name: session.user.email || 'Usuario',
+              email: session.user.email || '',
+              company: '',
+            })
           }
         }
         setLoading(false)
@@ -90,12 +106,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadFullProfile = async (authUserId: string, email: string) => {
-    // 1. Checar se e super admin
-    const { data: superAdmin } = await supabase
-      .from('super_admins')
-      .select('id, name')
-      .eq('email', email)
-      .maybeSingle()
+    // Queries em paralelo: antes sequenciais = 2x latencia. Ambas sao independentes
+    // e os resultados nao interferem em uma so query.
+    const [superAdminResult, clientResult] = await Promise.all([
+      supabase.from('super_admins').select('id, name').eq('email', email).maybeSingle(),
+      supabase.from('clients').select('id, business_name, business_niche, cw_enabled, client_type')
+        .eq('auth_user_id', authUserId).eq('is_active', true).maybeSingle(),
+    ])
+    const superAdmin = superAdminResult.data
+    const client = clientResult.data
 
     if (superAdmin) {
       setIsSuperAdmin(true)
@@ -106,14 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         company: 'Sala do Chefe',
       })
     }
-
-    // 2. Checar se tem client vinculado
-    const { data: client } = await supabase
-      .from('clients')
-      .select('id, business_name, business_niche, cw_enabled, client_type')
-      .eq('auth_user_id', authUserId)
-      .eq('is_active', true)
-      .maybeSingle()
 
     if (client) {
       if (!superAdmin) {
@@ -133,7 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
     }
 
-    // 3. Se nao e nenhum dos dois, seta user basico
     if (!superAdmin && !client) {
       setUser({
         id: authUserId,
