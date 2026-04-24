@@ -101,7 +101,13 @@ Deno.serve(async (req: Request) => {
 
     const { data: userData, error: userErr } = await admin.auth.admin.getUserById(client.auth_user_id)
     if (userErr || !userData?.user?.email) {
-      return json({ error: 'Could not resolve auth user' }, 500, cors)
+      return json({
+        error: 'Could not resolve auth user',
+        detail: userErr?.message ?? 'user or email missing',
+        auth_user_id: client.auth_user_id,
+        has_user: !!userData?.user,
+        has_email: !!userData?.user?.email,
+      }, 500, cors)
     }
 
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
