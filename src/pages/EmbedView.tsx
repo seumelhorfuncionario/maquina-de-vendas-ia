@@ -1,11 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { TenantProvider } from '../contexts/TenantContext'
 import { DataProvider } from '../contexts/DataContext'
 import { supabase } from '@/integrations/supabase/client'
-import Sidebar from '../components/Sidebar'
+import TopNav from '../components/TopNav'
 
 const PAGES = {
   dashboard: lazy(() => import('./Dashboard')),
@@ -55,10 +55,10 @@ function DeniedBlock({ reason }: { reason: string }) {
   )
 }
 
-function EmbedBanner({ clientName }: { clientName: string | null }) {
+function EmbedBanner({ clientName, belowTopNav }: { clientName: string | null; belowTopNav: boolean }) {
   return (
     <div
-      className="sticky top-0 z-50 flex items-center justify-between px-6 py-2.5 border-b border-theme"
+      className={`sticky ${belowTopNav ? 'top-14 z-30' : 'top-0 z-50'} flex items-center justify-between px-6 py-2.5 border-b border-theme`}
       style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, var(--bg-card))' }}
     >
       <div className="flex items-center gap-3">
@@ -91,8 +91,6 @@ export default function EmbedView() {
   const { isAuthenticated, isSuperAdmin, clientProfile, loading: authLoading } = useAuth()
   const [clientExists, setClientExists] = useState<boolean | null>(null)
   const [clientName, setClientName] = useState<string | null>(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const toggleSidebar = useCallback(() => setSidebarCollapsed((c) => !c), [])
 
   // Auto-login via ?token= (embed_token) — for clients opening the Máquina from Chatwoot iframe
   const embedToken = searchParams.get('token')
@@ -168,23 +166,20 @@ export default function EmbedView() {
   if (clientExists === false) return <DeniedBlock reason="Cliente não encontrado ou inativo." />
 
   const PageComponent = PAGES[page]
-  const showSidebar = chrome === 'full'
+  const showTopNav = chrome === 'full'
   const showBanner = chrome !== 'none'
-  const mainMargin = showSidebar ? (sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]') : 'ml-0'
 
   return (
     <TenantProvider>
       <DataProvider>
         <div className="min-h-screen surface-base">
-          {showSidebar && <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />}
-          <div className={`transition-all duration-300 ${mainMargin}`}>
-            {showBanner && <EmbedBanner clientName={clientName} />}
-            <main className="p-8">
-              <Suspense fallback={<LoadingBlock label="Carregando painel..." />}>
-                <PageComponent />
-              </Suspense>
-            </main>
-          </div>
+          {showTopNav && <TopNav />}
+          {showBanner && <EmbedBanner clientName={clientName} belowTopNav={showTopNav} />}
+          <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">
+            <Suspense fallback={<LoadingBlock label="Carregando painel..." />}>
+              <PageComponent />
+            </Suspense>
+          </main>
         </div>
       </DataProvider>
     </TenantProvider>

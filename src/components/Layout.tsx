@@ -1,10 +1,10 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye } from 'lucide-react'
-import Sidebar from './Sidebar'
+import TopNav from './TopNav'
 import AIChatWidget from './ai/AIChatWidget'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTenant } from '@/contexts/TenantContext'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
@@ -34,7 +34,7 @@ function ViewingBanner() {
   }
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-2.5 border-b border-theme" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, var(--bg-card))' }}>
+    <div className="sticky top-14 z-30 flex items-center justify-between px-6 py-2.5 border-b border-theme" style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, var(--bg-card))' }}>
       <div className="flex items-center gap-3">
         <Eye size={16} style={{ color: 'var(--accent-cyan)' }} />
         <span className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
@@ -54,20 +54,16 @@ function ViewingBanner() {
 }
 
 export default function Layout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [])
   const { hasFeature } = useTenant()
   usePushNotifications() // auto-solicita permissão em PWA na primeira abertura
 
   return (
     <div className="min-h-screen surface-base">
-      <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
-        <ViewingBanner />
-        <main className="p-8">
-          <Outlet />
-        </main>
-      </div>
+      <TopNav />
+      <ViewingBanner />
+      <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">
+        <Outlet />
+      </main>
       {hasFeature('ai_assistant') && <AIChatWidget />}
     </div>
   )
