@@ -26,6 +26,34 @@ const PAGES = {
 
 type EmbedPage = keyof typeof PAGES
 
+// Origens confiaveis que podem embedar o painel via iframe (gate de acesso).
+const TRUSTED_PARENT_ORIGINS = new Set([
+  'https://crm.seumelhorfuncionario.com',
+  'https://resultados.seumelhorfuncionario.com',
+  'https://painel.seumelhorfuncionario.com',
+  'https://motor.seumelhorfuncionario.com',
+])
+
+// Verifica se a pagina esta sendo embedada por um dominio SMF confiavel.
+// Requer (a) estar em iframe e (b) document.referrer do parent estar na whitelist.
+// Falha fechado: nova guia, aba direta, iframe de dominio nao-trusted -> false.
+function isTrustedEmbedContext(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    if (window.top === window.self) return false
+  } catch {
+    return false
+  }
+  try {
+    const ref = document.referrer
+    if (!ref) return false
+    const origin = new URL(ref).origin
+    return TRUSTED_PARENT_ORIGINS.has(origin)
+  } catch {
+    return false
+  }
+}
+
 function LoadingBlock({ label }: { label: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3" style={{ background: 'var(--bg-base)' }}>
@@ -71,14 +99,14 @@ export default function EmbedView() {
   const [tokenExchanging, setTokenExchanging] = useState(false)
   const [tokenError, setTokenError] = useState<string | null>(null)
 
+  // Gate duro: so permite acesso se (a) embedado por dominio SMF trusted OU (b) URL tem ?token=
+  // Pai fora da whitelist OU nova guia/aba direta: recusa, mesmo se o usuario ja estiver logado.
+  const trustedEmbed = isTrustedEmbedContext()
+  const accessAllowed = trustedEmbed || !!embedToken
+
   useEffect(() => {
     if (authLoading || isAuthenticated || !clientId || tokenExchanging) return
-
-    // Auto-login sem token so quando em iframe -- impede que qualquer pessoa com a URL
-    // /embed/{clientId} em browser standalone entre direto na conta do cliente.
-    // Com token, funciona em qualquer contexto (URL privada por cliente).
-    const inIframe = typeof window !== 'undefined' && window.top !== window.self
-    if (!embedToken && !inIframe) return
+    if (!accessAllowed) return
 
     setTokenExchanging(true)
 
@@ -90,6 +118,10 @@ export default function EmbedView() {
 
         const body: Record<string, string> = { client_id: clientId }
         if (embedToken) body.token = embedToken
+        // Envia o parent origin pro server conferir -- defense in depth alem do CORS.
+        try {
+          if (document.referrer) body.parent_origin = new URL(document.referrer).origin
+        } catch { /* referrer invalido -- server decide */ }
 
         const res = await fetch(`${supabaseUrl}/functions/v1/embed-session`, {
           method: 'POST',
@@ -141,10 +173,11 @@ export default function EmbedView() {
     }
   }, [clientId, allowed])
 
+  if (!accessAllowed) return <DeniedBlock reason="Este painel só pode ser acessado dentro do CRM." />
   if (authLoading) return <LoadingBlock label="Carregando sessão..." />
   if (tokenExchanging) return <LoadingBlock label="Autenticando..." />
   if (tokenError) return <DeniedBlock reason={`Token de embed inválido: ${tokenError}`} />
-  if (!isAuthenticated) return <DeniedBlock reason="Faça login antes de abrir este painel." />
+  if (!isAuthenticated) return <LoadingBlock label="Autenticando..." />
   if (!allowed) return <DeniedBlock reason="Você não tem permissão para visualizar esse cliente." />
   if (clientExists === false) return <DeniedBlock reason="Cliente não encontrado ou inativo." />
 

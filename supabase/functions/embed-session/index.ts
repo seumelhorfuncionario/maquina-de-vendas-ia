@@ -56,16 +56,24 @@ Deno.serve(async (req: Request) => {
     const body = await req.json()
     const client_id = body?.client_id as string | undefined
     const token = body?.token as string | undefined
+    const parent_origin = body?.parent_origin as string | undefined
 
     if (!client_id) {
       return json({ error: 'client_id is required' }, 400, cors)
     }
 
+    // Autenticacao sem token exige:
+    //   (a) CORS Origin da request = dominio SMF (origem do iframe, nao do pai)
+    //   (b) parent_origin enviado pelo client (document.referrer) tambem trusted
+    // Uma sem a outra nao basta: (a) sozinho permite qualquer site trusted embedar
+    // qualquer outro iframe; (b) sozinho pode ser spoofado em request nao-browser.
+    // Combinando, so passa se o client rodando em iframe dentro de dominio SMF
+    // confirma que o pai tambem e trusted.
     const isTrustedOrigin = !!origin && TRUSTED_ORIGINS.has(origin)
+    const isTrustedParent = !!parent_origin && TRUSTED_ORIGINS.has(parent_origin)
 
-    // Token e opcional quando origem e confiavel (ex: iframe da Chatwoot).
-    if (!token && !isTrustedOrigin) {
-      return json({ error: 'token is required' }, 400, cors)
+    if (!token && !(isTrustedOrigin && isTrustedParent)) {
+      return json({ error: 'token is required, or request must come from a trusted embed context' }, 400, cors)
     }
 
     const admin = createClient(
@@ -108,7 +116,7 @@ Deno.serve(async (req: Request) => {
       token_hash: linkData.properties.hashed_token,
       email: userData.user.email,
       type: 'magiclink',
-      auth_mode: token ? 'embed_token' : 'trusted_origin',
+      auth_mode: token ? 'embed_token' : 'trusted_embed',
     }, 200, cors)
   } catch (err) {
     return json({ error: 'Internal error', detail: (err as Error).message }, 500, cors)

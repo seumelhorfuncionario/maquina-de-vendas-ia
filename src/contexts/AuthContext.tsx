@@ -45,10 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setClientProfile(null)
           setIsDemo(false)
           setIsSuperAdmin(false)
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Only reload profile on token refresh, not on INITIAL_SESSION
-          // (initial session is handled by checkExistingSession)
+        } else if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+          // SIGNED_IN dispara apos supabase.auth.verifyOtp (magiclink) no fluxo de embed
+          // auto-login. Sem isso, user/clientProfile ficam null e EmbedView cai em
+          // "Acesso negado" mesmo com session ja criada (sintoma: mobile com storage
+          // limpo. Desktop mascarava via checkExistingSession se havia sessao previa).
           await loadFullProfile(session.user.id, session.user.email || '')
+          setLoading(false)
         }
       }
     )
