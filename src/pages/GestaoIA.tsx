@@ -298,7 +298,7 @@ function TicketSidePanel({ agent, onClose }: { agent: ClientAgent; onClose: () =
 
   return (
     <aside
-      className="w-[380px] shrink-0 flex flex-col border-l border-theme"
+      className="w-full md:w-[380px] shrink-0 flex flex-col border-l border-theme absolute md:relative inset-0 md:inset-auto z-10 md:z-0"
       style={{ background: 'var(--bg-card)' }}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-theme">

@@ -73,6 +73,15 @@
   box-sizing: border-box;
 }
 
+html, body {
+  /* Safety net: impede qualquer filho de vazar horizontalmente (mobile scroll lateral).
+     Containers que precisam scroll horizontal (kanban, tabelas) devem ter overflow-x
+     local em si mesmos, nao propagando pro body. 'clip' e o moderno do 'hidden'
+     -- nao cria contexto de scroll nem permite programmatic scroll lateral acidental. */
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   background-color: var(--bg-base);
