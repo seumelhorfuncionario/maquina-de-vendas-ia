@@ -10,11 +10,11 @@ export interface AIChatResponse {
 }
 
 function resolveClientId(clientProfileId: string | null | undefined, isSuperAdmin: boolean): string | null {
-  if (clientProfileId) return clientProfileId
   if (isSuperAdmin && typeof window !== 'undefined') {
-    return localStorage.getItem('selectedClientId')
+    const selected = localStorage.getItem('selectedClientId')
+    if (selected) return selected
   }
-  return null
+  return clientProfileId ?? null
 }
 
 export function useAIChat() {

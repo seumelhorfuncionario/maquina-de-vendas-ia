@@ -7,11 +7,11 @@ export type AIConversationMessage = Database['public']['Tables']['assistant_conv
 export type AIConversationRole = 'user' | 'assistant'
 
 function resolveClientId(clientProfileId: string | null | undefined, isSuperAdmin: boolean): string | null {
-  if (clientProfileId) return clientProfileId
   if (isSuperAdmin && typeof window !== 'undefined') {
-    return localStorage.getItem('selectedClientId')
+    const selected = localStorage.getItem('selectedClientId')
+    if (selected) return selected
   }
-  return null
+  return clientProfileId ?? null
 }
 
 interface UseAIConversationsOptions {

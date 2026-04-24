@@ -56,8 +56,15 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [funnelStages, setFunnelStages] = useState<FunnelStage[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Resolve o clientId: super admin pode selecionar via localStorage
-  const resolvedClientId = clientProfile?.id || (isSuperAdmin ? localStorage.getItem('selectedClientId') : null)
+  // Resolve o clientId: super admin pode selecionar via localStorage.
+  // CRITICAL: selectedClientId precisa ter precedencia sobre clientProfile pra
+  // super admin que tambem e dono de um client (ex: agenciamsd7 e super admin
+  // E dono do Bumbum). Sem isso, clientProfile.id (Bumbum) ganha e "Visualizar
+  // como outro cliente" nunca troca de fato — vazamento de dados entre clientes.
+  const selectedOverride = isSuperAdmin && typeof window !== 'undefined'
+    ? localStorage.getItem('selectedClientId')
+    : null
+  const resolvedClientId = selectedOverride || clientProfile?.id || null
 
   useEffect(() => {
     if (!isAuthenticated) {
