@@ -189,27 +189,26 @@ export default function TopNav({ embed = false }: TopNavProps = {}) {
               </div>
             )}
 
-            {/* Logout isolado em telas medias (md: nao mostra, < md: mostra so icone) */}
-            {user && !embed && (
-              <Tooltip content="Sair" position="bottom">
-                <button
-                  onClick={logout}
-                  aria-label="Sair"
-                  className="md:hidden p-2 rounded-lg text-theme-secondary hover:text-[var(--accent-red)] transition-all cursor-pointer"
-                >
-                  <LogOut size={16} />
-                </button>
-              </Tooltip>
-            )}
-
-            {/* Hamburger (mobile/tablet) */}
+            {/* Hamburger (mobile/tablet) -- destacado com accent cyan pra sinalizar
+                que os itens de nav vivem aqui em mobile. Logout (quando nao embed)
+                fica dentro do proprio menu, nao mais isolado na header. */}
             <button
               onClick={() => setMobileOpen(v => !v)}
               aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
               aria-expanded={mobileOpen}
-              className="lg:hidden p-2 rounded-lg text-theme-secondary hover:text-theme-primary hover:surface-elevated transition-all cursor-pointer"
+              className="lg:hidden ml-1 p-2.5 rounded-xl transition-all cursor-pointer"
+              style={{
+                backgroundColor: mobileOpen
+                  ? 'color-mix(in srgb, var(--accent-cyan) 18%, transparent)'
+                  : 'color-mix(in srgb, var(--accent-cyan) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent-cyan) 35%, transparent)',
+                color: 'var(--accent-cyan)',
+                boxShadow: mobileOpen
+                  ? '0 0 0 3px color-mix(in srgb, var(--accent-cyan) 12%, transparent)'
+                  : 'none',
+              }}
             >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileOpen ? <X size={18} strokeWidth={2.5} /> : <Menu size={18} strokeWidth={2.5} />}
             </button>
           </div>
         </div>
@@ -239,11 +238,25 @@ export default function TopNav({ embed = false }: TopNavProps = {}) {
               ))}
 
               {user && (
-                <div className="mt-1 pt-3 border-t border-theme col-span-full">
-                  <div className="px-3 pb-2">
+                <div className="mt-1 pt-3 border-t border-theme col-span-full flex items-center justify-between gap-3">
+                  <div className="px-3 pb-2 min-w-0">
                     <p className="text-xs font-semibold text-theme-primary truncate">{user.name}</p>
                     <p className="text-[10px] text-theme-muted truncate">{user.company}</p>
                   </div>
+                  {!embed && (
+                    <button
+                      onClick={() => { setMobileOpen(false); logout() }}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors shrink-0"
+                      style={{
+                        color: 'var(--accent-red)',
+                        backgroundColor: 'color-mix(in srgb, var(--accent-red) 10%, transparent)',
+                        border: '1px solid color-mix(in srgb, var(--accent-red) 25%, transparent)',
+                      }}
+                    >
+                      <LogOut size={13} />
+                      Sair
+                    </button>
+                  )}
                 </div>
               )}
             </nav>
