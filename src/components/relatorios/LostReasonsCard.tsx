@@ -48,7 +48,21 @@ export default function LostReasonsCard({
     maxHeight: number
   } | null>(null)
 
+  // Timeout de fechamento: o mouse precisa atravessar o gap de 8px entre o botao
+  // e o popup. Se fecharmos imediatamente no mouseleave do <li>, o popup some
+  // antes do cursor chegar -- o popup reabre, fecha, reabre, reabre etc.
+  // Com um delay, o mouseenter do popup cancela o fechamento. Classic hover-intent.
+  const closeTimeoutRef = useRef<number | null>(null)
+
+  const cancelClose = () => {
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }
+
   const openPopup = (category: LostReasonCategory, buttonEl: HTMLElement) => {
+    cancelClose()
     const rect = buttonEl.getBoundingClientRect()
     const vw = window.innerWidth
     const vh = window.innerHeight
@@ -67,9 +81,21 @@ export default function LostReasonsCard({
   }
 
   const closePopup = () => {
+    cancelClose()
     setOpenCategory(null)
     setPopup(null)
   }
+
+  const scheduleClose = () => {
+    cancelClose()
+    closeTimeoutRef.current = window.setTimeout(() => {
+      closeTimeoutRef.current = null
+      setOpenCategory(null)
+      setPopup(null)
+    }, 200)
+  }
+
+  useEffect(() => () => cancelClose(), [])
 
   // Fechar em scroll / resize -- fixed position nao acompanha o botao quando
   // o usuario rola, entao melhor fechar do que mostrar detachado.
@@ -157,11 +183,17 @@ export default function LostReasonsCard({
             const meta = CATEGORY_META[r.category] ?? CATEGORY_META.outro
             const barWidth = maxCount > 0 ? (r.count / maxCount) * 100 : 0
             const isOpen = openCategory === r.category
+            // Ignora contatos de Instagram (chat_external_id com prefixo "ig")
+            // -- popup so faz sentido pra WhatsApp, que tem numero + link de conversa.
+            const visibleChats = r.chats.filter(
+              (c) => !c.chat_external_id.toLowerCase().startsWith('ig')
+            )
             return (
               <li
                 key={r.category}
                 className="relative"
-                onMouseLeave={closePopup}
+                onMouseLeave={scheduleClose}
+                onMouseEnter={cancelClose}
               >
                 <button
                   type="button"
@@ -192,7 +224,7 @@ export default function LostReasonsCard({
                   </span>
                 </button>
 
-                {isOpen && r.chats.length > 0 && popup && (
+                {isOpen && visibleChats.length > 0 && popup && (
                   <div
                     className="fixed z-[100] w-[min(380px,calc(100vw-1rem))] overflow-y-auto rounded-xl shadow-2xl p-3 ring-1 ring-[var(--accent-cyan)]/20"
                     style={{
@@ -203,14 +235,14 @@ export default function LostReasonsCard({
                       backdropFilter: 'blur(16px)',
                       WebkitBackdropFilter: 'blur(16px)',
                     }}
-                    onMouseEnter={() => setOpenCategory(r.category)}
-                    onMouseLeave={closePopup}
+                    onMouseEnter={cancelClose}
+                    onMouseLeave={scheduleClose}
                   >
                     <div className="text-[11px] font-semibold uppercase tracking-widest mb-2.5 pb-2 border-b border-theme" style={{ color: `var(${meta.color})` }}>
-                      {meta.label} · {r.chats.length} de {r.count}
+                      {meta.label} · {visibleChats.length} de {r.count}
                     </div>
                     <ul className="space-y-1.5">
-                      {r.chats.map((chat) => {
+                      {visibleChats.map((chat) => {
                         const url = buildChatUrl(chat.conversation_id)
                         const phone = chat.chat_external_id.split('@')[0]
                         const row = (
