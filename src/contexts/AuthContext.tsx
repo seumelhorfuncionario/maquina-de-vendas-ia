@@ -36,48 +36,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialCheckDone, setInitialCheckDone] = useState(false)
 
   useEffect(() => {
-    checkExistingSession()
+    // Fonte UNICA de session state: onAuthStateChange. Supabase dispara
+    // INITIAL_SESSION na primeira montagem (com session do storage ou null) e depois
+    // SIGNED_IN / SIGNED_OUT / TOKEN_REFRESHED. Antes, chamavamos checkExistingSession()
+    // em paralelo que fazia o MESMO getSession -- as duas competiam pelo auth lock
+    // e o segundo esperava 5s, gerando "Carregando..." eterno em aba anonima (INITIAL_SESSION
+    // chegava mas checkExistingSession ficava pendurado, setLoading(false) nunca rodava
+    // se hosting do finally entrava num loop de espera).
+    if (!isSupabaseConfigured()) {
+      setLoading(false)
+      setInitialCheckDone(true)
+      return
+    }
+
+    // Safety net: se por qualquer motivo INITIAL_SESSION nao chegar em 5s (Supabase
+    // bug, rede, lock corrompido), forca loading=false pra usuario nao ficar preso.
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false)
+      setInitialCheckDone(true)
+    }, 5000)
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        clearTimeout(safetyTimeout)
+
         if (event === 'SIGNED_OUT') {
           setUser(null)
           setClientProfile(null)
           setIsDemo(false)
           setIsSuperAdmin(false)
-        } else if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-          // SIGNED_IN dispara apos supabase.auth.verifyOtp (magiclink) no fluxo de embed
-          // auto-login. Sem isso, user/clientProfile ficam null e EmbedView cai em
-          // "Acesso negado" mesmo com session ja criada (sintoma: mobile com storage
-          // limpo. Desktop mascarava via checkExistingSession se havia sessao previa).
-          await loadFullProfile(session.user.id, session.user.email || '')
           setLoading(false)
+          setInitialCheckDone(true)
+          return
         }
+
+        // INITIAL_SESSION (startup), SIGNED_IN (login/verifyOtp), TOKEN_REFRESHED, USER_UPDATED
+        if (session?.user) {
+          try {
+            await loadFullProfile(session.user.id, session.user.email || '')
+          } catch (err) {
+            console.error('Error loading profile:', err)
+          }
+        }
+        setLoading(false)
+        setInitialCheckDone(true)
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const checkExistingSession = async () => {
-    try {
-      if (!isSupabaseConfigured()) {
-        setLoading(false)
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        await loadFullProfile(session.user.id, session.user.email || '')
-      }
-    } catch (error) {
-      console.error('Error checking session:', error)
-    } finally {
-      setLoading(false)
-      setInitialCheckDone(true)
+    return () => {
+      clearTimeout(safetyTimeout)
+      subscription.unsubscribe()
     }
-  }
+  }, [])
 
   const loadFullProfile = async (authUserId: string, email: string) => {
     // 1. Checar se e super admin
