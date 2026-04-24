@@ -203,13 +203,14 @@ async function computeReportStats(agents: any, client: any, dateFromISO: string,
   const phones = [...phoneAgMap.keys()];
   const delays: number[] = [];
   if (phones.length > 0 && phones.length <= 500) {
-    const chatWindowFrom = new Date(new Date(dateFromISO).getTime() - 60 * 86400000).toISOString();
+    // Sem janela inferior: um lead pode ter agendado agora apos conversar meses atras.
+    // Busca o chat mais antigo do telefone na historia toda do agente, limitado ao
+    // dateToISO (nao faz sentido chat depois do agendamento).
     const { data: chatsMatched } = await agents.from('chats')
       .select('remotejid, criado_em')
       .in('agente_id', agentIds)
-      .gte('criado_em', chatWindowFrom)
       .lte('criado_em', dateToISO)
-      .limit(10000);
+      .limit(20000);
     const phoneChatMap = new Map<string, string>();
     for (const c of chatsMatched || []) {
       if (!c.remotejid || !c.criado_em) continue;
