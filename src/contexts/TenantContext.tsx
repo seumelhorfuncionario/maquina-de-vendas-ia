@@ -28,6 +28,28 @@ interface TenantContextType {
 
 const TenantContext = createContext<TenantContextType | null>(null)
 
+const FEATURE_ALIASES: Record<string, string[]> = {
+  dashboard: ['dashboard', 'agendamentos', 'appointments'],
+  leads_crm: ['leads_crm', 'leads', 'crm'],
+  sales: ['sales', 'vendas'],
+  production: ['production', 'producao', 'produção'],
+  financial: ['financial', 'financeiro'],
+  products: ['products', 'produtos'],
+  ia_vision: ['ia_vision', 'ai_vision', 'ia', 'ai'],
+  ai_assistant: ['ai_assistant', 'chat_ia', 'ai_chat'],
+  ai_insights: ['ai_insights', 'insights_ia'],
+  traffic_dashboard: ['traffic_dashboard', 'trafego', 'tráfego', 'traffic', 'meta_ads'],
+  creatives_calendar: ['creatives_calendar', 'criativos', 'creative_calendar', 'content_calendar', 'conteudo', 'conteúdo'],
+}
+
+const normalizeFeatureKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s-]+/g, '_')
+
 export function TenantProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, isDemo, isSuperAdmin, clientProfile } = useAuth()
   const [features, setFeatures] = useState<TenantFeature[]>([])
@@ -114,7 +136,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     // Super admin NAO recebe escape automatico aqui. hasFeature representa
     // o que o cliente visualizado (clientProfile ou selectedClientId) tem
     // habilitado. Para UI admin-only, usar isSuperAdmin diretamente.
-    const feature = features.find(f => f.feature_key === key)
+    const acceptedKeys = new Set((FEATURE_ALIASES[key] ?? [key]).map(normalizeFeatureKey))
+    const feature = features.find(f => acceptedKeys.has(normalizeFeatureKey(f.feature_key)))
     return feature?.is_enabled ?? false
   }
 
