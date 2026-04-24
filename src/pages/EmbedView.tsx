@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -116,14 +116,23 @@ export default function EmbedView() {
   const [tokenExchanging, setTokenExchanging] = useState(false)
   const [tokenError, setTokenError] = useState<string | null>(null)
 
-  // Gate duro: so permite acesso se (a) embedado por dominio SMF trusted OU (b) URL tem ?token=
-  // Pai fora da whitelist OU nova guia/aba direta: recusa, mesmo se o usuario ja estiver logado.
+  // Gate de acesso: super admin passa livre (acesso administrativo de qualquer lugar),
+  // clientes so via (a) iframe de dominio SMF trusted ou (b) URL com ?token=.
   const trustedEmbed = isTrustedEmbedContext()
-  const accessAllowed = trustedEmbed || !!embedToken
+  const accessAllowed = isSuperAdmin || trustedEmbed || !!embedToken
+
+  // Guard com ref em vez de state: nao re-dispara useEffect + impede retry infinito
+  // se loadFullProfile nao setar user (antes o finally setTokenExchanging(false)
+  // fazia o effect re-rodar e chamar verifyOtp de novo).
+  const hasAttemptedRef = useRef(false)
 
   useEffect(() => {
-    if (authLoading || isAuthenticated || !clientId || tokenExchanging) return
+    if (authLoading || isAuthenticated || !clientId || hasAttemptedRef.current) return
     if (!accessAllowed) return
+    // Super admin nao precisa de verifyOtp -- ele ja tem session valida propria,
+    // e o TenantContext/useClientId pegam o selectedClientId do localStorage.
+    if (isSuperAdmin) return
+    hasAttemptedRef.current = true
 
     setTokenExchanging(true)
 

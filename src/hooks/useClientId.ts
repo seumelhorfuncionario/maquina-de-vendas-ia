@@ -1,54 +1,29 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
+// Resolve o clientId ativo sem fazer chamadas independentes ao Supabase Auth.
+// Antes, cada hook que usava useClientId () chamava supabase.auth.getUser() +
+// query de validacao, competindo pelo auth lock com AuthContext.checkExistingSession.
+// Isso gerava warnings 'Lock was not released within 5000ms' em producao,
+// especialmente em pages que combinam varios hooks (Dashboard, Trafego, Relatorios).
+//
+// Agora consome o estado do AuthContext que ja carregou o profile uma vez:
+//   - super admin + selectedClientId no localStorage  -> usa o override
+//   - caso contrario usa clientProfile.id do usuario logado
+//
+// Nao revalida is_active: se o cliente esta inativo, queries RLS filtram
+// naturalmente. Validacao eager aqui so adicionava latencia + lock contention.
 export const useClientId = () => {
+  const { clientProfile, isSuperAdmin, loading: authLoading } = useAuth();
   const [clientId, setClientId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getClientId();
-  }, []);
+    if (authLoading) return;
+    const override = isSuperAdmin && typeof window !== 'undefined'
+      ? localStorage.getItem('selectedClientId')
+      : null;
+    setClientId(override || clientProfile?.id || null);
+  }, [authLoading, isSuperAdmin, clientProfile?.id]);
 
-  const getClientId = async () => {
-    try {
-      const selectedClientId = localStorage.getItem('selectedClientId');
-
-      if (selectedClientId) {
-        const { data: clientData } = await supabase
-          .from('clients')
-          .select('id, is_active')
-          .eq('id', selectedClientId)
-          .single();
-
-        if (clientData && clientData.is_active) {
-          setClientId(selectedClientId);
-          setLoading(false);
-          return;
-        } else {
-          localStorage.removeItem('selectedClientId');
-        }
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .eq('is_active', true)
-          .single();
-
-        if (data) {
-          setClientId(data.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error getting client ID:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { clientId, loading };
+  return { clientId, loading: authLoading };
 };
