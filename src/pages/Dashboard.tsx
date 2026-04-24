@@ -195,7 +195,7 @@ export default function Dashboard() {
           {data && (
             <>
               <div className="mb-6">
-                <AppointmentHeatmap heatmap={data.heatmap} />
+                <AppointmentHeatmap agendamentos={agents.agendamentos} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

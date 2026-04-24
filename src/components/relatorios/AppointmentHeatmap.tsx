@@ -1,21 +1,55 @@
 import { useMemo } from 'react'
 
-const DOW_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const DOW_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
 
+interface Agendamento {
+  data_inicio: string
+}
+
 interface Props {
-  heatmap: number[][]
+  agendamentos: Agendamento[]
   minHour?: number
   maxHour?: number
 }
 
-export default function AppointmentHeatmap({ heatmap, minHour = 7, maxHour = 21 }: Props) {
-  const { max, total } = useMemo(() => {
-    let m = 0
-    let t = 0
-    for (const row of heatmap) for (const v of row) { if (v > m) m = v; t += v }
-    return { max: m, total: t }
-  }, [heatmap])
+// Converte UTC pra BRT (GMT-3) e extrai {dateKey: 'YYYY-MM-DD', hour: 0-23, dow: 0-6}
+function toBrt(iso: string) {
+  const utc = new Date(iso)
+  const brt = new Date(utc.getTime() - 3 * 3600000)
+  const y = brt.getUTCFullYear()
+  const m = String(brt.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(brt.getUTCDate()).padStart(2, '0')
+  return {
+    dateKey: `${y}-${m}-${d}`,
+    hour: brt.getUTCHours(),
+    dow: brt.getUTCDay(),
+    label: `${d}/${m}`,
+  }
+}
+
+export default function AppointmentHeatmap({ agendamentos, minHour = 7, maxHour = 21 }: Props) {
+  const { rows, max, total } = useMemo(() => {
+    const byDate = new Map<string, { label: string; dow: number; hours: number[] }>()
+    let maxVal = 0
+    let totalVal = 0
+    for (const a of agendamentos) {
+      if (!a.data_inicio) continue
+      const { dateKey, hour, dow, label } = toBrt(a.data_inicio)
+      let row = byDate.get(dateKey)
+      if (!row) {
+        row = { label, dow, hours: Array(24).fill(0) }
+        byDate.set(dateKey, row)
+      }
+      row.hours[hour]++
+      totalVal++
+      if (row.hours[hour] > maxVal) maxVal = row.hours[hour]
+    }
+    const sortedRows = Array.from(byDate.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dateKey, row]) => ({ dateKey, ...row }))
+    return { rows: sortedRows, max: maxVal, total: totalVal }
+  }, [agendamentos])
 
   const visibleHours = HOURS.slice(minHour, maxHour + 1)
 
@@ -28,10 +62,9 @@ export default function AppointmentHeatmap({ heatmap, minHour = 7, maxHour = 21 
     <div className="rounded-2xl border border-theme surface-card p-5">
       <div className="flex items-start justify-between gap-3 mb-1">
         <div>
-          <h3 className="text-sm font-semibold text-theme-primary">Padrão semanal de agendamentos</h3>
+          <h3 className="text-sm font-semibold text-theme-primary">Heatmap de Agendamentos</h3>
           <p className="text-[11px] text-theme-tertiary mt-1 leading-snug">
-            Agrega os <span className="font-semibold text-theme-secondary">{total}</span> agendamentos por dia-da-semana × horário.
-            Mostra o <span className="italic">padrão recorrente</span>, não a linha do tempo.
+            <span className="font-semibold text-theme-secondary">{total}</span> agendamentos distribuídos por data e horário (BRT).
           </p>
         </div>
         {max > 0 && (
@@ -47,47 +80,54 @@ export default function AppointmentHeatmap({ heatmap, minHour = 7, maxHour = 21 
         )}
       </div>
 
-      <div className="overflow-x-auto mt-4">
-        <div className="grid" style={{ gridTemplateColumns: `44px repeat(${visibleHours.length}, minmax(26px, 1fr))`, gap: '3px' }}>
-          <div />
-          {visibleHours.map((h) => (
-            <div key={h} className="text-[10px] text-theme-muted text-center font-data font-semibold">
-              {String(h).padStart(2, '0')}
-            </div>
-          ))}
-
-          {DOW_LABELS.map((label, dow) => (
-            <div key={label} className="contents">
-              <div className="text-[11px] text-theme-secondary font-semibold self-center">{label}</div>
-              {visibleHours.map((h) => {
-                const v = heatmap[dow]?.[h] || 0
-                const int = intensity(v)
-                return (
-                  <div
-                    key={h}
-                    className="h-7 rounded-[4px] flex items-center justify-center text-[11px] font-data font-bold transition"
-                    style={{
-                      background: int === 0
-                        ? 'color-mix(in srgb, var(--text-primary, #fff) 4%, transparent)'
-                        : `color-mix(in srgb, var(--accent-cyan) ${Math.max(20, int * 90)}%, transparent)`,
-                      color: int > 0.5 ? 'var(--text-primary, #fff)' : int > 0 ? 'var(--text-primary, #fff)' : 'transparent',
-                      border: int === 0 ? '1px solid color-mix(in srgb, var(--text-primary, #fff) 6%, transparent)' : 'none',
-                    }}
-                    title={`${label} ${String(h).padStart(2, '0')}h: ${v} agendamento${v !== 1 ? 's' : ''}`}
-                  >
-                    {v > 0 ? v : '·'}
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {max === 0 && (
+      {rows.length === 0 ? (
         <p className="text-xs text-theme-tertiary text-center mt-6 py-4">
           Nenhum agendamento no período selecionado.
         </p>
+      ) : (
+        <div className="overflow-x-auto mt-4">
+          <div className="grid" style={{ gridTemplateColumns: `88px repeat(${visibleHours.length}, minmax(32px, 1fr))`, gap: '4px' }}>
+            <div />
+            {visibleHours.map((h) => (
+              <div key={h} className="text-[11px] text-theme-muted text-center font-data font-semibold pb-1">
+                {String(h).padStart(2, '0')}h
+              </div>
+            ))}
+
+            {rows.map((row) => (
+              <div key={row.dateKey} className="contents">
+                <div className="self-center pr-2">
+                  <div className="text-[11px] font-semibold text-theme-secondary leading-tight">
+                    {DOW_SHORT[row.dow]}
+                  </div>
+                  <div className="text-[12px] font-data font-bold text-theme-primary tabular-nums">
+                    {row.label}
+                  </div>
+                </div>
+                {visibleHours.map((h) => {
+                  const v = row.hours[h] || 0
+                  const int = intensity(v)
+                  return (
+                    <div
+                      key={h}
+                      className="h-9 rounded-md flex items-center justify-center text-[13px] font-data font-bold transition"
+                      style={{
+                        background: int === 0
+                          ? 'color-mix(in srgb, var(--text-primary, #fff) 4%, transparent)'
+                          : `color-mix(in srgb, var(--accent-cyan) ${Math.max(25, int * 95)}%, transparent)`,
+                        color: int > 0.4 ? 'var(--text-primary, #fff)' : int > 0 ? 'var(--text-primary, #fff)' : 'color-mix(in srgb, var(--text-primary, #fff) 12%, transparent)',
+                        border: int === 0 ? '1px solid color-mix(in srgb, var(--text-primary, #fff) 6%, transparent)' : 'none',
+                      }}
+                      title={`${DOW_SHORT[row.dow]} ${row.label} às ${String(h).padStart(2, '0')}h: ${v} agendamento${v !== 1 ? 's' : ''}`}
+                    >
+                      {v > 0 ? v : '·'}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
