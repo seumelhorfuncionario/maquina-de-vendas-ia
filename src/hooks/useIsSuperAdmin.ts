@@ -1,36 +1,12 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 
+// Deriva do AuthContext em vez de fazer chamada propria a supabase.auth.getUser().
+// Antes, supabase.auth.getUser() competia pelo mesmo auth lock que o AuthContext
+// usa em checkExistingSession. Quando o lock estava ocupado, essa call ficava
+// na fila sem nunca emitir request HTTP -- o gate /super-admin/* travava em
+// "Verificando permissoes..." indefinidamente sem nada aparecer no network/console.
+// AuthContext.loadFullProfile ja valida super_admins; aqui so consumimos.
 export function useIsSuperAdmin() {
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    checkSuperAdmin()
-  }, [])
-
-  const checkSuperAdmin = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user?.email) {
-        const { data } = await supabase
-          .from('super_admins')
-          .select('id')
-          .eq('email', user.email)
-          .maybeSingle()
-
-        setIsSuperAdmin(!!data)
-      } else {
-        setIsSuperAdmin(false)
-      }
-    } catch (error) {
-      console.error('Error checking super admin status:', error)
-      setIsSuperAdmin(false)
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  const { isSuperAdmin, loading } = useAuth()
   return { isSuperAdmin, loading }
 }
