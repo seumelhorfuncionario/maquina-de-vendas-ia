@@ -63,7 +63,11 @@ const linkStyle = ({ isActive }: { isActive: boolean }) =>
       }
     : undefined
 
-export default function TopNav() {
+interface TopNavProps {
+  embed?: boolean // em embed, oculta opcao de sair (cliente nao controla sessao dentro do iframe)
+}
+
+export default function TopNav({ embed = false }: TopNavProps = {}) {
   const { user, logout } = useAuth()
   const { hasFeature } = useTenant()
   const { theme, toggleTheme } = useTheme()
@@ -171,20 +175,22 @@ export default function TopNav() {
                   <div className="text-xs font-semibold text-theme-primary truncate">{user.name}</div>
                   <div className="text-[10px] text-theme-muted truncate">{user.company}</div>
                 </div>
-                <Tooltip content="Sair" position="bottom">
-                  <button
-                    onClick={logout}
-                    aria-label="Sair"
-                    className="p-2 rounded-lg text-theme-secondary hover:text-[var(--accent-red)] transition-all cursor-pointer"
-                  >
-                    <LogOut size={16} />
-                  </button>
-                </Tooltip>
+                {!embed && (
+                  <Tooltip content="Sair" position="bottom">
+                    <button
+                      onClick={logout}
+                      aria-label="Sair"
+                      className="p-2 rounded-lg text-theme-secondary hover:text-[var(--accent-red)] transition-all cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </Tooltip>
+                )}
               </div>
             )}
 
             {/* Logout isolado em telas medias (md: nao mostra, < md: mostra so icone) */}
-            {user && (
+            {user && !embed && (
               <Tooltip content="Sair" position="bottom">
                 <button
                   onClick={logout}
