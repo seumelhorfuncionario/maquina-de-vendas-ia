@@ -113,13 +113,16 @@ export default function LostReasonsCard({
             const barWidth = maxCount > 0 ? (r.count / maxCount) * 100 : 0
             const isOpen = openCategory === r.category
             return (
-              <li key={r.category} className="relative">
+              <li
+                key={r.category}
+                className="relative"
+                onMouseLeave={() => setOpenCategory(null)}
+              >
                 <button
                   type="button"
                   onClick={() => setOpenCategory(isOpen ? null : r.category)}
                   onMouseEnter={() => setOpenCategory(r.category)}
-                  onMouseLeave={() => setOpenCategory(null)}
-                  className="w-full grid grid-cols-[140px_1fr_auto] gap-3 items-center text-left cursor-pointer focus:outline-none"
+                  className="w-full grid grid-cols-[140px_1fr_auto] gap-3 items-center text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-cyan)] rounded-lg"
                   aria-expanded={isOpen}
                   aria-label={`${meta.label} — ${r.count} chats`}
                 >
@@ -146,12 +149,14 @@ export default function LostReasonsCard({
 
                 {isOpen && r.chats.length > 0 && (
                   <div
-                    className="absolute right-0 top-full mt-1 z-20 w-[360px] max-h-[320px] overflow-y-auto rounded-xl border border-theme shadow-2xl p-3"
-                    style={{ backgroundColor: 'var(--bg-card)' }}
-                    onMouseEnter={() => setOpenCategory(r.category)}
-                    onMouseLeave={() => setOpenCategory(null)}
+                    className="absolute right-0 top-full z-50 w-[min(380px,calc(100vw-2rem))] max-h-[360px] overflow-y-auto rounded-xl shadow-2xl p-3 ring-1 ring-[var(--accent-cyan)]/20"
+                    style={{
+                      backgroundColor: 'var(--bg-elevated, #1a1a1a)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                    }}
                   >
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-theme-muted mb-2">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest mb-2.5 pb-2 border-b border-theme" style={{ color: `var(${meta.color})` }}>
                       {meta.label} · {r.chats.length} de {r.count}
                     </div>
                     <ul className="space-y-1.5">
@@ -159,17 +164,17 @@ export default function LostReasonsCard({
                         const url = buildChatUrl(chat.conversation_id)
                         const phone = chat.chat_external_id.split('@')[0]
                         const row = (
-                          <div className="flex items-start gap-2 px-2 py-1.5 rounded-lg hover:surface-elevated transition-colors">
+                          <div className="flex items-start gap-2 px-2.5 py-2 rounded-lg hover:bg-[color-mix(in_srgb,var(--accent-cyan)_8%,transparent)] transition-colors">
                             <div className="flex-1 min-w-0">
-                              <div className="text-[11px] font-data text-theme-primary truncate">{phone}</div>
+                              <div className="text-[12px] font-data font-semibold text-theme-primary truncate">{phone}</div>
                               {chat.excerpt && (
-                                <div className="text-[10px] text-theme-tertiary line-clamp-2 mt-0.5">
+                                <div className="text-[11px] text-theme-secondary line-clamp-2 mt-1 leading-snug">
                                   {chat.excerpt}
                                 </div>
                               )}
                             </div>
                             {url && (
-                              <ExternalLink size={11} className="flex-shrink-0 mt-1" style={{ color: 'var(--accent-cyan)' }} />
+                              <ExternalLink size={12} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-cyan)' }} />
                             )}
                           </div>
                         )
