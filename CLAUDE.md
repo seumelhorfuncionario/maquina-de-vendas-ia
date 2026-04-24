@@ -115,6 +115,51 @@ Aconteceu em `Trafego.tsx` (commit `1410524`) quando `useMemo(whatsappBlock)` es
 
 Checklist: toda mudança em componente com hooks novos → conferir que todos os hooks estão no topo, antes de qualquer return condicional.
 
+## ⚠️ Supabase Auth — regra de hidratação única 🚨
+
+**NUNCA** criar hook que chama `supabase.auth.getUser()` ou `supabase.auth.getSession()` independentemente do `AuthContext`. Sempre **derivar** do `useAuth()`.
+
+**Porquê:** Supabase JS v2 serializa chamadas `auth.*` via `navigator.locks.request('lock:sb-*-auth-token', ...)`. Duas chamadas concorrentes: a segunda espera em silêncio no LockManager — **zero network, zero console, tela travada no loader indefinidamente**. Sintoma clássico: "loading infinito e não aparece nada em network/console".
+
+**Commits que documentaram a lição:** `02e273c`, `82bb31e`, `95f7009`, `c365e21` (2026-04-24).
+
+**Padrão correto:**
+```ts
+// ❌ ERRADO — cria lock contention com AuthContext
+export const useMyHook = () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  ...
+}
+
+// ✅ CERTO — deriva do AuthContext
+export const useMyHook = () => {
+  const { user, clientProfile, isSuperAdmin, loading } = useAuth()
+  ...
+}
+```
+
+**`AuthContext` single source of truth** (refatorado em `95f7009`):
+- UMA fonte de hidratação: `onAuthStateChange` listener. **Não existe `checkExistingSession`**. O Supabase dispara `INITIAL_SESSION` na primeira subscrição com session do storage ou null — isso substitui getSession manual.
+- **Safety timeout 5s** na mount: se `INITIAL_SESSION` não chegar (bug/rede/lock), força `loading=false`.
+- `loadFullProfile` com:
+  - **Promise.race timeout 6s** (commit `c365e21`): se queries RLS/rede penduram, app destrava em 6s com user mínimo (só `email` da session). Usuário pode navegar, só perde detecção super admin/client até recarregar.
+  - Queries `super_admins` e `clients` **paralelizadas** com `Promise.all`. Antes sequenciais = 2x latência + 2x janela de lock contention.
+  - No catch, `setUser(prev => prev ?? { id, name: email, email, company: '' })`: mantém state parcial se alguma query retornou antes do timeout.
+
+**Hooks JÁ refatorados** (todos derivam do AuthContext):
+- `useClientId`, `useIsSuperAdmin`, `useIsAdmin`
+
+**Hooks que ainda fazem `auth.getSession()` on-demand** (OK, não bloqueiam mount):
+- `useReportMetrics`, `useClientAgents`, `useClientTickets`, `useClientTransfers`, `useAIChat`, `useAIInsights`, `useAnalyzeLostChats` (todos passam access_token pra edge functions — call pontual na hora do fetch)
+
+**Sintomas que indicam violação da regra:**
+- Tela de loader genérica ("Carregando...", "Verificando permissões...") que não sai
+- DevTools Network vazio (nem pending request aparece — a call tá no Lock antes do fetch)
+- Console warning: `Lock "lock:sb-*-auth-token" was not released within 5000ms`
+- Diferença mobile vs desktop: **mobile funciona mas desktop trava** (storage limpo mobile pula `loadFullProfile` pq `session=null`; desktop com session cacheada cai dentro do lock disputado)
+
+**Antes de criar qualquer hook de auth-dependente:** primeiro tentar derivar do `useAuth()`. Só adicionar uma query própria se for para algo que `AuthContext` realmente não provê (ex: RPC `check_user_role` em `useIsAdmin`), e mesmo assim NUNCA junto com `getUser()` — use o `user.id` do contexto.
+
 ## Criativos (/criativos)
 
 Kanban de conteudo: draft → review → approved → published.
