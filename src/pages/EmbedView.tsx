@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { Loader2, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { TenantProvider } from '../contexts/TenantContext'
 import { DataProvider } from '../contexts/DataContext'
@@ -55,32 +55,6 @@ function DeniedBlock({ reason }: { reason: string }) {
   )
 }
 
-function EmbedBanner({ clientName, belowTopNav }: { clientName: string | null; belowTopNav: boolean }) {
-  return (
-    <div
-      className={`sticky ${belowTopNav ? 'top-14 z-30' : 'top-0 z-50'} flex items-center justify-between px-6 py-2.5 border-b border-theme`}
-      style={{ backgroundColor: 'color-mix(in srgb, var(--accent-cyan) 8%, var(--bg-card))' }}
-    >
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--accent-cyan)' }}>
-          Modo embed
-        </span>
-        {clientName && (
-          <span className="text-sm text-theme-primary font-semibold">{clientName}</span>
-        )}
-      </div>
-      <button
-        onClick={() => window.close()}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-        style={{ color: 'var(--accent-cyan)' }}
-      >
-        <ArrowLeft size={14} />
-        Fechar
-      </button>
-    </div>
-  )
-}
-
 export default function EmbedView() {
   const { clientId } = useParams<{ clientId: string }>()
   const [searchParams] = useSearchParams()
@@ -90,15 +64,22 @@ export default function EmbedView() {
 
   const { isAuthenticated, isSuperAdmin, clientProfile, loading: authLoading } = useAuth()
   const [clientExists, setClientExists] = useState<boolean | null>(null)
-  const [clientName, setClientName] = useState<string | null>(null)
 
-  // Auto-login via ?token= (embed_token) — for clients opening the Máquina from Chatwoot iframe
+  // Auto-login: (1) via ?token= embed_token ou (2) sem token quando Origin e trusted
+  // (edge function `embed-session` valida via CORS Origin contra whitelist SMF).
   const embedToken = searchParams.get('token')
   const [tokenExchanging, setTokenExchanging] = useState(false)
   const [tokenError, setTokenError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (authLoading || isAuthenticated || !embedToken || !clientId || tokenExchanging) return
+    if (authLoading || isAuthenticated || !clientId || tokenExchanging) return
+
+    // Auto-login sem token so quando em iframe -- impede que qualquer pessoa com a URL
+    // /embed/{clientId} em browser standalone entre direto na conta do cliente.
+    // Com token, funciona em qualquer contexto (URL privada por cliente).
+    const inIframe = typeof window !== 'undefined' && window.top !== window.self
+    if (!embedToken && !inIframe) return
+
     setTokenExchanging(true)
 
     const exchange = async () => {
@@ -107,10 +88,13 @@ export default function EmbedView() {
         const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
         if (!supabaseUrl || !anonKey) throw new Error('Supabase env missing')
 
+        const body: Record<string, string> = { client_id: clientId }
+        if (embedToken) body.token = embedToken
+
         const res = await fetch(`${supabaseUrl}/functions/v1/embed-session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', apikey: anonKey },
-          body: JSON.stringify({ client_id: clientId, token: embedToken }),
+          body: JSON.stringify(body),
         })
         const payload = await res.json()
         if (!res.ok) throw new Error(payload?.error || `HTTP ${res.status}`)
@@ -144,14 +128,13 @@ export default function EmbedView() {
     let active = true
     supabase
       .from('clients')
-      .select('id, business_name')
+      .select('id')
       .eq('id', clientId)
       .eq('is_active', true)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return
         setClientExists(!!data)
-        setClientName(data?.business_name ?? null)
       })
     return () => {
       active = false
@@ -167,14 +150,12 @@ export default function EmbedView() {
 
   const PageComponent = PAGES[page]
   const showTopNav = chrome === 'full'
-  const showBanner = chrome !== 'none'
 
   return (
     <TenantProvider>
       <DataProvider>
         <div className="min-h-screen surface-base">
           {showTopNav && <TopNav />}
-          {showBanner && <EmbedBanner clientName={clientName} belowTopNav={showTopNav} />}
           <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">
             <Suspense fallback={<LoadingBlock label="Carregando painel..." />}>
               <PageComponent />

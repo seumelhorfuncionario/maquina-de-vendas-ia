@@ -98,12 +98,6 @@ export default function TopNav() {
             <img src="/brand/logo-smf.webp" alt="SMF Logo" className="w-8 h-8 rounded-lg" />
             <div className="hidden sm:block leading-tight">
               <div className="text-sm font-bold text-theme-primary">Sala do Chefe</div>
-              <div
-                className="text-[9px] font-semibold tracking-widest uppercase"
-                style={{ color: 'var(--accent-cyan)' }}
-              >
-                by SMF
-              </div>
             </div>
           </NavLink>
 

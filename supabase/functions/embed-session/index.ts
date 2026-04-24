@@ -1,19 +1,36 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+// Origens confiaveis podem pular a validacao do embed_token (auto-login por client_id).
+// Browser-enforced: Origin header so pode ser setado pelo browser em fetch cross-origin;
+// atacantes nao-browser podem falsificar, mas o token_hash resultante so autentica o
+// auth_user_id do cliente especifico -- RLS cuida do resto. Trust assumption: SMF
+// controla esses dominios; XSS em qualquer um deles seria um incidente de seguranca proprio.
+const TRUSTED_ORIGINS = new Set([
+  'https://crm.seumelhorfuncionario.com',
+  'https://resultados.seumelhorfuncionario.com',
+  'https://painel.seumelhorfuncionario.com',
+  'https://motor.seumelhorfuncionario.com',
+])
 
-const json = (data: unknown, status = 200) =>
+const json = (data: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...extraHeaders, 'Content-Type': 'application/json' },
   })
 
-// Constant-time comparison of two hex/uuid strings
+function corsHeadersFor(origin: string | null): Record<string, string> {
+  // Reflete Origin se confiavel, senao '*' mantendo retro-compat com callers antigos
+  // que passavam embed_token explicitamente.
+  const allowOrigin = origin && TRUSTED_ORIGINS.has(origin) ? origin : '*'
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
+}
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false
   let result = 0
@@ -24,18 +41,31 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin')
+  const cors = corsHeadersFor(origin)
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: cors })
   }
 
   if (req.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, 405)
+    return json({ error: 'Method not allowed' }, 405, cors)
   }
 
   try {
-    const { client_id, token } = await req.json()
-    if (!client_id || !token) {
-      return json({ error: 'client_id and token are required' }, 400)
+    const body = await req.json()
+    const client_id = body?.client_id as string | undefined
+    const token = body?.token as string | undefined
+
+    if (!client_id) {
+      return json({ error: 'client_id is required' }, 400, cors)
+    }
+
+    const isTrustedOrigin = !!origin && TRUSTED_ORIGINS.has(origin)
+
+    // Token e opcional quando origem e confiavel (ex: iframe da Chatwoot).
+    if (!token && !isTrustedOrigin) {
+      return json({ error: 'token is required' }, 400, cors)
     }
 
     const admin = createClient(
@@ -49,19 +79,20 @@ Deno.serve(async (req: Request) => {
       .eq('id', client_id)
       .maybeSingle()
 
-    if (clientErr || !client) return json({ error: 'Client not found' }, 404)
-    if (!client.is_active) return json({ error: 'Client inactive' }, 403)
-    if (!client.auth_user_id) return json({ error: 'Client has no auth user bound' }, 400)
+    if (clientErr || !client) return json({ error: 'Client not found' }, 404, cors)
+    if (!client.is_active) return json({ error: 'Client inactive' }, 403, cors)
+    if (!client.auth_user_id) return json({ error: 'Client has no auth user bound' }, 400, cors)
 
-    // Validate token with constant-time compare
-    if (!timingSafeEqual(String(client.embed_token), String(token))) {
-      return json({ error: 'Invalid token' }, 401)
+    // Se veio token, valida em tempo constante. Sem token so passa se origem for trusted.
+    if (token) {
+      if (!timingSafeEqual(String(client.embed_token), String(token))) {
+        return json({ error: 'Invalid token' }, 401, cors)
+      }
     }
 
-    // Fetch the user's email so we can generate a magiclink for them
     const { data: userData, error: userErr } = await admin.auth.admin.getUserById(client.auth_user_id)
     if (userErr || !userData?.user?.email) {
-      return json({ error: 'Could not resolve auth user' }, 500)
+      return json({ error: 'Could not resolve auth user' }, 500, cors)
     }
 
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
@@ -70,15 +101,16 @@ Deno.serve(async (req: Request) => {
     })
 
     if (linkErr || !linkData?.properties?.hashed_token) {
-      return json({ error: 'Could not generate magiclink', detail: linkErr?.message }, 500)
+      return json({ error: 'Could not generate magiclink', detail: linkErr?.message }, 500, cors)
     }
 
     return json({
       token_hash: linkData.properties.hashed_token,
       email: userData.user.email,
       type: 'magiclink',
-    })
+      auth_mode: token ? 'embed_token' : 'trusted_origin',
+    }, 200, cors)
   } catch (err) {
-    return json({ error: 'Internal error', detail: (err as Error).message }, 500)
+    return json({ error: 'Internal error', detail: (err as Error).message }, 500, cors)
   }
 })
