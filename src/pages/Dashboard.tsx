@@ -46,11 +46,17 @@ export default function Dashboard() {
     ? Math.round((totalAgendamentos / totalAtendimentos) * 1000) / 10
     : 0
 
-  // Gráfico: agendamentos por dia (agregado client-side do mesmo dataset dos KPIs)
+  // Gráfico: agendamentos por dia DENTRO do periodo selecionado.
+  // Futuros ja marcados contam no KPI (consistente com /agendamentos) mas
+  // o grafico "ultimos N dias" deve mostrar somente ate o fim do range,
+  // senao aparece barra em data posterior ao hoje.
   const chartData = useMemo(() => {
+    const rangeToISO = range.to.toISOString().slice(0, 10)
+    const rangeFromISO = range.from.toISOString().slice(0, 10)
     const byDay = new Map<string, number>()
     for (const ag of agents.agendamentos) {
       const day = ag.data_inicio.slice(0, 10)
+      if (day < rangeFromISO || day > rangeToISO) continue
       byDay.set(day, (byDay.get(day) || 0) + 1)
     }
     return Array.from(byDay.entries())
@@ -59,7 +65,7 @@ export default function Dashboard() {
         name: new Date(day + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
         agendamentos: count,
       }))
-  }, [agents.agendamentos])
+  }, [agents.agendamentos, range.from, range.to])
 
   const loading = agents.loading
 
