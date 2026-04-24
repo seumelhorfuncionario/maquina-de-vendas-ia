@@ -143,6 +143,24 @@ export default function Trafego() {
     return tabs
   }, [groups])
 
+  // Bloco WhatsApp Leads: agrega metricas das campanhas de conversa via WhatsApp + cruza
+  // com agendamentos do periodo (useReportMetrics). So renderiza se whatsapp_leads estiver no foco.
+  // IMPORTANTE: tem que vir ANTES de qualquer early return -- senao numero de hooks muda
+  // entre renders (loading=true vs loading=false) e dispara React error #310.
+  const whatsappBlock = useMemo(() => {
+    if (!focuses.includes('whatsapp_leads')) return null
+    const wppCamps = campaigns.filter(isWhatsAppLeadCampaign)
+    if (wppCamps.length === 0) return null
+    const spend = wppCamps.reduce((s, c) => s + c.spend, 0)
+    const msgs = wppCamps.reduce((s, c) => s + (c.messagingReplies ?? 0), 0)
+    const linkClicks = wppCamps.reduce((s, c) => s + c.linkClicks, 0)
+    const agendamentos = report.data?.stats?.agendamentos?.total ?? null
+    const custoPorMsg = msgs > 0 ? spend / msgs : 0
+    const custoPorAgendamento = agendamentos && agendamentos > 0 ? spend / agendamentos : 0
+    const taxaMsgAgendamento = msgs > 0 && agendamentos ? (agendamentos / msgs) * 100 : 0
+    return { spend, msgs, linkClicks, agendamentos, custoPorMsg, custoPorAgendamento, taxaMsgAgendamento, count: wppCamps.length }
+  }, [focuses, campaigns, report.data])
+
   // Reset to overview if active tab no longer available
   if (!availableTabs.includes(activeTab)) setActiveTab('overview')
 
@@ -159,22 +177,6 @@ export default function Trafego() {
   }
 
   const tabLabel = (tab: TabKey) => tab === 'overview' ? 'Visão Geral' : GROUP_CONFIG[tab].label
-
-  // Bloco WhatsApp Leads: agrega metricas das campanhas de conversa via WhatsApp + cruza
-  // com agendamentos do periodo (useReportMetrics). So renderiza se whatsapp_leads estiver no foco.
-  const whatsappBlock = useMemo(() => {
-    if (!focuses.includes('whatsapp_leads')) return null
-    const wppCamps = campaigns.filter(isWhatsAppLeadCampaign)
-    if (wppCamps.length === 0) return null
-    const spend = wppCamps.reduce((s, c) => s + c.spend, 0)
-    const msgs = wppCamps.reduce((s, c) => s + (c.messagingReplies ?? 0), 0)
-    const linkClicks = wppCamps.reduce((s, c) => s + c.linkClicks, 0)
-    const agendamentos = report.data?.stats?.agendamentos?.total ?? null
-    const custoPorMsg = msgs > 0 ? spend / msgs : 0
-    const custoPorAgendamento = agendamentos && agendamentos > 0 ? spend / agendamentos : 0
-    const taxaMsgAgendamento = msgs > 0 && agendamentos ? (agendamentos / msgs) * 100 : 0
-    return { spend, msgs, linkClicks, agendamentos, custoPorMsg, custoPorAgendamento, taxaMsgAgendamento, count: wppCamps.length }
-  }, [focuses, campaigns, report.data])
 
   return (
     <div className="gradient-mesh-traffic">
