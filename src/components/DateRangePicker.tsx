@@ -12,7 +12,8 @@ interface DateRangePickerProps {
   presets?: number[]
 }
 
-const DEFAULT_PRESETS = [7, 15, 30, 90]
+const DEFAULT_PRESETS = [7, 15, 30, 60]
+const MAX_RANGE_DAYS = 60
 
 function startOfDay(d: Date): Date {
   const x = new Date(d)
@@ -85,11 +86,22 @@ export default function DateRangePicker({ value, onChange, presets = DEFAULT_PRE
 
   const applyCustom = () => {
     const from = startOfDay(fromInput(fromStr))
-    const to = endOfDay(fromInput(toStr))
+    let to = endOfDay(fromInput(toStr))
     if (from > to) return
+    // Trava de 60 dias: clampa o "to" se o range exceder
+    const maxTo = new Date(from.getTime() + (MAX_RANGE_DAYS - 1) * 86400000)
+    if (to.getTime() > endOfDay(maxTo).getTime()) to = endOfDay(maxTo)
     onChange({ from, to })
     setOpen(false)
   }
+
+  // max do input "Ate": menor entre hoje e from + 60 dias
+  const maxToInput = (() => {
+    const fromDate = fromInput(fromStr)
+    const maxByRange = new Date(fromDate.getTime() + (MAX_RANGE_DAYS - 1) * 86400000)
+    const today = new Date()
+    return toInput(maxByRange < today ? maxByRange : today)
+  })()
 
   return (
     <div className="relative" ref={popoverRef}>
@@ -146,10 +158,11 @@ export default function DateRangePicker({ value, onChange, presets = DEFAULT_PRE
                 type="date"
                 value={toStr}
                 min={fromStr}
-                max={toInput(new Date())}
+                max={maxToInput}
                 onChange={e => setToStr(e.target.value)}
                 className="w-full bg-[var(--bg-elevated)] border border-theme rounded-lg px-3 py-2 text-xs text-theme-primary outline-none focus:border-[var(--accent-cyan)] transition-colors font-data"
               />
+              <p className="text-[10px] text-theme-muted mt-1">Máximo {MAX_RANGE_DAYS} dias por relatório</p>
             </div>
             <div className="text-[11px] text-theme-muted font-data">
               {daysBetween(fromInput(fromStr), fromInput(toStr)) + 1} dia(s)
