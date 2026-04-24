@@ -34,24 +34,41 @@ const TRUSTED_PARENT_ORIGINS = new Set([
   'https://motor.seumelhorfuncionario.com',
 ])
 
+// Detecta a origem do pai do iframe.
+// Prioridade 1: window.location.ancestorOrigins (Chrome/Safari/Edge) -- nao e afetado
+//   por Referrer-Policy nem <iframe sandbox>. E a propria API pro navegador expor
+//   ancestors hierarquicamente. ancestorOrigins[0] = pai imediato.
+// Prioridade 2: document.referrer (fallback pro Firefox, que ainda nao suporta
+//   ancestorOrigins). Pode vir vazio se o pai usar Referrer-Policy restritivo ou
+//   se o iframe tiver atributo sandbox sem allow-same-origin.
+// Retorna null se nao conseguir determinar -- pra caller decidir (allow ou block).
+function detectParentOrigin(): string | null {
+  if (typeof window === 'undefined') return null
+  // ancestorOrigins
+  try {
+    const ao = (window.location as any).ancestorOrigins as DOMStringList | undefined
+    if (ao && ao.length > 0) return ao[0]
+  } catch { /* continua pro fallback */ }
+  // referrer fallback
+  try {
+    const ref = document.referrer
+    if (ref) return new URL(ref).origin
+  } catch { /* nao deu */ }
+  return null
+}
+
 // Verifica se a pagina esta sendo embedada por um dominio SMF confiavel.
-// Requer (a) estar em iframe e (b) document.referrer do parent estar na whitelist.
+// Requer (a) estar em iframe e (b) pai detectado estar na whitelist.
 // Falha fechado: nova guia, aba direta, iframe de dominio nao-trusted -> false.
 function isTrustedEmbedContext(): boolean {
   if (typeof window === 'undefined') return false
   try {
     if (window.top === window.self) return false
   } catch {
-    return false
+    // Cross-origin access blocked = estamos em iframe cross-origin, segue pro proximo check
   }
-  try {
-    const ref = document.referrer
-    if (!ref) return false
-    const origin = new URL(ref).origin
-    return TRUSTED_PARENT_ORIGINS.has(origin)
-  } catch {
-    return false
-  }
+  const parentOrigin = detectParentOrigin()
+  return !!parentOrigin && TRUSTED_PARENT_ORIGINS.has(parentOrigin)
 }
 
 function LoadingBlock({ label }: { label: string }) {
@@ -119,9 +136,10 @@ export default function EmbedView() {
         const body: Record<string, string> = { client_id: clientId }
         if (embedToken) body.token = embedToken
         // Envia o parent origin pro server conferir -- defense in depth alem do CORS.
-        try {
-          if (document.referrer) body.parent_origin = new URL(document.referrer).origin
-        } catch { /* referrer invalido -- server decide */ }
+        // Usa ancestorOrigins (preferido, nao strippado por Referrer-Policy/sandbox)
+        // com fallback pra document.referrer.
+        const parentOrigin = detectParentOrigin()
+        if (parentOrigin) body.parent_origin = parentOrigin
 
         const res = await fetch(`${supabaseUrl}/functions/v1/embed-session`, {
           method: 'POST',
