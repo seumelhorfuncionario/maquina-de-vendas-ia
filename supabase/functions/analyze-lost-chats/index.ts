@@ -9,10 +9,11 @@ const corsHeaders = {
 const AGENTS_URL = 'https://wacotfqoarsbazrreeco.supabase.co';
 const AGENTS_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhY290ZnFvYXJzYmF6cnJlZWNvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM2NDU3NSwiZXhwIjoyMDg4OTQwNTc1fQ.F6zZ7f4XAP4jrhuKUHDajW4cnYGHncSoDuGDLavRZ2g';
 
-// Modelo barato via OpenRouter. Grok 4 Fast = rapido + custo ~10x menor que gpt-4o-mini
-// pra essa task de classificacao. OPENROUTER_API_KEY precisa estar nos secrets do projeto.
-const MODEL = 'x-ai/grok-4-fast';
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// xAI direto. grok-4.1-fast = barato e rapido pra classificacao pt-BR.
+// XAI_API_KEY deve estar setada como secret do edge function (via dashboard
+// Supabase > Edge Functions > Secrets). Sem ela, a function loga erro e retorna null.
+const MODEL = 'grok-4.1-fast';
+const XAI_URL = 'https://api.x.ai/v1/chat/completions';
 
 const CATEGORY_SCHEMA = `{
   "preco": "Reclamou do valor, pediu desconto, falou que esta caro, ou desistiu por preco",
@@ -168,9 +169,9 @@ interface Classification {
 }
 
 async function classifyWithAI(conversaText: string, client: any): Promise<Classification | null> {
-  const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+  const apiKey = Deno.env.get('XAI_API_KEY');
   if (!apiKey) {
-    console.error('OPENROUTER_API_KEY nao configurada no edge function');
+    console.error('XAI_API_KEY nao configurada — setar em Supabase > Edge Functions > Secrets');
     return null;
   }
 
@@ -196,13 +197,11 @@ REGRAS:
   const userPrompt = `${contexto}\n\nCONVERSA (ultimos 20 turnos):\n${conversaText}\n\nRetorne o JSON.`;
 
   try {
-    const res = await fetch(OPENROUTER_URL, {
+    const res = await fetch(XAI_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://maquina-de-vendas-ia.vercel.app',
-        'X-Title': 'Motor de Vendas IA - Lost Chats Analysis',
       },
       body: JSON.stringify({
         model: MODEL,
@@ -216,13 +215,13 @@ REGRAS:
     });
     if (!res.ok) {
       const errText = await res.text();
-      console.error(`OpenRouter error ${res.status}:`, errText);
+      console.error(`xAI error ${res.status}:`, errText);
       return null;
     }
     const d = await res.json();
     const content = d.choices?.[0]?.message?.content;
     if (!content) {
-      console.error('OpenRouter retornou sem content:', JSON.stringify(d));
+      console.error('xAI retornou sem content:', JSON.stringify(d));
       return null;
     }
     const parsed = JSON.parse(content);
