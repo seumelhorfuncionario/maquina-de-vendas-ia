@@ -32,6 +32,7 @@ const TRUSTED_PARENT_ORIGINS = new Set([
   'https://resultados.seumelhorfuncionario.com',
   'https://painel.seumelhorfuncionario.com',
   'https://motor.seumelhorfuncionario.com',
+  'https://gestao.seumelhorfuncionario.com',
 ])
 
 // Detecta a origem do pai do iframe.

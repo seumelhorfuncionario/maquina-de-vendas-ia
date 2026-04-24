@@ -11,6 +11,7 @@ const TRUSTED_ORIGINS = new Set([
   'https://resultados.seumelhorfuncionario.com',
   'https://painel.seumelhorfuncionario.com',
   'https://motor.seumelhorfuncionario.com',
+  'https://gestao.seumelhorfuncionario.com',
 ])
 
 const json = (data: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
